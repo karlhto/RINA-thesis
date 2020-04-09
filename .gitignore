@@ -60,3 +60,22 @@ out/
 # ignore backup and temp files
 *.bak
 *~
+
+# ignore CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# project files
+.idea/
+.qtenvrc
+RINASim.cbp
+cmake-build-debug/
