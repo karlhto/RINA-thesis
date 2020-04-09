@@ -28,10 +28,10 @@ void APStream::initialize() {
     AP::initialize();
     if (strcmp(par("dstApName").stringValue(),"AppErr")) {
         m1 = new cMessage("start");
-        scheduleAt(simTime() + par("startAt").longValue(), m1);
+        scheduleAt(simTime() + par("startAt").intValue(), m1);
 
         m2 = new cMessage("stop");
-        scheduleAt(simTime() + par("stopAt").longValue(), m2);
+        scheduleAt(simTime() + par("stopAt").intValue(), m2);
     }
 }
 

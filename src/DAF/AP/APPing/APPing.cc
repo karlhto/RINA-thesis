@@ -33,8 +33,8 @@ APPing::~APPing() {
 void APPing::initialize() {
     AP::initialize();
     currentID = 0;
-    long t1 = par("startAt").longValue();
-    long t2 = par("stopAt").longValue();
+    long t1 = par("startAt").intValue();
+    long t2 = par("stopAt").intValue();
 
     if (strcmp(par("dstApName").stringValue(),"AppERROR") &&
             t2 > t1 && t1 > 0 && t2 > 0

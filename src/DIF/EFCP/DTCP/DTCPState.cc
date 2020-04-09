@@ -288,15 +288,15 @@ void DTCPState::clearRxQ()
   std::vector<DTCPRxExpiryTimer*>::iterator it;
     for (it = rxQ.begin(); it != rxQ.end();)
     {
-      if((*it)->getPdu() != NULL){
-        take((*it)->getPdu());
-        delete (*it)->getPdu();
-      }
-//      drop((*it));
-//      if((*it)->isScheduled()){
-//        take((*it));
-//        cancelAndDelete((*it));
-//      }
+        if ((*it)->getPdu() != NULL){
+            take(*it);
+            delete (*it)->getPdu();
+        }
+        //      drop((*it));
+        //      if((*it)->isScheduled()){
+        //        take((*it));
+        //        cancelAndDelete((*it));
+        //      }
         it = rxQ.erase(it);
 
     }

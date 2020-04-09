@@ -143,11 +143,11 @@ namespace NSPSimpleDC {
         start = new cMessage("Start updates");
         sched = nullptr;
 
-        pods = par("pods").longValue();
-        torXpod = par("torXpod").longValue();
-        fabricXpod = par("fabricXpod").longValue();
-        spineXfabric = par("spineXfabric").longValue();
-        edgeSets = par("edgeSets").longValue();
+        pods = par("pods").intValue();
+        torXpod = par("torXpod").intValue();
+        fabricXpod = par("fabricXpod").intValue();
+        spineXfabric = par("spineXfabric").intValue();
+        edgeSets = par("edgeSets").intValue();
         updateWait = par("updateWait").doubleValue();
         expiration = par("expiration").doubleValue();
         double starttime = par("starttime").doubleValue();
