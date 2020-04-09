@@ -20,12 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-cplusplus {{
-#include "DIF/EFCP/DTP/DataTransferPDU.h"
-typedef DataTransferPDU* DTPDU_p;
-}}
-class noncobject DTPDU_p;
-
+import DIF.EFCP.DTP.DataTransferPDU;
 
 enum DTCPTimerType
 {
@@ -48,7 +43,7 @@ message DTCPTimers {
 
 message DTCPRxExpiryTimer extends DTCPTimers{
     type = DTCP_RX_EXPIRY_TIMER;
-    DTPDU_p pdu = NULL;
+    DataTransferPDU *pdu = NULL;
     unsigned int expiryCount = 0;
     double sent = 0;
 }

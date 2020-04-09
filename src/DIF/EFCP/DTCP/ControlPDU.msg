@@ -20,10 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+import Common.PDU;
+
 cplusplus {{
 #include "Common/PDU.h"
 }}
-packet PDU;
 
 packet ControlPDU extends PDU{
     type = -1;

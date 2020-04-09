@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+import DIF.Delimiting.Data;
+
 cplusplus {{
 
 #include <vector>
@@ -27,8 +29,9 @@ cplusplus {{
 typedef std::vector<cPacket*> mUserDataType;
 }}
 
-packet Data;
-class noncobject mUserDataType;
+class mUserDataType {
+    @existingClass;
+}
 
 enum FragmentType{
     	SDU_FRAG_FIRST 		= 0x01;

@@ -13,15 +13,9 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
+import DIF.Delimiting.PDUData;
 
-
-#include "PDUData.h"
-}}
-
-packet PDUData;
 //class noncobject mUserDataType;
-
 
 packet UserDataField {
     @customize(true);  // see the generated C++ header for more info

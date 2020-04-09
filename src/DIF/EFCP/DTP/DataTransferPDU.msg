@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+import Common.PDU;
 
 cplusplus {{
 #include "Common/PDU.h"
@@ -27,7 +28,7 @@ cplusplus {{
 
 typedef UserDataField* UserDataFieldPtr;
 }}
-packet PDU;
+
 class noncobject UserDataFieldPtr;
 //
 // TODO generated message class

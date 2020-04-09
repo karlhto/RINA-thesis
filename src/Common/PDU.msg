@@ -32,9 +32,17 @@ cplusplus {{
 //typedef UserDataField* UserDataFieldPtr;
 
 }}
-class noncobject Address;
-class noncobject APN;
-class noncobject ConnectionId;
+
+class Address {
+    @existingClass;
+}
+class APN {
+    @existingClass;
+}
+class ConnectionId {
+    @existingClass;
+}
+
 //class noncobject cMessagePtr;
 //class noncobject cObjectPtr;
 

@@ -86,13 +86,13 @@ message RcvrInactivityTimer extends InactivityTimer{
 
 message ATimer extends DTPTimers{
  	type = DTP_A_TIMER;   
- 	DTPDU_p pdu = NULL;
+ 	DataTransferPDU *pdu = NULL;
  	unsigned int seqNum;
 }
 
 message TheInterrupterTimer extends DTPTimers{
- type = DTP_INTERRUPTER_TIMER;
- int action enum(InterrupterActionType);
+    type = DTP_INTERRUPTER_TIMER;
+    int action enum(InterrupterActionType);
 }
 
 

@@ -25,11 +25,16 @@
 cplusplus {{
     #include "Common/APNamingInfo.h"
     #include "Common/Address.h"
-    typedef cObject* ObjectPtr;
+    typedef cObject *ObjectPtr;
 }}
 
-class noncobject Address;
-class noncobject APNamingInfo;
+class Address {
+    @existingClass;
+}
+class APNamingInfo {
+    @existingClass;
+}
+
 class noncobject ObjectPtr;
 
 //Message operation codes
