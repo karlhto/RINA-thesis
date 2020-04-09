@@ -28,6 +28,7 @@
  */
 
 #include "DIF/Delimiting/Delimiting.h"
+#include "DIF/Delimiting/PDUData.h"
 
 Define_Module(Delimiting);
 

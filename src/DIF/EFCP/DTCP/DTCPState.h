@@ -33,6 +33,7 @@
 
 #include <omnetpp.h>
 #include "Common/Utils.h"
+#include "DIF/EFCP/DTP/DataTransferPDU.h"
 #include "DIF/EFCP/DTCP/DTCPTimers_m.h"
 
 /*

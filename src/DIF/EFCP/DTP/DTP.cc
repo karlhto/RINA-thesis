@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "DIF/EFCP/DTP/DTP.h"
+#include "DIF/Delimiting/PDUData.h"
 
 const char * SIG_STAT_DTP_RTT = "DTP_RTT";
 const char * SIG_STAT_DTP_CLOSED_WIN_Q = "DTP_CLOSED_WIN_Q";
