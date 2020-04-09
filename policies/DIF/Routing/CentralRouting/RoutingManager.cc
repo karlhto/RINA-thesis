@@ -34,10 +34,10 @@ void RoutingManager::onPolicyInit() {
     if(start_Time < 0.0) { start_Time = 0.0; }
     scheduleAt(simTime() + start_Time, start_timer);
 
-    f = par("fabrics").longValue();
-    p = par("pods").longValue();
-    s = par("spines").longValue();
-    t = par("tors").longValue();
+    f = par("fabrics").intValue();
+    p = par("pods").intValue();
+    s = par("spines").intValue();
+    t = par("tors").intValue();
 
     current_sent = 0;
     exception_in_seq = 0;

@@ -36,7 +36,7 @@ void RMTSchedulingBase::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage() && !opp_strcmp(msg->getFullName(), "processPort"))
     { // TODO: this is lousy, think of something better
-        RMTQueueType direction = (RMTQueueType)msg->par("direction").longValue();
+        RMTQueueType direction = (RMTQueueType)msg->par("direction").intValue();
         const char* portName = msg->par("portName").stringValue();
         RMTPort* port = rmtAllocator->getPort(portName);
         if (port != NULL)

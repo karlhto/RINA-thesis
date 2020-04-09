@@ -46,7 +46,7 @@ void RIBdBase::initMyAddress() {
 }
 
 long RIBdBase::getNewInvokeId() {
-    long newinvoke = getParentModule()->getSubmodule(MOD_CDAP)->par(PAR_CURINVOKEID).longValue() + 1;
+    long newinvoke = getParentModule()->getSubmodule(MOD_CDAP)->par(PAR_CURINVOKEID).intValue() + 1;
     getParentModule()->getSubmodule(MOD_CDAP)->par(PAR_CURINVOKEID) = newinvoke;
     return newinvoke;
 }
