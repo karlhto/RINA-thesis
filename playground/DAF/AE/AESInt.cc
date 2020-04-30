@@ -86,7 +86,7 @@ void AESInt::initialize()
 
 
     //MAX PDU Size
-    maxSize = par("maxPDUsize").longValue();
+    maxSize = par("maxPDUsize").intValue();
 
     send = 0;
     sendSize = 0;

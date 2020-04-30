@@ -50,7 +50,7 @@ string IDPerNQoSxPLen::generateInputQueueID(PDU* pdu)
 
 
 void IDPerNQoSxPLen::initialize() {
-    maxHCount = par("maxHCount").longValue();
+    maxHCount = par("maxHCount").intValue();
     if(maxHCount <= 0) { maxHCount = 1; }
 
     cXMLElement* Xml = NULL;

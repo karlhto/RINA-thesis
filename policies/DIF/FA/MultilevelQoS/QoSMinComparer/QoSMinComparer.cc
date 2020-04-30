@@ -25,8 +25,8 @@
 Define_Module(QoSMinComparer);
 
 void QoSMinComparer::initialize() {
-    mHops = par("maxHops").longValue();
-    mlBandw = par("mulBandw").longValue();
+    mHops = par("maxHops").intValue();
+    mlBandw = par("mulBandw").intValue();
     setPolicyDisplayString(this);
 }
 

@@ -85,10 +85,10 @@ void GRE_ClosR2::routingUpdated(){
 
 // Called after initialize
 void GRE_ClosR2::onPolicyInit(){
-    f = par("fabrics").longValue();
-    p = par("pods").longValue();
-    s = par("spines").longValue();
-    t = par("tors").longValue();
+    f = par("fabrics").intValue();
+    p = par("pods").intValue();
+    s = par("spines").intValue();
+    t = par("tors").intValue();
 
     //Set Forwarding policy
     fwd = getRINAModule<Clos2 *>(this, 2, {MOD_RELAYANDMUX, MOD_POL_RMT_PDUFWD});

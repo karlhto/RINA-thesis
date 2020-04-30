@@ -195,10 +195,10 @@ void GRE_ClosToR::onPolicyInit() {
     fwd = getRINAModule<Clos0 *>(this, 2,
             { MOD_RELAYANDMUX, MOD_POL_RMT_PDUFWD });
 
-    f = par("fabrics").longValue();
-    p = par("pods").longValue();
-    s = par("spines").longValue();
-    t = par("tors").longValue();
+    f = par("fabrics").intValue();
+    p = par("pods").intValue();
+    s = par("spines").intValue();
+    t = par("tors").intValue();
 
     rawAddr = getModuleByPath("^.^")->par("ipcAddress").stringValue();
     dif = getModuleByPath("^.^")->par("difName").stringValue();

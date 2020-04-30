@@ -7,8 +7,8 @@ EthChannel::EthChannel() : cDatarateChannel() {
 }
 void EthChannel::initialize() {
     cDatarateChannel::initialize();
-    eheader = par("header").longValue();
-    eipg = par("ipg").longValue();
+    eheader = par("header").intValue();
+    eipg = par("ipg").intValue();
     edelay = par("delay").doubleValue();
     edatarate = par("datarate").doubleValue()/8.0;
     etxfinishtime = 0.0;
