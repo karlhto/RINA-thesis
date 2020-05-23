@@ -20,13 +20,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF;
+// @author karlhto
+// This is heavily inspired by INET's ARP protocol machine.
 
-module EthShim {
-    gates:
-        inout northIo; // Incoming SDUs
-        input ifIn;
-        output ifOut;
-        input arpIn;
-        output arpOut;
+cplusplus {{
+#include "Common/APN.h"
+#include "inet/linklayer/common/MACAddress.h"
+
+#define ARPBASELEN 18
+}}
+
+class noncobject APN;
+
+class noncobject inet::MACAddress;
+
+
+enum ARPOpcode
+{
+    ARP_REQUEST = 1;
+    ARP_REPLY = 2;
+    ARP_RARP_REQUEST = 3;
+    ARP_RARP_REPLY = 4;
+}
+
+//
+// RINArpPacket. This type of ARPPacket is specialised for RINA, which uses
+// variable length addresses.
+packet RINArpPacket
+{
+    uint8_t apnLength;
+    uint8_t opcode @enum(ARPOpcode);
+    inet::MACAddress srcMacAddress;
+    inet::MACAddress destMacAddress;
+    APN srcDifName;
+    APN destDifName;
 }

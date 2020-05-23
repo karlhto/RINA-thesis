@@ -22,7 +22,8 @@
 
 package rina.src.EthShimDIF;
 
-import rina.src.EthShimDIF.RINARP.RINArpModule;
+import rina.src.EthShimDIF.RINArp.RINArp;
+import rina.src.EthShimDIF.EthShim.EthShim;
 
 module IPCProcessShim
 {
@@ -36,12 +37,14 @@ module IPCProcessShim
 
         bool onWire = default(false);
     gates:
-        inout northIo[];
-        inout southIo;
+        inout northIo;
+        input arpIn;
+        output arpOut;
+        input ifIn;
+        output ifOut;
     submodules:
-        shim: EthShimModule {
+        shim: EthShim {
             @display("p=100,0");
         }
     connections allowunconnected:
-        shim.southIo <--> southIo;
 }

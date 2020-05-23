@@ -8,9 +8,6 @@
 #include <omnetpp.h>
 #include "inet/linklayer/ethernet/EtherMAC.h"
 
-#define GATE_SHIM_NORTHIO "northIo"
-#define GATE_SHIM_SOUTHIO "southIo"
-
 class EthShim : public cSimpleModule
 {
 public:
@@ -18,9 +15,6 @@ public:
     virtual ~EthShim();
 
     inet::EtherMAC *getMac() const;
-
-private:
-    inet::EtherMAC *mac;
 
 protected:
     virtual void initialize(int step);

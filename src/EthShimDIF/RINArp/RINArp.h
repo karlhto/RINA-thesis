@@ -22,8 +22,6 @@ public:
     {
     public:
         RINArp *owner = nullptr;
-        const InterfaceEntry *ie = nullptr;
-        bool pendin
     };
 };
 
