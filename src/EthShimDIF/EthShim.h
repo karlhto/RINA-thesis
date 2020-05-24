@@ -6,18 +6,16 @@
 #define RINASIM_ETHSHIM_H
 
 #include <omnetpp.h>
-#include "inet/linklayer/ethernet/EtherMAC.h"
 
 class EthShim : public cSimpleModule
 {
-public:
-    EthShim() {};
-    virtual ~EthShim();
-
-    inet::EtherMAC *getMac() const;
-
 protected:
-    virtual void initialize(int step);
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+
+    virtual void handlePDU(cMessage *msg);
+    virtual void encapsulateFrame(cMessage *msg);
+    virtual void handleFlowCreate(cMessage *msg);
 };
 
-#endif //RINASIM_SHIM_H
+#endif //RINASIM_ETHSHIM_H

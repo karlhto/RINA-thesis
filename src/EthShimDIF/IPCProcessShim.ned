@@ -22,8 +22,7 @@
 
 package rina.src.EthShimDIF;
 
-import rina.src.EthShimDIF.RINArp.RINArp;
-import rina.src.EthShimDIF.EthShim.EthShim;
+import inet.linklayer.contract.IWiredNic;
 
 module IPCProcessShim
 {
@@ -32,19 +31,24 @@ module IPCProcessShim
         string ipcAddress;
         string difName;
         string apName = default(ipcAddress + "_" + difName);
-        bool relay = default(false);
-        string routingPolicyName = default("DummyRouting");
-
-        bool onWire = default(false);
     gates:
         inout northIo;
-        input arpIn;
-        output arpOut;
-        input ifIn;
-        output ifOut;
+        inout ethg;
     submodules:
         shim: EthShim {
             @display("p=100,0");
         }
+        arp: RINArp {
+            @display("p=50,0");
+        }
+        eth: <default("EthernetInterface")> like IWiredNic {
+            @display("p=368,406,row,60;q=txQueue");
+        }
     connections allowunconnected:
+        shim.northIo <--> northIo;
+        shim.arpOut --> arp.netwIn;
+        shim.arpIn <-- arp.netwOut;
+        shim.ifOut --> eth.upperLayerIn;
+        shim.ifIn <-- eth.upperLayerOut;
+        eth.phys <--> { @display("m=s"); } <--> ethg;
 }

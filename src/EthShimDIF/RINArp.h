@@ -5,6 +5,7 @@
 
 #include "Common/APN.h"
 
+class RINArpPacket;
 
 /**
  * @brief
@@ -13,16 +14,23 @@
  * implementation done in INET.
  */
 class RINArp : public cSimpleModule {
+protected:
+    //ArpCache arpCache;
+
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
 public:
-    class ARPCacheEntry;
-    typedef std::map<APN, ARPCacheEntry *> ARPCache;
+    /*
+    class ArpCacheEntry;
+    typedef std::map<APN, ArpCacheEntry *> ArpCache;
 
     // TODO figure out how to store this host's interfaces
-    class ARPCacheEntry
+    class ArpCacheEntry
     {
     public:
         RINArp *owner = nullptr;
     };
+    */
 };
 
 #endif //RINASIM_RINARP_H

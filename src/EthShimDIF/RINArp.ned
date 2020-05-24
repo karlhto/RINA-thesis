@@ -20,12 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF.RINArp;
+package rina.src.EthShimDIF;
 
 simple RINArp {
     parameters:
-        double retryTimeout @unit("s") = default(1s);
-        int retryCount = default(3);
+        @display("i=block/fork");
     gates:
         input netwIn;
         output netwOut;

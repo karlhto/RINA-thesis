@@ -8,8 +8,6 @@ import rina.src.DIF.IPCProcess;
 import rina.src.EthShimDIF.IPCProcessShim;
 import rina.src.EthShimDIF.RINArp.RINArp;
 
-import inet.linklayer.contract.IWiredNic;
-
 module Host1APShim
 {
     parameters:
@@ -32,15 +30,6 @@ module Host1APShim
             @display("p=133,323");
         }
 
-        arp: RINArp {
-            @display("");
-        }
-
-        eth: <default("EthernetInterface")> like IWiredNic {
-            parameters:
-                @display("");
-        }
-
         ipcProcess1: IPCProcess {
             @display("p=133,241");
         }
@@ -49,8 +38,6 @@ module Host1APShim
             @display("p=133,141");
         }
     connections allowunconnected:
-        ipcProcessShim.ifOut --> eth.upperLayerIn;
-        ipcProcessShim.ifIn <-- eth.upperLayerOut;
-
+        ipcProcess1.northIo++ <--> applicationProcess1.southIo++;
         ipcProcessShim.northIo <--> ipcProcess1.southIo++;
 }

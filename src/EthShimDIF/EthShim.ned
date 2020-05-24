@@ -20,9 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF.EthShim;
+package rina.src.EthShimDIF;
 
-simple EthShim {
+simple EthShim
+{
     parameters:
         @display("i=block/fork");
     gates:
