@@ -6,7 +6,6 @@ import rina.src.DAF.DA.DIFAllocator;
 import rina.src.DAF.IRM.IPCResourceManager;
 import rina.src.DIF.IPCProcess;
 import rina.src.EthShimDIF.IPCProcessShim;
-import rina.src.EthShimDIF.RINArp.RINArp;
 
 module Host1APShim
 {
@@ -40,4 +39,5 @@ module Host1APShim
     connections allowunconnected:
         ipcProcess1.northIo++ <--> applicationProcess1.southIo++;
         ipcProcessShim.northIo <--> ipcProcess1.southIo++;
+        ipcProcessShim.ethg <--> medium;
 }
