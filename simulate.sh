@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Run RINASim scenarios from the command line.
 
 if ! type opp_run >/dev/null 2>/dev/null; then
@@ -13,15 +13,7 @@ rina_conf=""
 opp_xargs=""
 rina_root="$( readlink -f "$( dirname $0 )" )"
 rina_lib="${rina_root}/policies/librinasim"
-
-if [ -f "${rina_lib}.so" ]; then
-    rina_lib="${rina_lib}.so"
-elif [ -f "${rina_lib}.dll" ]; then
-    rina_lib="${rina_lib}.dll"
-else
-    echo "Cannot find the RINASim dynamic library! Forgot to compile?"
-    exit 1
-fi
+mode="release"
 
 # process command line arguments
 process_args()
@@ -38,9 +30,11 @@ process_args()
 
     shift
 
-    while getopts "Gc:x:" opt; do
+    while getopts "dGc:x:i:" opt; do
       case $opt in
-        "G") rina_ui="Tkenv";;
+        "d") rina_lib="${rina_lib}_dbg"
+             mode="debug" ;;
+        "G") rina_ui="Tkenv" ;;
         "c") rina_conf="$OPTARG" ;;
         "x") opp_xargs="$OPTARG" ;;
         *) ;;
@@ -48,15 +42,39 @@ process_args()
     done
 }
 
+check_library()
+{
+    if [ -f "$1.so" ]; then
+        rina_lib="$1.so"
+    elif [ -f "$1.dll" ]; then
+        rina_lib="$1.dll"
+    else
+        echo "Cannot find the RINASim dynamic library ${rina_lib}!" \
+             "Forgot to compile?"
+        exit 1
+    fi
+}
+
 # run given simulation
 # args: example folder; interface; configuration ID; extra opp_run args
 run_simulation()
 {
     cd "$1"
-    opp_run -u "$2" -c "$3" -n "$rina_root" -l "$rina_lib" $opp_xargs omnetpp.ini
+    cmd=opp_run
+    if [ $mode = "debug" ]; then
+        cmd=${cmd}_dbg
+    fi
+
+    $cmd -u "$2" \
+         -c "$3" \
+         -n "$rina_root" \
+         -l "$rina_lib" \
+         $opp_xargs omnetpp.ini
 }
 
 process_args $@
+
+check_library ${rina_lib}
 
 run_simulation "$rina_example" "$rina_ui" "$rina_conf" "$opp_xargs"
 
