@@ -66,7 +66,7 @@ makefiles:
 	opp_makemake -f --deep --make-lib -o rinasimcore -O out -I../src -I../policies -L../out/$$\(CONFIGNAME\)/policies -KINET_PROJ=../../inet -DINET_IMPORT -I$$\(INET_PROJ\)/src -L$$\(INET_PROJ\)/src -lINET$$\(D\)
 
 	$(Q)cd policies && \
-	opp_makemake -f --deep --make-so -o rinasim -O out -I../src -I../policies -L../out/$$\(CONFIGNAME\)/src -lrinasimcore -KINET_PROJ=../../inet -DINET_IMPORT -I$$\(INET_PROJ\)/src -L$$\(INET_PROJ\)/src -lINET$$\(D\)
+	opp_makemake -f --deep --make-so -o rinasim -O out -I../src -I../policies -L../out/$$\(CONFIGNAME\)/src -lrinasimcore$$\(D\) -KINET_PROJ=../../inet -DINET_IMPORT -I$$\(INET_PROJ\)/src -L$$\(INET_PROJ\)/src -lINET$$\(D\)
 
 
 .PHONY: all clean cleanall depend msgheaders src policies
