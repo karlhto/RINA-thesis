@@ -11,7 +11,7 @@ module Host1APShim
 {
     parameters:
         @display("i=device/pc;bgb=255,400");
-        @node;
+        @networkNode;
 
     gates:
         inout medium @loose;

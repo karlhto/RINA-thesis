@@ -36,13 +36,21 @@ module IPCProcessShim
         inout ethg;
     submodules:
         shim: EthShim {
-            @display("p=100,0");
+            parameters:
+                @display("p=100,0");
+        }
+        // This needs to look like a normal flow allocator to DA
+        flowAllocator: ShimFlowAllocator {
+            parameters:
+                @display("p=100,100");
         }
         arp: RINArp {
-            @display("p=50,0");
+            parameters:
+                @display("p=50,0");
         }
         eth: <default("EthernetInterface")> like IWiredNic {
-            @display("p=368,406,row,60;q=txQueue");
+            parameters:
+                @display("p=368,406,row,60;q=txQueue");
         }
     connections allowunconnected:
         shim.northIo <--> northIo;
