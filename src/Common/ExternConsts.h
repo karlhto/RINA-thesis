@@ -170,7 +170,9 @@ class ExternConsts {
     static const char* prepareCiName(const char* name) {
         std::ostringstream os;
         os << "CI-" << name;
-        return os.str().c_str();
+        std::string str = os.str();
+        const char *ret = str.c_str();
+        return ret;
     }
 };
 

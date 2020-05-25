@@ -102,10 +102,6 @@ void IRM::initSignalsAndListeners() {
     cModule* catcher = this->getModuleByPath("^.^");
 
     //Signals that this module emits
-    /*
-    sigIRMAllocReq      = registerSignal(SIG_IRM_AllocateRequest);
-    sigIRMDeallocReq    = registerSignal(SIG_IRM_DeallocateRequest);
-    */
     sigStatIRMPassUp      = registerSignal(SIG_STAT_IRM_UP);
     sigStatIRMPassDown      = registerSignal(SIG_STAT_IRM_DOWN);
 
