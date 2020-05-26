@@ -47,7 +47,7 @@ QoSReq::QoSReq(int tavgBand, int tavgSDUBand, int tpeakBandDuration,
         int tpeakSDUBandDuration, int tburstPeriod, int tburstDuration,
         double tundetectedBitErr, double tpduDropProbab, int tmaxSDUsize,
         bool tpartDeliv, bool tincompleteDeliv, bool tforceOrder,
-        unsigned int tmaxAllowGap, int tdelay, int tjitter, int tcostTime,
+        int tmaxAllowGap, int tdelay, int tjitter, int tcostTime,
         int tcostBits) {
     avgBand = tavgBand;
     if (avgBand < 0)

@@ -101,7 +101,7 @@ void APPing::handleMessage(cMessage *msg) {
 
         }
         else if (!strcmp(msg->getName(), "ping")) {
-            if ((simTime().dbl()+1) < par("stopAt").doubleValue() ) {
+            if ((simTime().dbl()+1) < par("stopAt").longValue() ) {
                 connID = conIDsPing.front();
                 conIDsPing.pop();
 

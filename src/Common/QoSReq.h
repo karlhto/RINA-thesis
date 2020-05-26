@@ -145,7 +145,7 @@ class QoSReq {
     QoSReq(int tavgBand, int tavgSDUBand, int tpeakBandDuration, int tpeakSDUBandDuration, int tburstPeriod, int tburstDuration,
            double tundetectedBitErr, double tpduDropProbab,
            int tmaxSDUsize, bool tpartDeliv, bool tincompleteDeliv, bool tforceOrder,
-           unsigned int tmaxAllowGap, int tdelay, int tjitter, int tcosttime, int tcostbits);
+           int tmaxAllowGap, int tdelay, int tjitter, int tcosttime, int tcostbits);
 
     QoSReq(cXMLElementList& attrs);
 

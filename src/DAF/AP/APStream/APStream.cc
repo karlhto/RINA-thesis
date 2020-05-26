@@ -45,7 +45,7 @@ void APStream::handleMessage(cMessage *msg) {
             a_close(conID);
         }
         else if (!strcmp(msg->getName(), "stream")){
-            if ((simTime().dbl()+1) < par("stopAt").doubleValue()) {
+            if ((simTime().dbl()+1) < par("stopAt").longValue()) {
                 object_t obj;
                 obj.objectName = "stream";
                 obj.objectVal = (cObject*)"tmp";
