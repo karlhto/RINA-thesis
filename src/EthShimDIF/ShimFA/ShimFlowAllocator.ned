@@ -1,4 +1,4 @@
-package rina.src.EthShimDIF;
+package rina.src.EthShimDIF.ShimFA;
 
 module ShimFlowAllocator {
     parameters:

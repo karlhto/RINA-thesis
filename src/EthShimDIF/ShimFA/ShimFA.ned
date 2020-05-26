@@ -1,5 +1,5 @@
 
-package rina.src.EthShimDIF;
+package rina.src.EthShimDIF.ShimFA;
 
 simple ShimFA
 {

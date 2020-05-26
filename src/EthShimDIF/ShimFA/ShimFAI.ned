@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF;
+package rina.src.EthShimDIF.ShimFA;
 
 simple FAI
 {

@@ -1,4 +1,4 @@
-#include "EthShimDIF/ShimFAI.h"
+#include "EthShimDIF/ShimFA/ShimFAI.h"
 
 Define_Module(ShimFAI);
 

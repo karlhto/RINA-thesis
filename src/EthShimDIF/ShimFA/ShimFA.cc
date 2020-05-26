@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 
 
-#include "EthShimDIF/ShimFA.h"
+#include "EthShimDIF/ShimFA/ShimFA.h"
 
 Define_Module(ShimFA);
 
