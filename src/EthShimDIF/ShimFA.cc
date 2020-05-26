@@ -65,25 +65,34 @@ const Address& ShimFA::getMyAddress() const {
 }
 
 bool ShimFA::receiveAllocateRequest(Flow* flow) {
+    return false;
 }
 bool ShimFA::receiveMgmtAllocateRequest(Flow* mgmtflow) {
+    return false;
 }
 bool ShimFA::receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) {
+    return false;
 }
 bool ShimFA::receiveMgmtAllocateFinish() {
+    return false;
 }
 void ShimFA::receiveNM1FlowCreated(Flow* flow) {
 }
 bool ShimFA::receiveCreateFlowRequestFromRibd(Flow* flow) {
+    return false;
 }
 bool ShimFA::receiveDeallocateRequest(Flow* flow) {
+    return false;
 }
 void ShimFA::deinstantiateFai(Flow* flow) {
 }
 bool ShimFA::invokeNewFlowRequestPolicy(Flow* flow) {
+    return false;
 }
 
 bool ShimFA::setOriginalAddresses(Flow* flow) {
+    return false;
 }
 bool ShimFA::setNeighborAddresses(Flow* flow) {
+    return false;
 }
