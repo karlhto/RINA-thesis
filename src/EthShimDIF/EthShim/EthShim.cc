@@ -20,22 +20,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF.ShimFA;
+#include "EthShimDIF/EthShim/EthShim.h"
+#include "Common/PDU.h"
 
-simple ShimFA
-{
-    parameters:
-    	@display("i=block/fork");
+Define_Module(EthShim);
 
-    	@signal[FA-AllocateResponseNegative](type=Flow?);
-    	@signal[FA-AllocateResponsePositive](type=Flow?);
-    	@signal[FA-CreateFlowRequestForward](type=Flow?);
-    	@signal[FA-AllocateFinishManagement](type=APNIPair?);
-    	@signal[FA-CreateFlowResponseNegative](type=Flow?);
-    	@signal[FA-CreateFlowResponsePositive](type=Flow?);
+void EthShim::initialize() {
+    EV << "Hello World!\n";
+}
 
-    	//double createRequestTimeout @unit(s) = default(10s);
+void EthShim::handleMessage(cMessage *msg) {
+    /* Scenario 1: PDU from upper layer */
+    /* Scenario 2: Management PDU from upper layer */
+    /* Scenario 3: Request from upper relaying task */
+    delete msg;
+}
 
-    gates:
+void EthShim::handlePDU(cMessage *msg) {
+    PDU *pdu = dynamic_cast<PDU *>(msg);
+}
+
+void EthShim::handleFlowCreate(cMessage *msg) {
 
 }
+
+void EthShim::encapsulateFrame(cMessage *msg) {
+
+}
+
+/* How to handle delimiting? Should the delimiting module be reused, should the
+ * upper layer be forced to deliver packets that are 1500 bytes long, or
+ * should there be an internal delimiting module?
+ */

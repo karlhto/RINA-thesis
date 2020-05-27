@@ -20,12 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF;
+#include "EthShimDIF/RINArp/RINArp.h"
 
-simple RINArp {
-    parameters:
-        @display("i=block/fork");
-    gates:
-        input netwIn;
-        output netwOut;
+Define_Module(RINArp);
+
+void RINArp::initialize() {
+}
+
+void RINArp::handleMessage(cMessage *msg) {
+    delete msg;
 }

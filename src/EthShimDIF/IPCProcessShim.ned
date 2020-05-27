@@ -22,7 +22,9 @@
 
 package rina.src.EthShimDIF;
 
-import rina.EthShimDIF.ShimFA.FlowAllocator;
+import rina.src.EthShimDIF.ShimFA.ShimFlowAllocator;
+import rina.src.EthShimDIF.EthShim.EthShim;
+import rina.src.EthShimDIF.RINArp.RINArp;
 import inet.linklayer.contract.IWiredNic;
 
 module IPCProcessShim

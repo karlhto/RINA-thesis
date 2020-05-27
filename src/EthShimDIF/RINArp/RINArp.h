@@ -20,19 +20,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.EthShimDIF.ShimFA;
+#pragma once
 
-simple FAI
-{
-    parameters:
-    	@display("i=block/rxtx");
-    	@signal[FAI-DeallocateRequest](type=Flow?);
-    	@signal[FAI-AllocateRequest](type=Flow?);
-    	@signal[FAI-AllocateResponsePositive](type=Flow?);
-    	@signal[FAI-AllocateResponseNegative](type=Flow?);
-    	@signal[FAI-CreateFlowRequest](type=Flow?);
-    	@signal[FAI-DeleteFlowRequest](type=Flow?);
-    	@signal[FAI-CreateFlowResponsePositive](type=Flow?);
-    	@signal[FAI-CreateFlowResponseNegative](type=Flow?);
-    	@signal[FAI-DeleteFlowResponse](type=Flow?);
-}
+#include <omnetpp.h>
+#include "Common/APN.h"
+
+class RINArpPacket;
+
+/**
+ * @brief
+ *
+ * This module is more or less a RINA-specific version of the ARP
+ * implementation done in INET.
+ */
+class RINArp : public cSimpleModule {
+protected:
+    //ArpCache arpCache;
+
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+public:
+    /*
+    class ArpCacheEntry;
+    typedef std::map<APN, ArpCacheEntry *> ArpCache;
+
+    // TODO figure out how to store this host's interfaces
+    class ArpCacheEntry
+    {
+    public:
+        RINArp *owner = nullptr;
+    };
+    */
+};
