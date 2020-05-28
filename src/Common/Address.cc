@@ -106,14 +106,14 @@ bool Address::operator <(const Address& other) const
 std::string Address::info() const
 {
     std::ostringstream os;
-    if (!ipcAddress.getName().empty() && !difName.getName().empty())
+    if (!ipcAddress.isUnspecified() && !difName.isUnspecified())
         os << ipcAddress << "(" << difName << ")";
     return os.str();
 }
 
 bool Address::isUnspecified() const
 {
-    return ipcAddress.getName().empty() && difName.getName().empty();
+    return ipcAddress.isUnspecified() && difName.isUnspecified();
 }
 
 const APN& Address::getApn() const

@@ -54,6 +54,11 @@ std::string APN::info() const
     return os.str();
 }
 
+bool APN::isUnspecified() const
+{
+    return name.empty();
+}
+
 //Free function
 std::ostream& operator<< (std::ostream& os, const APN& apn)
 {

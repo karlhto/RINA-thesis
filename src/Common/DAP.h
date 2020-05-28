@@ -29,7 +29,7 @@
 /**
  * @brief Distributed Application Process name a.k.a. DAP class
  * @authors Vladimir Vesely (ivesely@fit.vutbr.cz)
- * @date Last refactorized and documented on 2014-10-28
+ * @date Last refactorized and documented on 2020-05-28
  */
 class DAP {
   public:
@@ -73,6 +73,12 @@ class DAP {
      * @param name A new DAP string value
      */
     void setName(const std::string& name);
+
+    /**
+     * @brief Checks if name is unspecified
+     * @return True if name is empty, otherwise returns false
+     */
+    bool isUnspecified() const;
 
   protected:
     /**

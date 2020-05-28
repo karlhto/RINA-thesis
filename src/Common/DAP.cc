@@ -55,6 +55,11 @@ void DAP::setName(const std::string& name) {
     this->name = name;
 }
 
+bool DAP::isUnspecified() const
+{
+    return name.empty();
+}
+
 std::ostream& operator <<(std::ostream& os, const DAP& dap) {
     return os << dap.info();
 }
