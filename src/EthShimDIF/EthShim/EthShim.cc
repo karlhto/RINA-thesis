@@ -39,7 +39,7 @@ void EthShim::initialize() {
 }
 
 void EthShim::initPointers() {
-    ipcProcess = getModuleByPath(".^.^");
+    ipcProcess = getModuleByPath("^");
     arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
     if (arp == nullptr)
         throw cRuntimeError("EthShim needs ARP module");

@@ -45,7 +45,7 @@ void ShimFA::initialize(int stage) {
 }
 
 void ShimFA::initPointers() {
-    shimIpcProcess = getModuleByPath(".^.^");
+    shimIpcProcess = getModuleByPath("^.^");
     arp = dynamic_cast<RINArp *>(shimIpcProcess->getSubmodule("arp"));
     if (arp == nullptr)
         throw cRuntimeError("Shim FA needs ARP module");
