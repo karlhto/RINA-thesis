@@ -24,16 +24,23 @@
 
 #include <omnetpp.h>
 #include "Common/APN.h"
+#include "inet/linklayer/common/MACAddress.h"
 
 class PDU;
+class RINArp;
+class ShimFA;
 class RINArpPacket;
 
-class EthShim : public cSimpleModule
+class EthShim : public cSimpleModule, public cListener
 {
-public:
-    EthShim();
-    virtual ~EthShim();
-protected:
+  public:
+    enum ShimConnectionStatus {
+        UNALLOCATED,
+        PENDING,
+        ALLOCATED
+    };
+
+  protected:
     cGate *northIn;
     cGate *northOut;
     cGate *arpIn;
@@ -43,17 +50,35 @@ protected:
 
     // Pointers to important modules
     cModule *ipcProcess;
-    cModule *arp;
+    RINArp *arp;
+    ShimFA *shimFA;
 
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+  public:
+    EthShim();
+    virtual ~EthShim();
 
+    /** @brief Registers Application Naming Information with ARP */
+    virtual void registerApplication(const APN &apni) const;
+
+    /** @brief Attempts to resolve destination Application Naming Information */
+    virtual inet::MACAddress resolveApni(const APN &dstApni) const;
+
+  protected:
     virtual void initGates();
     virtual void initPointers();
 
     virtual void handlePDU(PDU *pdu);
     virtual void handleIncomingPDU(PDU *pdu);
     virtual void handleIncomingArpPacket(RINArpPacket *arpPacket);
-
     virtual void sendPacketToNIC(cPacket *packet);
+
+    const virtual inet::MACAddress getMacAddressOfNIC() const;
+
+    /// cSimpleModule overrides
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
+
+    /// cListener overrides, for ARP signals
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID,
+                               cObject *obj, cObject *details) override;
 };

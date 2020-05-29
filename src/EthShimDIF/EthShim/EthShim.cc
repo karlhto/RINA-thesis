@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
+#include "EthShimDIF/RINArp/RINArp.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "Common/PDU.h"
 
@@ -32,25 +33,18 @@ EthShim::EthShim() {
 EthShim::~EthShim() {
 }
 
-/**
- * @brief Initialises gates and pointers
- */
 void EthShim::initialize() {
     initPointers();
     initGates();
 }
 
-/**
- * @brief Initialises pointers
- */
 void EthShim::initPointers() {
     ipcProcess = getModuleByPath(".^.^");
-    arp = ipcProcess->getSubmodule("arp");
+    arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
+    if (arp == nullptr)
+        throw cRuntimeError("EthShim needs ARP module");
 }
 
-/**
- * @brief Initialises gates
- */
 void EthShim::initGates() {
     northIn = gate("northIo$i");
     northOut = gate("northIo$o");
@@ -95,9 +89,35 @@ void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket) {
 }
 
 void EthShim::sendPacketToNIC(cPacket *packet) {
-    EV_INFO << "Sending " << packet << " to output interface." << endl;
+    EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
     send(packet, ifOut);
 }
+
+inet::MACAddress EthShim::resolveApni(const APN &dstApni) const {
+    Enter_Method("resolveApni(%s)", dstApni.getName().c_str());
+    EV_INFO << "Received request to resolve application name " << dstApni
+        << ". Passing to ARP." << endl;
+    return arp->resolveAddress(dstApni);
+}
+
+void EthShim::registerApplication(const APN &apni) const {
+    Enter_Method("registerApplication(%s)", apni.getName().c_str());
+    EV_INFO << "Received request to register application name " << apni
+        << " with ARP module." << endl;
+
+    inet::MACAddress mac = getMacAddressOfNIC();
+    arp->addStaticEntry(mac, apni);
+}
+
+const inet::MACAddress EthShim::getMacAddressOfNIC() const {
+    cModule *mac = ipcProcess->getModuleByPath(".eth.mac");
+    if (mac == nullptr)
+        throw cRuntimeError("Unable to get address from MAC interface");
+    if (!mac->hasPar("address"))
+        throw cRuntimeError("MAC interface has no address parameter");
+    return inet::MACAddress(mac->par("address").getName());
+}
+
 
 /* How to handle delimiting? Should the delimiting module be reused, should the
  * upper layer be forced to deliver packets that are 1500 bytes long, or
