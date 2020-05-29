@@ -115,7 +115,7 @@ const inet::MACAddress EthShim::getMacAddressOfNIC() const {
         throw cRuntimeError("Unable to get address from MAC interface");
     if (!mac->hasPar("address"))
         throw cRuntimeError("MAC interface has no address parameter");
-    return inet::MACAddress(mac->par("address").getName());
+    return inet::MACAddress(mac->par("address").stringValue());
 }
 
 void EthShim::receiveSignal(cComponent *source, simsignal_t signalID,
