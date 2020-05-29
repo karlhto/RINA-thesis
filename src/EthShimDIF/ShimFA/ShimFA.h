@@ -84,6 +84,10 @@ class ShimFA : public FABase, public cListener {
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
 
+    /// Additional stages required, but FAB
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const { return 2; }
+
     /// cListener overrides
     virtual void receiveSignal(cComponent *source, simsignal_t signalID,
                                cObject *obj, cObject *details) override;

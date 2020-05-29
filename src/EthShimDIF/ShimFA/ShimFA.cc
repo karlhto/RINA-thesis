@@ -30,15 +30,18 @@ ShimFA::ShimFA() : FABase::FABase(), state(ShimConnectionState::UNALLOCATED) {}
 ShimFA::~ShimFA() {
 }
 
-void ShimFA::initialize() {
-    cSimpleModule::initialize();
+void ShimFA::initialize(int stage) {
+    cSimpleModule::initialize(stage);
 
-    initPointers();
-    initSignals();
-
-    // Needs to be done in initialisation phase since registration is implicit
-    // in RINASim
-    setRegisteredApName();
+    if (stage == 0) {
+        initPointers();
+        initSignals();
+    }
+    else if (stage == 1) {
+        // Needs to be done in initialisation phase since registration is implicit
+        // in RINASim
+        setRegisteredApName();
+    }
 }
 
 void ShimFA::initPointers() {
