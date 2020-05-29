@@ -38,9 +38,13 @@ void ShimFA::initialize(int stage) {
         initSignals();
     }
     else if (stage == 1) {
-        // Needs to be done in initialisation phase since registration is implicit
-        // in RINASim
+        // Needs to be done in initialisation phase since registration is
+        // implicit in RINASim.
         setRegisteredApName();
+
+        // Registers application with static entry in ARP, needs to be called
+        // after stage 0 to guarantee allocation of MAC address
+        shim->registerApplication(registeredApplication);
     }
 }
 
@@ -74,9 +78,6 @@ void ShimFA::initSignals() {
 void ShimFA::setRegisteredApName() {
     std::string name = connectedApplication->par("apName").stringValue();
     registeredApplication = APN(name);
-
-    // Registers application with static entry in ARP
-    shim->registerApplication(registeredApplication);
 }
 
 
