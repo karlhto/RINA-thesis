@@ -24,6 +24,8 @@
 
 #include <omnetpp.h>
 #include "DIF/FA/FABase.h"
+#include "EthShimDIF/RINArp/RINArp.h"
+#include "EthShimDIF/EthShim/EthShim.h"
 
 class ShimFA : public FABase {
 public:
@@ -43,12 +45,24 @@ public:
     virtual bool setOriginalAddresses(Flow* flow);
     virtual bool setNeighborAddresses(Flow* flow);
 
-    NFlowTable* getNFlowTable() const;
-    const Address& getMyAddress() const;
-
 protected:
-    NFlowTable* N_flowTable;
+    cModule *ipcProcess;
+    RINArp *arp;
+    EthShim *shim;
+
+    enum State {
+        UNALLOCATED,
+        ALLOCATE_PENDING,
+        ALLOCATED
+    };
+
+    // Only one flow necessary
+    Flow *FlowObject;
     Address MyAddress;
+    State state;
+
+    void initSignals();
+    void initPointers();
 
     //SimpleModule overloads
     virtual void initialize();
