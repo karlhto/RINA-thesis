@@ -24,29 +24,28 @@
 
 #include <omnetpp.h>
 #include "Common/APN.h"
-#include "inet/linklayer/base/MACBase.h"
 #include "inet/linklayer/common/MACAddress.h"
 
 class RINArpPacket;
 
 /**
- * @brief
+ * RINArp
  *
  * This module is more or less a RINA-specific version of the ARP
  * implementation done in INET.
  */
 class RINArp : public cSimpleModule {
-public:
-    virtual const inet::MACAddress resolveAddress(const APN &addr);
-    virtual bool registerAp(const APN &addr);
-
+  public:
     class ArpCacheEntry;
     typedef std::map<APN, ArpCacheEntry *> ArpCache;
 
+    /**
+     * Used for resolving path for APNs
+     */
     class ArpCacheEntry
     {
-    public:
-        inet::MACAddress dstMac;
+      public:
+        inet::MACAddress macAddress;
         bool pending = false;
         simtime_t lastUpdate;
         int numRetries = 0;
@@ -54,41 +53,87 @@ public:
         ArpCache::iterator myIter;
     };
 
+    /**
+     * Notifications for changes in ARP, like a completed ARP resolution
+     */
+    class ArpNotification : public cObject {
+      public:
+        APN apName;
+        inet::MACAddress macAddress;
+
+      public:
+        ArpNotification(APN apName, inet::MACAddress macAddress) :
+            apName(apName), macAddress(macAddress) {}
+    };
+
+    /** @brief Signals for publishing ARP state changes */
+    static const simsignal_t initiatedRINArpResolutionSignal;
+    static const simsignal_t completedRINArpResolutionSignal;
+    static const simsignal_t failedRINArpResolutionSignal;
+
+  protected:
+    /** @brief Timeouts to about retries, with max timeout retryCount */
+    simtime_t retryTimeout;
+    int retryCount = 0;
+
+    /** @brief How long an ARP entry should stay in cache */
+    simtime_t cacheTimeout;
+
+    /** @brief ARP cache entries */
+    ArpCache arpCache;
+    std::pair<APN, ArpCacheEntry *> thisHost; ///< Naming information for this host
+
+    /** @brief Where to send arp packets */
+    cGate *netwOutGate;
+
+  public:
     RINArp();
     virtual ~RINArp();
 
-protected:
-    simtime_t retryTimeout;
-    int retryCount = 0;
-    simtime_t cacheTimeout;
+    /** @brief Attempts to resolve an application name, may send ARP_REQ packet */
+    virtual const inet::MACAddress resolveAddress(const APN &apn);
 
-    ArpCache arpCache;
+    /** @brief Adds this host's information, necessary for N+1 registration */
+    virtual bool addStaticEntry(const inet::MACAddress &mac, const APN &apn);
 
-    // Since our ARP protocol is connected to one shim IPC process only, which
-    // in turn is only connected to one interface, this works for the time
-    // being
-    inet::MACAddress srcMac;
-    // apName of registered application process
-    APN apName;
+    /** @brief Removes static entry for connected host */
+    virtual void deleteStaticEntry();
 
-    cModule *ipcProcess;
-    cModule *interface;
-    cGate *netwOutGate;
-
-    virtual void handleMessage(cMessage *msg);
+  protected:
+    /** @brief Processes ARP packets, adds entry if destination is same as apname */
     virtual void processArpPacket(RINArpPacket *arp);
+
+    /** @brief Handles timeout selfmessages */
     virtual void requestTimeout(cMessage *msg);
+
+    /** @brief Removes all entries of ARP cache */
     virtual void flush();
+
+    /** @brief Readies pending entry, sends ARP_REQ, and starts timeout timer */
     virtual void initiateArpResolution(ArpCacheEntry *entry);
+
+    /** @brief Updates an ARP cache entry with an address */
     virtual void updateArpCache(ArpCacheEntry *entry,
-                                const inet::MACAddress &addr);
-    virtual bool addressRecognized(const APN &destAddr);
+                                const inet::MACAddress &mac);
+
+    /** @brief Checks if specified APN is same as in static entry */
+    virtual bool addressRecognized(const APN &apn);
+
+    /** @brief Sends packet to network (likely passing it to NIC */
     virtual void sendPacketToNIC(cMessage *msg,
                                  const inet::MACAddress &macAddress,
                                  int etherType);
-    virtual void sendArpRequest(const APN &addr);
 
-    // cSimpleModule overridden
-    virtual void initialize(int stage) override;
-    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
+    /** @brief Sends an ARP request addressed to specified APN */
+    virtual void sendArpRequest(const APN &apn);
+
+
+    /// cSimpleModule overrides
+
+    /** @brief Initialises parameters and out gate */
+    virtual void initialize() override;
+
+    /** @brief Handles selfmessages and messages from ethernet shim module */
+    virtual void handleMessage(cMessage *msg);
+
 };
