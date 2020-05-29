@@ -28,7 +28,10 @@ simple RINArp {
         int retryCount = default(3);
         double cacheTimeout @unit("s") = default(120s);
         @display("i=block/fork");
+        @signal[initiatedRINArpResolution](type=RINArp::ArpNotification);
+        @signal[completedRINArpResolution](type=RINArp::ArpNotification);
+        @signal[failedRINArpResolution](type=RINArp::ArpNotification);
     gates:
-        input netwIn;
-        output netwOut;
+        input netwIn @labels(RINArpPacket+Ieee802Ctrl);
+        output netwOut @labels(RINArpPacket+Ieee802Ctrl);
 }

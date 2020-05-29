@@ -25,6 +25,7 @@
 #include "inet/linklayer/common/Ieee802Ctrl.h"
 
 Define_Module(RINArp);
+Register_Abstract_Class(RINArp::ArpNotification);
 
 // Static signal entries
 const simsignal_t RINArp::initiatedRINArpResolutionSignal =
