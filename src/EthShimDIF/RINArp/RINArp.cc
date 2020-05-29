@@ -207,11 +207,10 @@ void RINArp::processArpPacket(RINArpPacket *arp) {
             case ARP_REQUEST: {
                 // Protocol address length will remain the same. We need to
                 // swap the addresses, however.
-                const inet::MACAddress dstMacAddr = arp->getDstMacAddress();
                 arp->setName("arpREPLY");
                 arp->setDstMacAddress(srcMacAddr);
                 arp->setDstApName(srcAddr);
-                arp->setSrcMacAddress(dstMacAddr);
+                arp->setSrcMacAddress(srcMac);
                 arp->setSrcApName(dstAddr);
                 arp->setOpcode(ARP_REPLY);
                 delete arp->removeControlInfo();
