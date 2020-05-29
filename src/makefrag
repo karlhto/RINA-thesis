@@ -1,4 +1,4 @@
-CXXFLAGS=-std=c++17 -Wall -Wno-deprecated-declarations -Wno-inconsistent-missing-override -DAUTOIMPORT_OMNETPP_NAMESPACE
+CXXFLAGS=-std=c++17 -Wall -Wextra -Wno-deprecated-declarations -Wno-inconsistent-missing-override -DAUTOIMPORT_OMNETPP_NAMESPACE
 
 #
 # Use the older message compiler. New compiler was introduced in OMNeT++ 5.3

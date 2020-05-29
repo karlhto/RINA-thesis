@@ -1,1 +1,1 @@
-CXXFLAGS=-std=c++17 -Wall -Wno-deprecated-declarations -Wno-inconsistent-missing-override -DAUTOIMPORT_OMNETPP_NAMESPACE
+CXXFLAGS=-std=c++17 -Wall -Wextra -Wno-deprecated-declarations -Wno-inconsistent-missing-override -DAUTOIMPORT_OMNETPP_NAMESPACE
