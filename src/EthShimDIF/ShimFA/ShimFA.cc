@@ -21,12 +21,11 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/ShimFA/ShimFA.h"
+#include "inet/linklayer/common/MACAddress.h"
 
 Define_Module(ShimFA);
 
-ShimFA::ShimFA() : FABase::FABase() {
-    state = State::UNALLOCATED;
-}
+ShimFA::ShimFA() : FABase::FABase(), state(ShimConnectionState::UNALLOCATED) {}
 
 ShimFA::~ShimFA() {
 }
@@ -37,36 +36,44 @@ void ShimFA::initialize() {
     initPointers();
     initSignals();
 
-    // Registering an application is not supported in RINASim since any
-    // upper layer connected IPCP/AP is implicitly registered. We still
-    // need the IPC address/AP name of upper layer. Unfortunately pretty
-    // hacky solution for the time being.
-    const cGate *dstGate = ipcProcess->gate("northIo$o")->getPathEndGate();
-    if (dstGate == nullptr)
-        throw cRuntimeError("IPC Process lacks correct gate names");
-
-    const cModule *conIpcProc = dstGate->getOwnerModule();
-    if (!conIpcProc->hasPar("apName"))
-        throw cRuntimeError("Shim IPC Process not connected to IPC process");
-
-    std::string name = conIpcProc->par("apName").stringValue();
-    APN apName(name);
-    arp->registerAp(apName);
+    // Needs to be done in initialisation phase since registration is implicit
+    // in RINASim
+    setRegisteredApName();
 }
 
 void ShimFA::initPointers() {
-    ipcProcess = getModuleByPath(".^.^");
-    arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
+    shimIpcProcess = getModuleByPath(".^.^");
+    arp = dynamic_cast<RINArp *>(shimIpcProcess->getSubmodule("arp"));
     if (arp == nullptr)
         throw cRuntimeError("Shim FA needs ARP module");
 
-    shim = dynamic_cast<EthShim *>(ipcProcess->getSubmodule("shim"));
+    shim = dynamic_cast<EthShim *>(shimIpcProcess->getSubmodule("shim"));
     if (shim == nullptr)
         throw cRuntimeError("Shim FA needs shim module");
+
+    // Registering an application is not supported in RINASim since any upper
+    // layer connected IPCP/AP is implicitly registered. We still need the AP
+    // name of the upper layer. Unfortunately pretty hacky solution for the
+    // time being, but finds connected IPC process.
+    const cGate *dstGate = shimIpcProcess->gate("northIo$o")->getPathEndGate();
+    if (dstGate == nullptr)
+        throw cRuntimeError("IPC Process lacks correct gate names");
+
+    connectedApplication = dstGate->getOwnerModule();
+    if (!connectedApplication->hasPar("apName"))
+        throw cRuntimeError("Shim IPC Process not connected to IPC process");
 }
 
 void ShimFA::initSignals() {
     // We unfortunately have to handle some signals.
+}
+
+void ShimFA::setRegisteredApName() {
+    std::string name = connectedApplication->par("apName").stringValue();
+    registeredApplication = APN(name);
+
+    // Registers application with static entry in ARP
+    shim->registerApplication(registeredApplication);
 }
 
 
@@ -81,19 +88,25 @@ bool ShimFA::receiveAllocateRequest(Flow* flow) {
     EV << "Received allocation request for flow with destination address "
         << flow->getDstApni().getApn() << endl;
 
-    if (state != State::UNALLOCATED) {
+    if (state != ShimConnectionState::UNALLOCATED) {
         EV << "A flow is already either allocated or pending." << endl;
         return false;
     }
 
-    state = State::ALLOCATE_PENDING;
-
     const auto &apName = flow->getDstApni().getApn();
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
 
+    // TODO implement QoS validation
+    //validateQosRequirements(flow);
+
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS) {
         // entry was found in cache, allocate flow at once and signal success
+        state = ShimConnectionState::ALLOCATED;
+        createBindings();
+        return true;
     }
+
+    state = ShimConnectionState::ALLOCATE_PENDING;
 
     return true;
 }
@@ -101,19 +114,26 @@ bool ShimFA::receiveAllocateRequest(Flow* flow) {
 bool ShimFA::receiveDeallocateRequest(Flow* flow) {
     Enter_Method("receiveDeallocateRequest()");
 
-    if (state != State::UNALLOCATED) {
+    EV << "Received deallocation request for flow with destination APN " << endl;
+
+    if (state == ShimConnectionState::UNALLOCATED) {
         EV_WARN << "Deallocation requested, but no flow present." << endl;
+        return false;
     }
 
     // remove bindings
 
-    //
-
     return false;
 }
 
+void ShimFA::receiveArpUpdate(const APN &dstApn) {
+}
+
+// Not sure what to do with this function as of yet. This is called by upper
+// layer, but not checked. It's possible at least a subset of the flow
+// allocation policies should be implemented
 bool ShimFA::invokeNewFlowRequestPolicy(Flow* flow) {
-    return false;
+    return true;
 }
 
 bool ShimFA::setOriginalAddresses(Flow* flow) {
@@ -122,6 +142,16 @@ bool ShimFA::setOriginalAddresses(Flow* flow) {
 
 bool ShimFA::setNeighborAddresses(Flow* flow) {
     return false;
+}
+
+void ShimFA::createBindings() {
+}
+
+void ShimFA::deleteBindings() {
+}
+
+void receiveSignal(cComponent *source, simsignal_t signalID,
+                   cObject *obj, cObject *details) {
 }
 
 
