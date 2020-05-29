@@ -36,33 +36,21 @@ void ShimFA::initialize() {
 
     initPointers();
     initSignals();
+
     // Registering an application is not supported in RINASim since any
     // upper layer connected IPCP/AP is implicitly registered. We still
     // need the IPC address/AP name of upper layer. Unfortunately pretty
     // hacky solution for the time being.
-
-    // TODO karlhto: replace with more dynamic discovery of ipcAddress
     const cGate *dstGate = ipcProcess->gate("northIo$o")->getPathEndGate();
-    if (dstGate == nullptr) {
+    if (dstGate == nullptr)
         throw cRuntimeError("IPC Process lacks correct gate names");
-    }
 
     const cModule *conIpcProc = dstGate->getOwnerModule();
-    APN apName;
-    EV_INFO << conIpcProc->getName() << endl;
-    // Slightly different parameter names depending on AP or IPCP
-    if (conIpcProc->hasPar("ipcAddress")) {
-        std::string name = conIpcProc->par("ipcAddress").stringValue();
-        apName.setName(name);
-    }
-    else if (conIpcProc->hasPar("apName")) {
-        std::string name = conIpcProc->par("apName").stringValue();
-        apName.setName(name);
-    }
-    else {
-        throw cRuntimeError("Shim FA is not contained in IPC Process");
-    }
+    if (!conIpcProc->hasPar("apName"))
+        throw cRuntimeError("Shim IPC Process not connected to IPC process");
 
+    std::string name = conIpcProc->par("apName").stringValue();
+    APN apName(name);
     arp->registerAp(apName);
 }
 
