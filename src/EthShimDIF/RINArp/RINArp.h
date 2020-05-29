@@ -24,6 +24,8 @@
 
 #include <omnetpp.h>
 #include "Common/APN.h"
+#include "inet/linklayer/base/MACBase.h"
+#include "inet/linklayer/common/MACAddress.h"
 
 class RINArpPacket;
 
@@ -34,21 +36,59 @@ class RINArpPacket;
  * implementation done in INET.
  */
 class RINArp : public cSimpleModule {
-protected:
-    //ArpCache arpCache;
-
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
 public:
-    /*
+    virtual const inet::MACAddress resolveAddress(const APN &addr);
+    virtual bool registerAp(const APN &addr);
+
     class ArpCacheEntry;
     typedef std::map<APN, ArpCacheEntry *> ArpCache;
 
-    // TODO figure out how to store this host's interfaces
     class ArpCacheEntry
     {
     public:
-        RINArp *owner = nullptr;
+        inet::MACAddress dstMac;
+        bool pending = false;
+        simtime_t lastUpdate;
+        int numRetries = 0;
+        cMessage *timer = 0;
+        ArpCache::iterator myIter;
     };
-    */
+
+    RINArp();
+    virtual ~RINArp();
+
+protected:
+    simtime_t retryTimeout;
+    int retryCount = 0;
+    simtime_t cacheTimeout;
+
+    ArpCache arpCache;
+
+    // Since our ARP protocol is connected to one shim IPC process only, which
+    // in turn is only connected to one interface, this works for the time
+    // being
+    inet::MACAddress srcMac;
+    // apName of registered application process
+    APN apName;
+
+    cModule *ipcProcess;
+    cModule *interface;
+    cGate *netwOutGate;
+
+    virtual void handleMessage(cMessage *msg);
+    virtual void processArpPacket(RINArpPacket *arp);
+    virtual void requestTimeout(cMessage *msg);
+    virtual void flush();
+    virtual void initiateArpResolution(ArpCacheEntry *entry);
+    virtual void updateArpCache(ArpCacheEntry *entry,
+                                const inet::MACAddress &addr);
+    virtual bool addressRecognized(const APN &destAddr);
+    virtual void sendPacketToNIC(cMessage *msg,
+                                 const inet::MACAddress &macAddress,
+                                 int etherType);
+    virtual void sendArpRequest(const APN &addr);
+
+    // cSimpleModule overridden
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
 };

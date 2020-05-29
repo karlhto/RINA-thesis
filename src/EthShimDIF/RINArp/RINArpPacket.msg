@@ -27,7 +27,7 @@ cplusplus {{
 #include "Common/APN.h"
 #include "inet/linklayer/common/MACAddress.h"
 
-#define ARPBASELEN 18
+#define ARP_BASE_LEN 14 // 2 * mac addresses (12) + apnLength + opcode
 }}
 
 class noncobject APN;
@@ -51,7 +51,7 @@ packet RINArpPacket
     uint8_t apnLength;
     uint8_t opcode @enum(ARPOpcode);
     inet::MACAddress srcMacAddress;
-    inet::MACAddress destMacAddress;
-    APN srcDifName;
-    APN destDifName;
+    APN srcApName;
+    inet::MACAddress dstMacAddress;
+    APN dstApName;
 }
