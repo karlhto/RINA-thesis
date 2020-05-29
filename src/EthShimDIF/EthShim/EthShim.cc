@@ -21,7 +21,6 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
-#include "EthShimDIF/RINArp/RINArp.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "Common/PDU.h"
 
@@ -36,6 +35,8 @@ EthShim::~EthShim() {
 void EthShim::initialize() {
     initPointers();
     initGates();
+    arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
+    arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 }
 
 void EthShim::initPointers() {
@@ -118,8 +119,25 @@ const inet::MACAddress EthShim::getMacAddressOfNIC() const {
     return inet::MACAddress(mac->par("address").stringValue());
 }
 
-void EthShim::receiveSignal(cComponent *source, simsignal_t signalID,
-                            cObject *obj, cObject *details) {
+void EthShim::receiveSignal(cComponent *, simsignal_t signalID,
+                            cObject *obj, cObject *) {
+    Enter_Method_Silent();
+
+    if (signalID == RINArp::completedRINArpResolutionSignal) {
+        arpResolutionCompleted(check_and_cast<RINArp::ArpNotification *>(obj));
+    }
+    else if (signalID == RINArp::failedRINArpResolutionSignal) {
+        arpResolutionFailed(check_and_cast<RINArp::ArpNotification *>(obj));
+    }
+    else {
+        throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
+    }
+}
+
+void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry) {
+}
+
+void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry) {
 }
 
 /* How to handle delimiting? Should the delimiting module be reused, should the

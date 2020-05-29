@@ -24,10 +24,10 @@
 
 #include <omnetpp.h>
 #include "Common/APN.h"
+#include "EthShimDIF/RINArp/RINArp.h"
 #include "inet/linklayer/common/MACAddress.h"
 
 class PDU;
-class RINArp;
 class ShimFA;
 class RINArpPacket;
 
@@ -81,4 +81,7 @@ class EthShim : public cSimpleModule, public cListener
     /// cListener overrides, for ARP signals
     virtual void receiveSignal(cComponent *source, simsignal_t signalID,
                                cObject *obj, cObject *details) override;
+
+    virtual void arpResolutionCompleted(RINArp::ArpNotification *entry);
+    virtual void arpResolutionFailed(RINArp::ArpNotification *entry);
 };
