@@ -153,8 +153,8 @@ void ShimFA::createBindings() {
 void ShimFA::deleteBindings() {
 }
 
-void receiveSignal(cComponent *source, simsignal_t signalID,
-                   cObject *obj, cObject *details) {
+void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID,
+                           cObject *obj, cObject *details) {
 }
 
 

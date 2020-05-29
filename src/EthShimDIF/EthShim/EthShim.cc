@@ -118,6 +118,9 @@ const inet::MACAddress EthShim::getMacAddressOfNIC() const {
     return inet::MACAddress(mac->par("address").getName());
 }
 
+void EthShim::receiveSignal(cComponent *source, simsignal_t signalID,
+                            cObject *obj, cObject *details) {
+}
 
 /* How to handle delimiting? Should the delimiting module be reused, should the
  * upper layer be forced to deliver packets that are 1500 bytes long, or
