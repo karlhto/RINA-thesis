@@ -33,7 +33,7 @@
  * @authors Vladimir Vesely (ivesely@fit.vutbr.cz)
  * @date Last refactorized and documented on 2020-05-28
  */
-class APN
+class APN : public std::string
 {
   public:
     /**
@@ -51,16 +51,6 @@ class APN
      * @brief Destructor assigning empty string to name
      */
     virtual ~APN();
-
-    /**
-     * @brief Equal operator overloading
-     * @param other APN for comparison
-     * @return True if APNs string names are equal, otherwise returns false.
-     */
-    bool operator== (const APN& other) const
-    {
-        return !name.compare(other.getName());
-    }
 
     /**
      * @brief Info text output suitable for << string streams and  WATCH
@@ -131,5 +121,34 @@ std::ostream& operator<< (std::ostream& os, const APN& apn);
  * @return Infotext representing APNList
  */
 std::ostream& operator<< (std::ostream& os, const APNList& apns);
+
+/**
+ * @brief Equal operator overloading
+ * @param other APN for comparison
+ * @return True if APNs string names are equal, otherwise returns false.
+ */
+inline bool operator==(const APN& lhs, const APN& rhs)
+{
+    return lhs.getName() == rhs.getName();
+}
+
+/**
+ * @brief Not equal
+ * @param other APN for comparison
+ * @return True if APNs string names are not equal, otherwise returns false.
+ */
+inline bool operator!=(const APN& lhs, const APN& rhs)
+{
+    return lhs.getName() != rhs.getName();
+}
+
+/**
+ * @brief Compares two APNs
+ * @param other APN for comparison
+ */
+inline bool operator<(const APN& lhs, const APN& rhs) { return lhs.getName() < rhs.getName(); }
+inline bool operator<=(const APN& lhs, const APN& rhs) { return lhs.getName() <= rhs.getName(); }
+inline bool operator>(const APN& lhs, const APN& rhs) { return lhs.getName() > rhs.getName(); }
+inline bool operator>=(const APN& lhs, const APN& rhs) { return lhs.getName() >= rhs.getName(); }
 
 #endif /* APN_H_ */
