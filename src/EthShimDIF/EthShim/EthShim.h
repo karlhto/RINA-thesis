@@ -23,14 +23,37 @@
 #pragma once
 
 #include <omnetpp.h>
+#include "Common/APN.h"
+
+class PDU;
+class RINArpPacket;
 
 class EthShim : public cSimpleModule
 {
+public:
+    EthShim();
+    virtual ~EthShim();
 protected:
+    cGate *northIn;
+    cGate *northOut;
+    cGate *arpIn;
+    cGate *arpOut;
+    cGate *ifIn;
+    cGate *ifOut;
+
+    // Pointers to important modules
+    cModule *ipcProcess;
+    cModule *arp;
+
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
-    virtual void handlePDU(cMessage *msg);
-    virtual void encapsulateFrame(cMessage *msg);
-    virtual void handleFlowCreate(cMessage *msg);
+    virtual void initGates();
+    virtual void initPointers();
+
+    virtual void handlePDU(PDU *pdu);
+    virtual void handleIncomingPDU(PDU *pdu);
+    virtual void handleIncomingArpPacket(RINArpPacket *arpPacket);
+
+    virtual void sendPacketToNIC(cPacket *packet);
 };

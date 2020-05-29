@@ -21,31 +21,82 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
+#include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "Common/PDU.h"
 
 Define_Module(EthShim);
 
+EthShim::EthShim() {
+}
+
+EthShim::~EthShim() {
+}
+
+/**
+ * @brief Initialises gates and pointers
+ */
 void EthShim::initialize() {
-    EV << "Hello World!\n";
+    initPointers();
+    initGates();
+}
+
+/**
+ * @brief Initialises pointers
+ */
+void EthShim::initPointers() {
+    ipcProcess = getModuleByPath(".^.^");
+    arp = ipcProcess->getSubmodule("arp");
+}
+
+/**
+ * @brief Initialises gates
+ */
+void EthShim::initGates() {
+    northIn = gate("northIo$i");
+    northOut = gate("northIo$o");
+    arpIn = gate("arpIn");
+    arpOut = gate("arpOut");
+    ifIn = gate("ifIn");
+    ifOut = gate("ifOut");
 }
 
 void EthShim::handleMessage(cMessage *msg) {
-    /* Scenario 1: PDU from upper layer */
-    /* Scenario 2: Management PDU from upper layer */
-    /* Scenario 3: Request from upper relaying task */
-    delete msg;
+    if (msg->arrivedOn(northIn->getId())) {
+        EV_INFO << "Received PDU from upper layer." << endl;
+        PDU *pdu = check_and_cast<PDU *>(msg);
+        handlePDU(pdu);
+    } else if (msg->arrivedOn(arpIn->getId())) {
+        EV_INFO << "Received ARP packet." << endl;
+        sendPacketToNIC(PK(msg));
+    } else if (msg->arrivedOn(ifIn->getId())) {
+        EV_INFO << "Received " << msg << " from network." << endl;
+        if (auto arpPacket = dynamic_cast<RINArpPacket *>(msg))
+            handleIncomingArpPacket(arpPacket);
+        else if (auto pdu = dynamic_cast<PDU *>(msg))
+            handleIncomingPDU(pdu);
+        else
+            throw cRuntimeError(msg, "Unsupported message type");
+    } else {
+        throw cRuntimeError("Received message from invalid gate");
+    }
 }
 
-void EthShim::handlePDU(cMessage *msg) {
-    PDU *pdu = dynamic_cast<PDU *>(msg);
+void EthShim::handlePDU(PDU *pdu) {
+    EV_INFO << "Doing stuff" << endl;
 }
 
-void EthShim::handleFlowCreate(cMessage *msg) {
-
+void EthShim::handleIncomingPDU(PDU *pdu) {
+    EV_INFO << "Should be passed to connected IPCP" << endl;
 }
 
-void EthShim::encapsulateFrame(cMessage *msg) {
+void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket) {
+    EV_INFO << "Sending " << arpPacket << " to arp." << endl;
+    send(arpPacket, arpOut);
+}
 
+void EthShim::sendPacketToNIC(cPacket *packet) {
+    EV_INFO << "Sending " << packet << " to output interface." << endl;
+    send(packet, ifOut);
 }
 
 /* How to handle delimiting? Should the delimiting module be reused, should the
