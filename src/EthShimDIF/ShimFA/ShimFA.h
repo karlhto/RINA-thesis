@@ -24,8 +24,8 @@
 
 #include <omnetpp.h>
 #include "DIF/FA/FABase.h"
-#include "EthShimDIF/RINArp/RINArp.h"
 #include "EthShimDIF/EthShim/EthShim.h"
+#include "EthShimDIF/RINArp/RINArp.h"
 
 /**
  * Shim specific Flow Allocator.
@@ -34,50 +34,56 @@
  * allocator instances are actually allocated, only the first registered
  * flow is.
  */
-class ShimFA : public FABase, public cListener {
+class ShimFA : public FABase, public cListener
+{
+  public:
+    enum ConnectionState { UNALLOCATED, ALLOCATE_PENDING, ALLOCATED };
+
+    static const simsignal_t faiAllocateRequestSignal;
+    static const simsignal_t faiDeallocateRequestSignal;
+    static const simsignal_t faiAllocateResponsePositiveSignal;
+    static const simsignal_t faiAllocateResponseNegativeSignal;
+
   protected:
     cModule *shimIpcProcess;
     cModule *connectedApplication;
     RINArp *arp;
     EthShim *shim;
 
-    enum ShimConnectionState {
-        UNALLOCATED,
-        ALLOCATE_PENDING,
-        ALLOCATED
-    };
-
     // Only one flow necessary
-    Flow *FlowObject;
-    APN registeredApplication; ///< apName of "registered" application
-    ShimConnectionState state;
+    Flow *flowObject;           // TODO or not? RINASim is pretty limited here
+    APN registeredApplication;  ///< apName of "registered" application
+    ConnectionState state;
 
   public:
     ShimFA();
     virtual ~ShimFA();
 
-    virtual bool receiveAllocateRequest(Flow* flow);
-    virtual bool receiveDeallocateRequest(Flow* flow);
-    virtual void receiveArpUpdate(const APN &apn);
-    virtual void deinstantiateFai(Flow* flow);
+    virtual bool receiveAllocateRequest(Flow *flow);
+    virtual bool receiveDeallocateRequest(Flow *flow);
+    virtual void completedAddressResolution(const APN &apn);
+    virtual void failedAddressResolution(const APN &apn);
+    virtual void deinstantiateFai(Flow *flow);
+    virtual ConnectionState getState() const;
 
     /// These are all unused in shim layer, but still implemented
-    virtual bool receiveMgmtAllocateRequest(Flow* mgmtflow);
+    virtual bool receiveMgmtAllocateRequest(Flow *mgmtflow);
     virtual bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst);
     virtual bool receiveMgmtAllocateFinish();
-    virtual void receiveNM1FlowCreated(Flow* flow);
-    virtual bool receiveCreateFlowRequestFromRibd(Flow* flow);
-    virtual bool invokeNewFlowRequestPolicy(Flow* flow);
+    virtual void receiveNM1FlowCreated(Flow *flow);
+    virtual bool receiveCreateFlowRequestFromRibd(Flow *flow);
+    virtual bool invokeNewFlowRequestPolicy(Flow *flow);
 
-    virtual bool setOriginalAddresses(Flow* flow);
-    virtual bool setNeighborAddresses(Flow* flow);
+    virtual bool setOriginalAddresses(Flow *flow);
+    virtual bool setNeighborAddresses(Flow *flow);
 
   protected:
     virtual void initSignals();
     virtual void initPointers();
     virtual void setRegisteredApName();
 
-    virtual void createBindings();
+    virtual bool allocatePort(Flow *flow);
+    virtual void createBindings(int portID);
     virtual void deleteBindings();
 
     /// SimpleModule overrides
@@ -86,6 +92,6 @@ class ShimFA : public FABase, public cListener {
     virtual void handleMessage(cMessage *msg) override;
 
     /// cListener overrides
-    virtual void receiveSignal(cComponent *source, simsignal_t signalID,
-                               cObject *obj, cObject *details) override;
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
+                               cObject *details) override;
 };

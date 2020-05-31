@@ -23,6 +23,7 @@
 #pragma once
 
 #include <omnetpp.h>
+
 #include "Common/APN.h"
 #include "EthShimDIF/RINArp/RINArp.h"
 #include "inet/linklayer/common/MACAddress.h"
@@ -33,13 +34,6 @@ class RINArpPacket;
 
 class EthShim : public cSimpleModule, public cListener
 {
-  public:
-    enum ShimConnectionStatus {
-        UNALLOCATED,
-        PENDING,
-        ALLOCATED
-    };
-
   protected:
     cGate *northIn;
     cGate *northOut;
@@ -79,8 +73,8 @@ class EthShim : public cSimpleModule, public cListener
     virtual void handleMessage(cMessage *msg) override;
 
     /// cListener overrides, for ARP signals
-    virtual void receiveSignal(cComponent *source, simsignal_t signalID,
-                               cObject *obj, cObject *details) override;
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
+                               cObject *details) override;
 
     virtual void arpResolutionCompleted(RINArp::ArpNotification *entry);
     virtual void arpResolutionFailed(RINArp::ArpNotification *entry);

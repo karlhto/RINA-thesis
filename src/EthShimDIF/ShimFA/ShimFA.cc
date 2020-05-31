@@ -21,7 +21,19 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/ShimFA/ShimFA.h"
+
+#include "Common/RINASignals.h"
 #include "inet/linklayer/common/MACAddress.h"
+#include "omnetpp/simutil.h"
+
+const simsignal_t ShimFA::faiAllocateRequestSignal =
+    cComponent::registerSignal(SIG_FAI_AllocateRequest);
+const simsignal_t ShimFA::faiDeallocateRequestSignal =
+    cComponent::registerSignal(SIG_FAI_DeallocateRequest);
+const simsignal_t ShimFA::faiAllocateResponsePositiveSignal =
+    cComponent::registerSignal(SIG_FAI_AllocateResponsePositive);
+const simsignal_t ShimFA::faiAllocateResponseNegativeSignal =
+    cComponent::registerSignal(SIG_FAI_AllocateResponseNegative);
 
 Define_Module(ShimFA);
 
@@ -92,7 +104,7 @@ bool ShimFA::receiveAllocateRequest(Flow* flow) {
     EV << "Received allocation request for flow with destination address "
         << flow->getDstApni().getApn() << endl;
 
-    if (state != ShimConnectionState::UNALLOCATED) {
+    if (state != ConnectionState::UNALLOCATED) {
         EV << "A flow is already either allocated or pending." << endl;
         return false;
     }
@@ -105,12 +117,13 @@ bool ShimFA::receiveAllocateRequest(Flow* flow) {
 
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS) {
         // entry was found in cache, allocate flow at once and signal success
-        state = ShimConnectionState::ALLOCATED;
-        createBindings();
+        state = ConnectionState::ALLOCATED;
+        createBindings(0);
         return true;
     }
 
-    state = ShimConnectionState::ALLOCATE_PENDING;
+    flowObject = flow;
+    state = ConnectionState::ALLOCATE_PENDING;
 
     return true;
 }
@@ -120,7 +133,7 @@ bool ShimFA::receiveDeallocateRequest(Flow* flow) {
 
     EV << "Received deallocation request for flow with destination APN " << endl;
 
-    if (state == ShimConnectionState::UNALLOCATED) {
+    if (state == ConnectionState::UNALLOCATED) {
         EV_WARN << "Deallocation requested, but no flow present." << endl;
         return false;
     }
@@ -130,7 +143,22 @@ bool ShimFA::receiveDeallocateRequest(Flow* flow) {
     return false;
 }
 
-void ShimFA::receiveArpUpdate(const APN &dstApn) {
+void ShimFA::completedAddressResolution(const APN &dstApn)
+{
+    Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
+    emit(faiAllocateRequestSignal, flowObject);
+}
+
+void ShimFA::failedAddressResolution(const APN &dstApn)
+{
+    Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
+    emit(faiAllocateResponseNegativeSignal, flowObject);
+}
+
+ShimFA::ConnectionState ShimFA::getState() const
+{
+    Enter_Method_Silent();
+    return state;
 }
 
 // Not sure what to do with this function as of yet. This is called by upper
@@ -148,16 +176,15 @@ bool ShimFA::setNeighborAddresses(Flow* flow) {
     return false;
 }
 
-void ShimFA::createBindings() {
-}
+bool ShimFA::allocatePort(Flow *flow) {}
 
-void ShimFA::deleteBindings() {
-}
+void ShimFA::createBindings(int portID) {}
 
-void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID,
-                           cObject *obj, cObject *details) {
-}
+void ShimFA::deleteBindings() {}
 
+void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
+{
+}
 
 /* Mandatory function implementations */
 bool ShimFA::receiveMgmtAllocateRequest(Flow*) {

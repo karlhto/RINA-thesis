@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
+#include "EthShimDIF/ShimFA/ShimFA.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "Common/PDU.h"
 
@@ -35,6 +36,8 @@ EthShim::~EthShim() {
 void EthShim::initialize() {
     initPointers();
     initGates();
+
+    // Sets up listening for this module
     arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
     arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 }
@@ -44,6 +47,9 @@ void EthShim::initPointers() {
     arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
     if (arp == nullptr)
         throw cRuntimeError("EthShim needs ARP module");
+    shimFA = dynamic_cast<ShimFA *>(ipcProcess->getModuleByPath(".flowAllocator.fa"));
+    if (shimFA == nullptr)
+        throw cRuntimeError("EthShim needs ShimFlowAllocator module");
 }
 
 void EthShim::initGates() {
@@ -135,9 +141,11 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID,
 }
 
 void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry) {
+    shimFA->completedAddressResolution(entry->apName);
 }
 
 void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry) {
+    shimFA->failedAddressResolution(entry->apName);
 }
 
 /* How to handle delimiting? Should the delimiting module be reused, should the
