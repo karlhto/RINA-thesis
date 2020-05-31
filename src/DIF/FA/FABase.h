@@ -36,7 +36,7 @@ class FABase : public cSimpleModule {
     FABase();
     virtual ~FABase();
 
-    std::list<Flow*> PendingFlows;
+    std::list<Flow*> pendingFlows;
 
     virtual bool receiveAllocateRequest(Flow* flow) = 0;
     virtual bool receiveMgmtAllocateRequest(Flow* mgmtflow) = 0;
@@ -56,8 +56,8 @@ class FABase : public cSimpleModule {
     const Address& getMyAddress() const;
 
   protected:
-    NFlowTable* N_flowTable;
-    Address MyAddress;
+    NFlowTable* nFlowTable;
+    Address myAddress;
 
     //SimpleModule overloads
     virtual void initialize(int stage) = 0;

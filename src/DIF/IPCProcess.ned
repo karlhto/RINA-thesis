@@ -39,9 +39,9 @@ module IPCProcess
         string apName = default(ipcAddress + "_" + difName);
         bool relay = default(false);
         string routingPolicyName = default("DummyRouting");
-        
+
         bool onWire = default(false);
-        
+
     gates:
         inout southIo[];
         inout northIo[];
@@ -59,7 +59,7 @@ module IPCProcess
         efcp: EFCPModule {
             @display("p=79,50");
         }
-        enrollment: EnrollmentModule {
+        enrollmentModule: EnrollmentModule {
             @display("p=390,50");
         }
         routingPolicy: <routingPolicyName> like IntRouting {

@@ -48,14 +48,6 @@ class EnrollmentListeners : public cListener {
 };
 
 
-class LisEnrollmentAllResPosi : public EnrollmentListeners {
-  public:
-    LisEnrollmentAllResPosi(Enrollment* nenrollment): EnrollmentListeners(nenrollment){};
-    using EnrollmentListeners::receiveSignal;
-    virtual void receiveSignal(cComponent *src, simsignal_t id,  cObject *obj, cObject* detail);
-};
-
-
 class LisEnrollmentGetFlowFromFaiCreResPosi : public EnrollmentListeners {
   public:
     LisEnrollmentGetFlowFromFaiCreResPosi(Enrollment* nenrollment): EnrollmentListeners(nenrollment){};

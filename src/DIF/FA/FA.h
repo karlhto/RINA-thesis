@@ -37,14 +37,8 @@
 #include "DIF/FA/FAListeners.h"
 #include "DIF/FA/FAI.h"
 #include "Common/Flow.h"
-#include "DIF/FA/NFlowTable.h"
 #include "Common/RINASignals.h"
-#include "DIF/EFCP/EFCP.h"
 #include "Common/ExternConsts.h"
-#include "DAF/DA/DA.h"
-#include "DIF/RA/RABase.h"
-#include "DIF/FA/NewFlowRequest/NewFlowRequestBase.h"
-#include "DIF/Enrollment/EnrollmentStateTable.h"
 
 //Constants
 
@@ -52,6 +46,15 @@ extern const int RANDOM_NUMBER_GENERATOR;
 extern const int MAX_PORTID;
 extern const int MAX_CEPID;
 extern const char* MOD_NEWFLOWREQPOLICY;
+
+// Forward declarations
+class EFCP;
+class DA;
+class RABase;
+class NewFlowRequestBase;
+class NFlowTable;
+class EnrollmentStateTable;
+class Enrollment;
 
 class FA : public FABase
 {
@@ -81,8 +84,6 @@ class FA : public FABase
     simsignal_t sigFAAllocFinMgmt;
 
     //Listeners
-    //LisFAAllocReq*      lisAllocReq;
-    //LisFADeallocReq*    lisDeallocReq;
     LisFAAllocFinMgmt*  lisEnrollFin;
     LisFACreFloPosi*    lisCreFloPosi;
     LisFACreReq*        lisCreReq;
@@ -95,11 +96,12 @@ class FA : public FABase
     void initPointers();
 
   private:
-    EFCP* Efcp;
-    DA* DifAllocator;
-    RABase* RaModule;
-    NewFlowRequestBase* NFloReqPolicy;
-    EnrollmentStateTable* Enrollment;
+    EFCP* efcp;
+    DA* difAllocator;
+    RABase* raModule;
+    NewFlowRequestBase* nFloReqPolicy;
+    Enrollment* enrollment;
+    EnrollmentStateTable* enrollmentStateTable;
 
     bool isMalformedFlow(Flow* flow);
     FAI* createFAI(Flow* flow);

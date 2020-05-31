@@ -29,6 +29,7 @@
  */
 
 #include "DIF/RA/RA.h"
+#include "DIF/Enrollment/Enrollment.h"
 
 Define_Module(RA);
 
@@ -62,6 +63,7 @@ void RA::initialize(int stage)
     rmt = getRINAModule<RMT*>(this, 2, {MOD_RELAYANDMUX, MOD_RMT});
     rmtAllocator = getRINAModule<RMTModuleAllocator*>(this, 2, {MOD_RELAYANDMUX, MOD_RMTALLOC});
     fa = getRINAModule<FABase*>(this, 2, {MOD_FLOWALLOC, MOD_FA});
+    enrollment = getRINAModule<Enrollment*>(this, 2, {MOD_ENROLLMENTMODULE, MOD_ENROLLMENT});
 
     // retrieve pointers to policies
     qAllocPolicy = getRINAModule<QueueAllocBase*>(this, 1, {MOD_POL_QUEUEALLOC});
@@ -144,7 +146,6 @@ void RA::initSignalsAndListeners()
     sigRACreFloNega = registerSignal(SIG_RA_CreateFlowNegative);
     sigRASDReqFromRMT = registerSignal(SIG_RA_InvokeSlowdown);
     sigRASDReqFromRIB = registerSignal(SIG_RA_ExecuteSlowdown);
-    sigRAMgmtAllocd = registerSignal(SIG_RA_MgmtFlowAllocated);
     sigRAMgmtDeallocd = registerSignal(SIG_RA_MgmtFlowDeallocated);
 
     lisRAAllocResPos = new LisRAAllocResPos(this);
@@ -679,7 +680,7 @@ void RA::postNM1FlowAllocation(NM1FlowTableItem* ftItem)
     if (ftItem->getFlow()->isManagementFlow())
     {
         APNIPair* apnip = new APNIPair(ftItem->getFlow()->getSrcApni(), ftItem->getFlow()->getDstApni());
-        signalizeMgmtAllocToEnrollment(apnip);
+        enrollment->startCACE(apnip);
     }
 }
 
@@ -832,12 +833,6 @@ void RA::signalizeSlowdownRequestToEFCP(cObject* obj)
     Enter_Method("signalizeSlowdownRequestToEFCP()");
     CongestionDescriptor* congInfo = check_and_cast<CongestionDescriptor*>(obj);
     emit(sigRASDReqFromRIB, congInfo);
-}
-
-void RA::signalizeMgmtAllocToEnrollment(APNIPair* apnip)
-{
-    Enter_Method("signalizeMgmtAllocToEnrollment()");
-    emit(sigRAMgmtAllocd, apnip);
 }
 
 void RA::signalizeMgmtDeallocToEnrollment(Flow* flow)

@@ -57,6 +57,7 @@ extern const char* PAR_QOSREQ;
 extern const char* ELEM_QOSREQ;
 extern const char* ATTR_ID;
 
+class Enrollment;
 
 class RA : public RABase
 {
@@ -92,6 +93,7 @@ class RA : public RABase
     FABase* fa;
     NM1FlowTable* flowTable;
     QueueAllocBase* qAllocPolicy;
+    Enrollment* enrollment;
 
     // Forwarding and routing stuff...
     IntPDUFG * fwdtg;
@@ -133,10 +135,8 @@ class RA : public RABase
     void signalizeCreateFlowNegativeToRIBd(Flow* flow);
     void signalizeSlowdownRequestToRIBd(cPacket* pdu);
     void signalizeSlowdownRequestToEFCP(cObject* obj);
-    void signalizeMgmtAllocToEnrollment(APNIPair* apnip);
     void signalizeMgmtDeallocToEnrollment(Flow* flow);
-
 };
-    
+
 
 #endif

@@ -119,10 +119,6 @@ void Enrollment::initSignalsAndListeners() {
     sigEnrollmentStartOperRes   = registerSignal(SIG_ENROLLMENT_StartOperationResponse);
     sigEnrollmentFinish         = registerSignal(SIG_ENROLLMENT_Finished);
 
-    lisEnrollmentAllResPosi = new LisEnrollmentAllResPosi(this);
-    catcher1->subscribe(SIG_FA_MgmtFlowAllocated, lisEnrollmentAllResPosi);
-    catcher1->subscribe(SIG_RA_MgmtFlowAllocated, lisEnrollmentAllResPosi);
-
     //lisEnrollmentGetFlowFromFaiCreResPosi = new LisEnrollmentGetFlowFromFaiCreResPosi(this);
     //catcher1->subscribe(SIG_FAI_CreateFlowResponsePositive, lisEnrollmentGetFlowFromFaiCreResPosi);
 
@@ -155,7 +151,8 @@ void Enrollment::initSignalsAndListeners() {
 }
 
 void Enrollment::startCACE(APNIPair* apnip) {
-    Enter_Method("startCACE()");
+    Enter_Method("startCACE(%s)", apnip->info().c_str());
+    EV_INFO << "Starting CACE phase" << endl;
 
     auto entry = EnrollmentStateTableEntry(apnip->first, apnip->second, EnrollmentStateTableEntry::CON_AUTHENTICATING);
     StateTable->insert(entry);

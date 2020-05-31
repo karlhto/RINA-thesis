@@ -45,7 +45,7 @@ class NFlowTable : public cSimpleModule
     void insertNew(Flow* flow);
     void insert(const NFlowTableEntry& entry);
     void removeByFlow(Flow* flow);
-    unsigned const int getSize() const;
+    unsigned int getSize() const;
     NFlowTableEntry* findEntryByFlow(const Flow* flow);
     NFlowTableEntry* findEntryByApns(const APN& srcApn, const APN& dstApn);
     NFlowTableEntry* findMgmtEntry(const Flow* flow);

@@ -232,7 +232,7 @@ NFlowTableEntry* NFlowTable::findMgmtEntryByDstApni(const APN& dstApn) {
     return NULL;
 }
 
-const unsigned int NFlowTable::getSize() const {
+unsigned int NFlowTable::getSize() const {
     return NFlowTab.size();
 }
 

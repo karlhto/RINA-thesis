@@ -87,26 +87,6 @@ void LisFAAllocFinMgmt::receiveSignal(cComponent* src, simsignal_t id,
         cObject* obj, cObject *detail) {
     EV << "AllocFinMgmt initiated by " << src->getFullPath() << " and processed by " << fa->getFullPath() << endl;
 
-    /*
-    Flow* flow = dynamic_cast<Flow*>(obj);
-    EV << flow->info() << endl;
-    if (flow
-        && fa->getMyAddress().getApname() == flow->getSrcApni().getApn()
-        && flow->isManagementFlow())
-    {
-        //Notify pending flows that mgmt flow is prepared
-        TFAIPtrs entries = fa->getNFlowTable()->findEntriesAffectedByMgmt(flow);
-        for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it) {
-            fa->PendingFlows.push_back((*it)->getFlow());
-        }
-        fa->receiveMgmtAllocateFinish();
-    }
-    else {
-        if (!flow) { EV << "Received not a flow object!" << endl; }
-        else if (!flow->getConId().getQoSId().compare(VAL_MGMTQOSID)) { EV << "Management flow allocated!" << endl; }
-        else { EV << "Flow not intended for my FA!" << endl; }
-    }
-    */
     APNIPair* apnip = dynamic_cast<APNIPair*>(obj);
     //EV << "!!!!!" << apnip->info() << endl;
     if (apnip && fa->getMyAddress().getApn() == apnip->first.getApn()) {
@@ -114,7 +94,7 @@ void LisFAAllocFinMgmt::receiveSignal(cComponent* src, simsignal_t id,
         //Notify pending flows that mgmt flow is prepared
         TFAIPtrs entries = fa->getNFlowTable()->findEntriesAffectedByMgmt(apnip);
         for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it) {
-            fa->PendingFlows.push_back((*it)->getFlow());
+            fa->pendingFlows.push_back((*it)->getFlow());
         }
         //EV << "!!!!!Venku" << endl;
         fa->receiveMgmtAllocateFinish();
