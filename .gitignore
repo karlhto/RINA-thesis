@@ -36,12 +36,14 @@ src/Makefile.vc
 .tkenvrc
 .tkenvlog
 .cmdenv-log
+.oppfeaturestate
 netanim-trace.txt
 gcc-debug
 
 # ignore binary files
 /out
 out/
+.clangd/
 *.so
 *.dylib
 *.dll
