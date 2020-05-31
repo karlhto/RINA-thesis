@@ -37,30 +37,32 @@ const simsignal_t ShimFA::faiAllocateResponseNegativeSignal =
 
 Define_Module(ShimFA);
 
-ShimFA::ShimFA() : FABase::FABase(), state(ShimConnectionState::UNALLOCATED) {}
+/*
+ * Initialisation functionality
+ */
+ShimFA::ShimFA() : FABase::FABase(), state(ConnectionState::UNALLOCATED) {}
 
-ShimFA::~ShimFA() {
-}
+ShimFA::~ShimFA() {}
 
-void ShimFA::initialize(int stage) {
+void ShimFA::initialize(int stage)
+{
     cSimpleModule::initialize(stage);
 
     if (stage == 0) {
         initPointers();
         initSignals();
-    }
-    else if (stage == 1) {
-        // Needs to be done in initialisation phase since registration is
-        // implicit in RINASim.
+    } else if (stage == 1) {
+        // Needs to be done in initialisation phase since registration is implicit in RINASim.
         setRegisteredApName();
 
-        // Registers application with static entry in ARP, needs to be called
-        // after stage 0 to guarantee allocation of MAC address
+        // Registers application with static entry in ARP, needs to be called after stage 0 to
+        // guarantee allocation of MAC address
         shim->registerApplication(registeredApplication);
     }
 }
 
-void ShimFA::initPointers() {
+void ShimFA::initPointers()
+{
     shimIpcProcess = getModuleByPath("^.^");
     arp = dynamic_cast<RINArp *>(shimIpcProcess->getSubmodule("arp"));
     if (arp == nullptr)
@@ -71,9 +73,9 @@ void ShimFA::initPointers() {
         throw cRuntimeError("Shim FA needs shim module");
 
     // Registering an application is not supported in RINASim since any upper
-    // layer connected IPCP/AP is implicitly registered. We still need the AP
-    // name of the upper layer. Unfortunately pretty hacky solution for the
-    // time being, but finds connected IPC process.
+    // layer connected IPCP/AP is implicitly registered. We still need the AP name
+    // of the upper layer. Unfortunately pretty hacky solution for the time being,
+    // but finds connected IPC process
     const cGate *dstGate = shimIpcProcess->gate("northIo$o")->getPathEndGate();
     if (dstGate == nullptr)
         throw cRuntimeError("IPC Process lacks correct gate names");
@@ -83,26 +85,31 @@ void ShimFA::initPointers() {
         throw cRuntimeError("Shim IPC Process not connected to IPC process");
 }
 
-void ShimFA::initSignals() {
+void ShimFA::initSignals()
+{
     // We unfortunately have to handle some signals.
+
+    // Should emit:
 }
 
-void ShimFA::setRegisteredApName() {
+void ShimFA::setRegisteredApName()
+{
     std::string name = connectedApplication->par("apName").stringValue();
     registeredApplication = APN(name);
 }
 
-
-void ShimFA::handleMessage(cMessage *msg) {
+void ShimFA::handleMessage(cMessage *msg)
+{
     // self message is the only valid message here
     delete msg;
 }
 
-bool ShimFA::receiveAllocateRequest(Flow* flow) {
+bool ShimFA::receiveAllocateRequest(Flow *flow)
+{
     Enter_Method("receiveAllocateRequest()");
 
     EV << "Received allocation request for flow with destination address "
-        << flow->getDstApni().getApn() << endl;
+       << flow->getDstApni().getApn() << endl;
 
     if (state != ConnectionState::UNALLOCATED) {
         EV << "A flow is already either allocated or pending." << endl;
@@ -113,7 +120,7 @@ bool ShimFA::receiveAllocateRequest(Flow* flow) {
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
 
     // TODO implement QoS validation
-    //validateQosRequirements(flow);
+    // validateQosRequirements(flow);
 
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS) {
         // entry was found in cache, allocate flow at once and signal success
@@ -128,9 +135,9 @@ bool ShimFA::receiveAllocateRequest(Flow* flow) {
     return true;
 }
 
-bool ShimFA::receiveDeallocateRequest(Flow* flow) {
+bool ShimFA::receiveDeallocateRequest(Flow *flow)
+{
     Enter_Method("receiveDeallocateRequest()");
-
     EV << "Received deallocation request for flow with destination APN " << endl;
 
     if (state == ConnectionState::UNALLOCATED) {
@@ -164,17 +171,11 @@ ShimFA::ConnectionState ShimFA::getState() const
 // Not sure what to do with this function as of yet. This is called by upper
 // layer, but not checked. It's possible at least a subset of the flow
 // allocation policies should be implemented
-bool ShimFA::invokeNewFlowRequestPolicy(Flow* flow) {
-    return true;
-}
+bool ShimFA::invokeNewFlowRequestPolicy(Flow *flow) { return true; }
 
-bool ShimFA::setOriginalAddresses(Flow* flow) {
-    return false;
-}
+bool ShimFA::setOriginalAddresses(Flow *flow) { return false; }
 
-bool ShimFA::setNeighborAddresses(Flow* flow) {
-    return false;
-}
+bool ShimFA::setNeighborAddresses(Flow *flow) { return false; }
 
 bool ShimFA::allocatePort(Flow *flow) {}
 
@@ -187,26 +188,29 @@ void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *ob
 }
 
 /* Mandatory function implementations */
-bool ShimFA::receiveMgmtAllocateRequest(Flow*) {
+bool ShimFA::receiveMgmtAllocateRequest(Flow *)
+{
     throw cRuntimeError("ShimFA does not support creation of management flows");
 }
 
-bool ShimFA::receiveMgmtAllocateRequest(APNamingInfo, APNamingInfo) {
+bool ShimFA::receiveMgmtAllocateRequest(APNamingInfo, APNamingInfo)
+{
     throw cRuntimeError("ShimFA does not support creation of management flows");
 }
 
-bool ShimFA::receiveMgmtAllocateFinish() {
+bool ShimFA::receiveMgmtAllocateFinish()
+{
     throw cRuntimeError("ShimFA does not support creation of management flows");
 }
 
-void ShimFA::receiveNM1FlowCreated(Flow*) {
+void ShimFA::receiveNM1FlowCreated(Flow *)
+{
     throw cRuntimeError("ShimFA should not be on medium");
 }
 
-bool ShimFA::receiveCreateFlowRequestFromRibd(Flow*) {
+bool ShimFA::receiveCreateFlowRequestFromRibd(Flow *)
+{
     throw cRuntimeError("ShimFA should not need to communicate with RIBd");
 }
 
-void ShimFA::deinstantiateFai(Flow*) {
-    throw cRuntimeError("ShimFA should not utilise FAI");
-}
+void ShimFA::deinstantiateFai(Flow *) { throw cRuntimeError("ShimFA should not utilise FAI"); }

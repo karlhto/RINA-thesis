@@ -23,6 +23,7 @@
 #pragma once
 
 #include <omnetpp.h>
+
 #include "DIF/FA/FABase.h"
 #include "EthShimDIF/EthShim/EthShim.h"
 #include "EthShimDIF/RINArp/RINArp.h"
@@ -30,9 +31,8 @@
 /**
  * Shim specific Flow Allocator.
  *
- * Different from normal IPC Process Flow Allocator in the way that no flow
- * allocator instances are actually allocated, only the first registered
- * flow is.
+ * Different from normal IPC Process Flow Allocator in the way that no flow allocator instances are
+ * actually allocated, only the first registered flow is.
  */
 class ShimFA : public FABase, public cListener
 {

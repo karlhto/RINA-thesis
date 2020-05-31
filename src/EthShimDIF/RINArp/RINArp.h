@@ -23,6 +23,7 @@
 #pragma once
 
 #include <omnetpp.h>
+
 #include "Common/APN.h"
 #include "inet/linklayer/common/MACAddress.h"
 
@@ -34,7 +35,8 @@ class RINArpPacket;
  * This module is more or less a RINA-specific version of the ARP
  * implementation done in INET.
  */
-class RINArp : public cSimpleModule {
+class RINArp : public cSimpleModule
+{
   public:
     class ArpCacheEntry;
     typedef std::map<APN, ArpCacheEntry *> ArpCache;
@@ -56,14 +58,17 @@ class RINArp : public cSimpleModule {
     /**
      * Notifications for changes in ARP, like a completed ARP resolution
      */
-    class ArpNotification : public cObject {
+    class ArpNotification : public cObject
+    {
       public:
         APN apName;
         inet::MACAddress macAddress;
 
       public:
-        ArpNotification(APN apName, inet::MACAddress macAddress) :
-            apName(apName), macAddress(macAddress) {}
+        ArpNotification(APN apName, inet::MACAddress macAddress)
+            : apName(apName), macAddress(macAddress)
+        {
+        }
     };
 
     /** @brief Signals for publishing ARP state changes */
@@ -81,7 +86,7 @@ class RINArp : public cSimpleModule {
 
     /** @brief ARP cache entries */
     ArpCache arpCache;
-    std::pair<APN, ArpCacheEntry *> thisHost; ///< Naming information for this host
+    std::pair<APN, ArpCacheEntry *> thisHost;  ///< Naming information for this host
 
     /** @brief Where to send arp packets */
     cGate *netwOutGate;
@@ -113,16 +118,13 @@ class RINArp : public cSimpleModule {
     virtual void initiateArpResolution(ArpCacheEntry *entry);
 
     /** @brief Updates an ARP cache entry with an address */
-    virtual void updateArpCache(ArpCacheEntry *entry,
-                                const inet::MACAddress &mac);
+    virtual void updateArpCache(ArpCacheEntry *entry, const inet::MACAddress &mac);
 
     /** @brief Checks if specified APN is same as in static entry */
     virtual bool addressRecognized(const APN &apn);
 
     /** @brief Sends packet to network (likely passing it to NIC */
-    virtual void sendPacketToNIC(cMessage *msg,
-                                 const inet::MACAddress &macAddress,
-                                 int etherType);
+    virtual void sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress, int etherType);
 
     /** @brief Sends an ARP request addressed to specified APN */
     virtual void sendArpRequest(const APN &apn);
@@ -135,5 +137,4 @@ class RINArp : public cSimpleModule {
 
     /** @brief Handles selfmessages and messages from ethernet shim module */
     virtual void handleMessage(cMessage *msg);
-
 };

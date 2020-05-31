@@ -1,0 +1,18 @@
+---
+BasedOnStyle: Google
+---
+Language: Cpp
+UseTab: Never
+MaxEmptyLinesToKeep: 3
+IndentWidth: 4
+TabWidth: 4
+IndentCaseLabels: false
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: true
+AlwaysBreakAfterReturnType: TopLevel
+AccessModifierOffset: -2
+BinPackParameters: true
+DerivePointerAlignment: false
+PointerAlignment: Right
+ColumnLimit: 100
