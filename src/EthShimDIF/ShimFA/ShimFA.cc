@@ -55,9 +55,11 @@ void ShimFA::initialize(int stage)
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
         setRegisteredApName();
 
-        // Registers application with static entry in ARP, needs to be called after stage 0 to
-        // guarantee allocation of MAC address
-        shim->registerApplication(registeredApplication);
+        if (shimIpcProcess != nullptr) {
+            // Registers application with static entry in ARP, needs to be called after stage 0 to
+            // guarantee allocation of MAC address
+            shim->registerApplication(registeredApplication);
+        }
     }
 }
 
@@ -77,12 +79,15 @@ void ShimFA::initPointers()
     // of the upper layer. Unfortunately pretty hacky solution for the time being,
     // but finds connected IPC process
     const cGate *dstGate = shimIpcProcess->gate("northIo$o")->getPathEndGate();
-    if (dstGate == nullptr)
-        throw cRuntimeError("IPC Process lacks correct gate names");
-
-    connectedApplication = dstGate->getOwnerModule();
-    if (!connectedApplication->hasPar("apName"))
-        throw cRuntimeError("Shim IPC Process not connected to IPC process");
+    if (dstGate == nullptr) {
+        EV_ERROR << "Shim IPC not connected to overlying application. It will be able to receive "
+                 << "ARP requests, but will never send ARP reply" << endl;
+    } else {
+        connectedApplication = dstGate->getOwnerModule();
+        if (!connectedApplication->hasPar("apName"))
+            throw cRuntimeError(
+                "Shim IPC process not connected to overlying IPC/Application Process");
+    }
 }
 
 void ShimFA::initSignals()
@@ -198,7 +203,7 @@ bool ShimFA::receiveMgmtAllocateRequest(APNamingInfo, APNamingInfo)
     throw cRuntimeError("ShimFA does not support creation of management flows");
 }
 
-bool ShimFA::receiveMgmtAllocateFinish()
+bool ShimFA::receiveMgmtAllocateFinish(APNIPair *)
 {
     throw cRuntimeError("ShimFA does not support creation of management flows");
 }

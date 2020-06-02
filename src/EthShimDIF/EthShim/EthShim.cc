@@ -129,15 +129,12 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID,
                             cObject *obj, cObject *) {
     Enter_Method_Silent();
 
-    if (signalID == RINArp::completedRINArpResolutionSignal) {
+    if (signalID == RINArp::completedRINArpResolutionSignal)
         arpResolutionCompleted(check_and_cast<RINArp::ArpNotification *>(obj));
-    }
-    else if (signalID == RINArp::failedRINArpResolutionSignal) {
+    else if (signalID == RINArp::failedRINArpResolutionSignal)
         arpResolutionFailed(check_and_cast<RINArp::ArpNotification *>(obj));
-    }
-    else {
+    else
         throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
-    }
 }
 
 void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry) {

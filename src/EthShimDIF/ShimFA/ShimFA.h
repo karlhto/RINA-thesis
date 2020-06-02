@@ -69,7 +69,7 @@ class ShimFA : public FABase, public cListener
     /// These are all unused in shim layer, but still implemented
     virtual bool receiveMgmtAllocateRequest(Flow *mgmtflow);
     virtual bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst);
-    virtual bool receiveMgmtAllocateFinish();
+    virtual bool receiveMgmtAllocateFinish(APNIPair *apnip);
     virtual void receiveNM1FlowCreated(Flow *flow);
     virtual bool receiveCreateFlowRequestFromRibd(Flow *flow);
     virtual bool invokeNewFlowRequestPolicy(Flow *flow);
