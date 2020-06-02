@@ -10,7 +10,7 @@ IndentCaseLabels: false
 BreakBeforeBraces: Linux
 AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: true
-AlwaysBreakAfterReturnType: TopLevel
+AlwaysBreakAfterReturnType: None
 AccessModifierOffset: -2
 BinPackParameters: true
 DerivePointerAlignment: false
