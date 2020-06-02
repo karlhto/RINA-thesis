@@ -282,6 +282,7 @@ bool FA::receiveAllocateRequest(Flow* flow) {
 }
 
 bool FA::receiveMgmtAllocateRequest(Flow* mgmtflow) {
+    Enter_Method("receiveMgmtAllocateRequest()");
     bool status = true;
     //If N-1 mgmt-flow not ready, then allocate
     if (!raModule->hasFlow(mgmtflow->getDstAddr().getApn().getName(), VAL_MGMTQOSID)) {
