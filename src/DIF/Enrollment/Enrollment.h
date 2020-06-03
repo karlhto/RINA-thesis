@@ -151,7 +151,6 @@ class Enrollment : public cSimpleModule
     void signalizeStopEnrollmentResponse(EnrollmentObj* obj);
     void signalizeStartOperationRequest(OperationObj* obj);
     void signalizeStartOperationResponse(OperationObj* obj);
-    void signalizeEnrollmentFinished(EnrollmentStateTableEntry* entry);
 
     virtual void handleMessage(cMessage *msg);
 };

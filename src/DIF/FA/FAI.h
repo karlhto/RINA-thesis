@@ -106,7 +106,6 @@ class FAI : public FAIBase  {
     simsignal_t sigFAICreResPosi;
 
     //Listeners
-    LisFAIAllocReq*      lisAllocReq;
     LisFAIAllocResNega*  lisAllocResNega;
     LisFAIAllocResPosi*  lisAllocResPosi;
     LisFAICreResNega*    lisCreResNega;

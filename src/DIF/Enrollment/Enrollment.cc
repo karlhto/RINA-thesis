@@ -380,7 +380,9 @@ void Enrollment::processStopEnrollmentResponse(EnrollmentStateTableEntry* entry)
 
     if (entry->getIsImmediateEnrollment()) {
         entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_ENROLLED);
-        signalizeEnrollmentFinished(entry);
+        updateEnrollmentDisplay(ENICON_ENROLLED);
+        APNIPair* apnip = new APNIPair(entry->getLocal(), entry->getRemote());
+        FlowAlloc->receiveMgmtAllocateFinish(apnip);
     }
     else {
         entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_WAIT_START_OPERATION);
@@ -651,12 +653,6 @@ void Enrollment::signalizeStartOperationRequest(OperationObj* obj) {
 
 void Enrollment::signalizeStartOperationResponse(OperationObj* obj) {
     emit(sigEnrollmentStartOperRes, obj);
-}
-
-void Enrollment::signalizeEnrollmentFinished(EnrollmentStateTableEntry* entry) {
-    updateEnrollmentDisplay(ENICON_ENROLLED);
-    APNIPair* apnip = new APNIPair(entry->getLocal(), entry->getRemote());
-    emit(sigEnrollmentFinish, apnip);
 }
 
 void Enrollment::parseConfig(cXMLElement* config) {

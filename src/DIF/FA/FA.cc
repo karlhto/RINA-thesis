@@ -58,25 +58,14 @@ void FA::initPointers() {
 
 void FA::initSignalsAndListeners() {
     cModule* catcher3 = this->getModuleByPath("^.^.^");
-    cModule* catcher2 = this->getModuleByPath("^.^");
 
     //Signals that this module is emitting
     sigFACreReqFwd      = registerSignal(SIG_FA_CreateFlowRequestForward);
     sigFACreResNega     = registerSignal(SIG_FA_CreateFlowResponseNegative);
-    sigFAAllocFinMgmt   = registerSignal(SIG_FA_MgmtFlowAllocated);
 
     //AllocateResponsePositive
     lisCreFloPosi = new LisFACreFloPosi(this);
     catcher3->subscribe(SIG_FAI_AllocateResponsePositive, lisCreFloPosi);
-
-    //CreateRequestFlow
-    lisCreReq = new LisFACreReq(this);
-    catcher2->subscribe(SIG_RIBD_CreateRequestFlow, lisCreReq);
-
-    //Allocate after management flow is prepared (enrollment done)
-    lisEnrollFin = new LisFAAllocFinMgmt(this);
-    catcher2->subscribe(SIG_ENROLLMENT_Finished, lisEnrollFin);
-
 }
 
 void FA::initialize(int stage) {
@@ -216,6 +205,8 @@ bool FA::setNeighborAddresses(Flow* flow) {
     return true;
 }
 
+// Possible API change. Port could be delegated instantly in above layer
+// bool FA::receiveAllocateRequest(APNIPair *apnip, QoSReq *qos, RMTPort *port)
 bool FA::receiveAllocateRequest(Flow* flow) {
     Enter_Method("receiveAllocateRequest()");
     EV << this->getFullPath() << " received AllocateRequest" << endl;
@@ -324,8 +315,14 @@ bool FA::receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) {
     return status;
 }
 
-bool FA::receiveMgmtAllocateFinish() {
+bool FA::receiveMgmtAllocateFinish(APNIPair *apnip) {
     Enter_Method("receiveAllocFinishMgmt()");
+    EV << "AllocFinMgmt initiated" << endl;
+
+    TFAIPtrs entries = nFlowTable->findEntriesAffectedByMgmt(apnip);
+    for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it)
+        pendingFlows.push_back((*it)->getFlow());
+
     scheduleAt(simTime(), new cMessage(TIM_FAPENDFLOWS) );
     //TODO: Vesely - Fix unused return value
     return true;
@@ -411,7 +408,6 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
             }
 
             // bind this flow to a suitable (N-1)-flow
-            RABase* raModule = getRINAModule<RABase*>(this, 2, {MOD_RESALLOC, MOD_RA});
             status = raModule->bindNFlowToNM1Flow(flow);
 
             //EV << "status: " << status << endl;

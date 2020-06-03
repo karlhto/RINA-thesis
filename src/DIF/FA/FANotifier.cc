@@ -3,17 +3,19 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "DIF/FA/FANotifier.h"
+#include "DIF/FA/FABase.h"
+#include "DIF/RIB/RIBdBase.h"
 
 const char* MSG_FLO             = "Flow";
 const char* MSG_FLOPOSI         = "Flow+";
@@ -33,8 +35,6 @@ void FANotifier::initSignalsAndListeners() {
     cModule* catcher3 = this->getModuleByPath("^.^.^");
 
     //Signals that this module is emitting
-    //sigRIBDSendData      = registerSignal(SIG_RIBD_DataSend);
-    sigRIBDCreReqFlo     = registerSignal(SIG_RIBD_CreateRequestFlow);
     sigRIBDDelReqFlo     = registerSignal(SIG_RIBD_DeleteRequestFlow);
     sigRIBDDelResFlo     = registerSignal(SIG_RIBD_DeleteResponseFlow);
     sigRIBDAllocResPosi  = registerSignal(SIG_AERIBD_AllocateResponsePositive);
@@ -256,11 +256,6 @@ void FANotifier::signalizeAllocateResponsePositive(Flow* flow) {
     emit(sigRIBDAllocResPosi, flow);
 }
 
-void FANotifier::signalizeCreateRequestFlow(Flow* flow) {
-    EV << "Emits CreateRequestFlow signal for flow" << endl;
-    emit(sigRIBDCreReqFlo, flow);
-}
-
 void FANotifier::signalizeCreateResponseFlowPositive(Flow* flow) {
     EV << "Emits CreateResponsetFlowPositive signal for flow" << endl;
     emit(sigRIBDCreResFloPosi, flow);
@@ -268,6 +263,7 @@ void FANotifier::signalizeCreateResponseFlowPositive(Flow* flow) {
 
 void FANotifier::initPointers() {
     RIBd = check_and_cast<RIBdBase*>( getModuleByPath("^.ribd") );
+    flowAlloc = getRINAModule<FABase *>(this, 2, {MOD_FLOWALLOC, MOD_FA});
 }
 
 void FANotifier::signalizeCreateResponseFlowNegative(Flow* flow) {
@@ -304,7 +300,7 @@ void FANotifier::processMCreate(CDAP_M_Create* msg) {
         //EV << fl->info();
         fl->swapFlow();
         //EV << "\n===========\n" << fl->info();
-        signalizeCreateRequestFlow(fl);
+        flowAlloc->receiveCreateFlowRequestFromRibd(fl);
     }
 }
 

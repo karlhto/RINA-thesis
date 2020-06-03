@@ -65,7 +65,7 @@ class FA : public FABase
     virtual bool receiveAllocateRequest(Flow* flow);
     virtual bool receiveMgmtAllocateRequest(Flow* mgmtflow);
     virtual bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst);
-    virtual bool receiveMgmtAllocateFinish();
+    virtual bool receiveMgmtAllocateFinish(APNIPair *apnip);
     virtual void receiveNM1FlowCreated(Flow* flow);
     virtual bool receiveDeallocateRequest(Flow* flow);
     virtual bool receiveCreateFlowRequestFromRibd(Flow* flow);
@@ -80,13 +80,9 @@ class FA : public FABase
     //Signals
     simsignal_t sigFACreReqFwd;
     simsignal_t sigFACreResNega;
-    simsignal_t sigFACreResPosiFwd;
-    simsignal_t sigFAAllocFinMgmt;
 
     //Listeners
-    LisFAAllocFinMgmt*  lisEnrollFin;
     LisFACreFloPosi*    lisCreFloPosi;
-    LisFACreReq*        lisCreReq;
 
   protected:
     //SimpleModule overloads

@@ -286,8 +286,6 @@ bool FAI::receiveCreateResponsePositive(Flow* flow) {
     //TODO: Vesely - D-Base-2011-015.pdf, p.9
     //              Create bindings. WTF? Bindings should be already created!''
 
-    //cancelEvent(creReqTimer);
-
     //Change dstCep-Id and dstPortId according to new information
     FlowObject->getConnectionId().setDstCepId(flow->getConId().getDstCepId());
     FlowObject->setDstPortId(flow->getDstPortId());
@@ -299,13 +297,8 @@ bool FAI::receiveCreateResponsePositive(Flow* flow) {
     //Change status
     FaModule->getNFlowTable()->changeAllocStatus(FlowObject, NFlowTableEntry::TRANSFER);
 
-    //if (FlowObject->isManagementFlowLocalToIPCP()) {
-    //    signalizeAllocateRequestToOtherFais( FlowObject );
-    //}
-    //else {
-        //Pass Allocate Response to AE or RIBd
-        this->signalizeAllocateResponsePositive();
-    //}
+    //Pass Allocate Response to AE or RIBd
+    this->signalizeAllocateResponsePositive();
 
     //FIXME: Vesely - always true
     return true;
@@ -330,15 +323,7 @@ void FAI::receiveDeleteResponse() {
 }
 
 void FAI::handleMessage(cMessage *msg) {
-    /*
-    //CreateRequest was not delivered in time
-    if ( !strcmp(msg->getName(), TIM_CREREQ) ) {
-        //Increment and resend
-        bool status = receiveCreateResponseNegative();
-        if (!status)
-            EV << "CreateRequest retries reached its maximum!" << endl;
-    }
-    */
+    delete msg;
 }
 
 std::string FAI::info() const {
@@ -507,7 +492,6 @@ bool FAI::deleteBindings() {
 
 bool FAI::invokeAllocateRetryPolicy() {
     //Increase CreateFlowRetries
-    //cancelEvent(creReqTimer);
     return AllocRetryPolicy->run(*getFlow());
 }
 
@@ -527,18 +511,12 @@ void FAI::initSignalsAndListeners() {
     sigFAICreResPosi    = registerSignal(SIG_FAI_CreateFlowResponsePositive);
 
     //Signals that module processes
-    //  AllocationRequest
-    this->lisAllocReq       = new LisFAIAllocReq(this);
-    catcher3->subscribe(SIG_toFAI_AllocateRequest, this->lisAllocReq);
     //  AllocationRespNegative
     this->lisAllocResNega   = new LisFAIAllocResNega(this);
     catcher3->subscribe(SIG_AERIBD_AllocateResponseNegative, this->lisAllocResNega);
     //  AllocationRespPositive
     this->lisAllocResPosi   = new LisFAIAllocResPosi(this);
     catcher3->subscribe(SIG_AERIBD_AllocateResponsePositive, this->lisAllocResPosi);
-//    //  CreateFlowRequest
-//    this->lisCreReq         = new LisFAICreReq(this);
-//    catcher->subscribe(SIG_FAI_CreateFlowRequest, this->lisCreReq);
     //  CreateFlowResponseNegative
     this->lisCreResNega     = new LisFAICreResNega(this);
     catcher3->subscribe(SIG_RIBD_CreateFlowResponseNegative, this->lisCreResNega);
@@ -560,13 +538,9 @@ void FAI::initSignalsAndListeners() {
     //DeleteResponseFlow
     lisDelRes = new LisFAIDelRes(this);
     catcher2->subscribe(SIG_RIBD_DeleteResponseFlow, lisDelRes);
-
 }
 
 void FAI::signalizeCreateFlowRequest() {
-    //creReqTimer = new cMessage(TIM_CREREQ);
-    //Start timer
-    //scheduleAt(simTime() + creReqTimeout, creReqTimer);
     //Signalize RIBd to send M_CREATE(flow)
     emit(this->sigFAICreReq, FlowObject);
 }

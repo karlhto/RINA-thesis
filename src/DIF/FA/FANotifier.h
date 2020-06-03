@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef FANOTIFIER_H_
 #define FANOTIFIER_H_
@@ -21,7 +21,9 @@
 //RINASim libraries
 #include "DIF/FA/FANotifierBase.h"
 #include "DIF/FA/FANotifierListeners.h"
-#include "DIF/RIB/RIBdBase.h"
+
+class RIBdBase;
+class FABase;
 
 class FANotifier : public FANotifierBase {
   public:
@@ -86,7 +88,7 @@ class FANotifier : public FANotifierBase {
     virtual void processMDeleteR(CDAP_M_Delete_R* msg);
 
     RIBdBase* RIBd;
-
+    FABase *flowAlloc;
 };
 
 #endif /* FANOTIFIER_H_ */

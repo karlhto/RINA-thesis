@@ -42,26 +42,10 @@ class FAListeners : public cListener
     }
 };
 
-class LisFAAllocFinMgmt : public FAListeners
-{
-  public:
-    LisFAAllocFinMgmt(FABase *sfa) : FAListeners(sfa){};
-    using FAListeners::receiveSignal;
-    void virtual receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
-};
-
 class LisFACreFloPosi : public FAListeners
 {
   public:
     LisFACreFloPosi(FABase *sfa) : FAListeners(sfa){};
-    using FAListeners::receiveSignal;
-    void virtual receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
-};
-
-class LisFACreReq : public FAListeners
-{
-  public:
-    LisFACreReq(FABase *sfa) : FAListeners(sfa){};
     using FAListeners::receiveSignal;
     void virtual receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
 };

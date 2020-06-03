@@ -20,18 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "DIF/FA/FAI.h"
 #include "DIF/FA/FAIListeners.h"
+#include "DIF/FA/FAI.h"
 
-FAIListeners::FAIListeners(FAI* nfai) {
-    this->fai = nfai;
+FAIListeners::FAIListeners(FAI* nfai) : fai(nfai) {}
 
-}
-
-FAIListeners::~FAIListeners() {
-
-
-}
+FAIListeners::~FAIListeners() {}
 
 void LisFAIAllocResPosi::receiveSignal(cComponent* src, simsignal_t id,
         cObject* obj, cObject *detail) {
@@ -50,20 +44,6 @@ void LisFAIAllocResNega::receiveSignal(cComponent* src, simsignal_t id,
         fai->receiveAllocateResponseNegative();
 }
 
-void LisFAIAllocReq::receiveSignal(cComponent* src, simsignal_t id,
-        cObject* obj, cObject *detail) {
-    EV << "AllocateRequest initiated by " << src->getFullPath() << " and processed by " << fai->getFullPath() << endl;
-    Flow* fl = dynamic_cast<Flow*>(obj);
-    if ( fai->getFlow()->compare(*fl) )
-        fai->receiveAllocateRequest();
-}
-/*
-void LisFAICreReq::receiveSignal(cComponent* src, simsignal_t id,
-        cObject* obj) {
-    EV << "CreateRequest initiated by " << src->getFullPath() << " and processed by " << fai->getFullPath() << endl;
-    fai->receiveCreateRequest();
-}
-*/
 void LisFAICreResPosi::receiveSignal(cComponent* src, simsignal_t id,
         cObject* obj, cObject *detail) {
     EV << "CreateResponsePositive initiated by " << src->getFullPath()
@@ -78,8 +58,6 @@ void LisFAICreResPosi::receiveSignal(cComponent* src, simsignal_t id,
             //EV << "A!!!!!!!!!!!!!!IN" << endl;
             fai->receiveCreateResponsePositive(flow);
         }
-
-
     }
     else
         EV << "FAIListener received unknown object!" << endl;
@@ -119,14 +97,6 @@ void LisFAIDelReq::receiveSignal(cComponent* src, simsignal_t id,
         cObject* obj, cObject *detail) {
     EV << "DeleteRequest initiated by " << src->getFullPath() << " and processed by " << fai->getFullPath() << endl;
     Flow* fl = dynamic_cast<Flow*>(obj);
-//    EV << fl->info() << endl << "=================="<< endl << fai->getFlow()->info();
-//    EV << "srcAPNI = " << (fai->getFlow()->getSrcApni() == fl->getSrcApni()) << endl
-//        << "dstAPNI = " << (fai->getFlow()->getDstApni() == fl->getDstApni()) << endl
-//        << "srcPortId = " << (fai->getFlow()->getSrcPortId() == fl->getSrcPortId()) << endl
-//        << "dstPortId = " << (fai->getFlow()->getDstPortId() == fl->getDstPortId()) << endl
-//        << "srcAddr = " << (fai->getFlow()->getSrcAddr() == fl->getSrcAddr()) << endl
-//        << "dstAddr = " << (fai->getFlow()->getDstAddr() == fl->getDstAddr()) << endl;
-//    EV << "Vysledek> " << (fai->getFlow() == fl) << endl;
     if ( fai->getFlow()->compare(*fl) )
         fai->receiveDeleteRequest(fl);
 }
@@ -138,12 +108,10 @@ void LisFAICreResPosiNminusOne::receiveSignal(cComponent* src, simsignal_t id,
 
     Flow* flow = dynamic_cast<Flow*>(obj);
     if (flow) {
-        //EV << "!!!!!!!!!Cube " << flow->getConId().getQoSId() << endl;
         if (fai->getFa()->getMyAddress().getApn() == flow->getSrcApni().getApn()
             && fai->getFlow()->getConId().getQoSId() == flow->getConId().getQoSId()
             && !flow->isManagementFlow()
                 ) {
-            //EV << "B!!!!!!!!!!!!!!IN" << endl;
             fai->receiveCreateFlowResponsePositiveFromNminusOne();
         }
 

@@ -25,24 +25,6 @@
 
 // TODO karlhto -> remove this atrocity
 
-/**
- *
- * @param src
- * @param id
- * @param obj
- */
-void LisFACreReq::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
-{
-    EV << "CreateRequest initiated by " << src->getFullPath() << " and processed by "
-       << fa->getFullPath() << endl;
-
-    Flow *flow = dynamic_cast<Flow *>(obj);
-    if (flow)
-        fa->receiveCreateFlowRequestFromRibd(flow);
-    else
-        EV << "Received not a flow object!" << endl;
-}
-
 void LisFACreFloPosi::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
 {
     EV << "NM1FlowCreated initiated by " << src->getFullPath() << " and processed by "
@@ -64,24 +46,5 @@ void LisFACreFloPosi::receiveSignal(cComponent *src, simsignal_t id, cObject *ob
             EV << "Management flow allocated!" << endl;
         else
             EV << "Flow not intended for my FA!" << endl;
-    }
-}
-
-void LisFAAllocFinMgmt::receiveSignal(cComponent *src, simsignal_t id, cObject *obj,
-                                      cObject *detail)
-{
-    EV << "AllocFinMgmt initiated by " << src->getFullPath() << " and processed by "
-       << fa->getFullPath() << endl;
-
-    APNIPair *apnip = dynamic_cast<APNIPair *>(obj);
-    if (apnip && fa->getMyAddress().getApn() == apnip->first.getApn()) {
-        // Notify pending flows that mgmt flow is prepared
-        TFAIPtrs entries = fa->getNFlowTable()->findEntriesAffectedByMgmt(apnip);
-        for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it)
-            fa->pendingFlows.push_back((*it)->getFlow());
-
-        fa->receiveMgmtAllocateFinish();
-    } else {
-        EV << "FA received unknown object!" << endl;
     }
 }
