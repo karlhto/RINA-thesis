@@ -34,7 +34,7 @@ process_args()
       case $opt in
         "d") rina_lib="${rina_lib}_dbg"
              mode="debug" ;;
-        "G") rina_ui="Tkenv" ;;
+        "G") rina_ui="Qtenv" ;;
         "c") rina_conf="$OPTARG" ;;
         "x") opp_xargs="$OPTARG" ;;
         *) ;;
