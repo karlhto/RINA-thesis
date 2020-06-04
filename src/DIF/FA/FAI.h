@@ -46,6 +46,58 @@ extern const char* MOD_ALLOCRETRYPOLICY;
 
 class FAI : public FAIBase  {
   public:
+    //Signals
+    static const simsignal_t allocateRequestSignal;
+    static const simsignal_t deallocateRequestSignal;
+    static const simsignal_t deallocateResponseSignal;
+    static const simsignal_t allocateResponsePositiveSignal;
+    static const simsignal_t allocateResponseNegativeSignal;
+    static const simsignal_t createRequestSignal;
+    static const simsignal_t deleteRequestSignal;
+    static const simsignal_t deleteResponseSignal;
+    static const simsignal_t createResponseNegativeSignal;
+    static const simsignal_t createResponsePositiveSignal;
+
+  protected:
+    int localPortId;
+    int localCEPId;
+    int remotePortId;
+    int remoteCEPId;
+
+    EFCP* EfcpModule;
+    AllocateRetryBase* AllocRetryPolicy;
+
+    cMessage* creReqTimer;
+    //double creReqTimeout;
+
+    FABase* FaModule;
+
+    //Listeners
+    LisFAIAllocResNega*  lisAllocResNega;
+    LisFAIAllocResPosi*  lisAllocResPosi;
+    LisFAICreResNega*    lisCreResNega;
+    LisFAICreResPosi*    lisCreResPosi;
+    LisFAIDelReq*        lisDelReq;
+    LisFAIDelRes*        lisDelRes;
+    LisFAICreResPosiNminusOne* lisCreResPosiNmO;
+    LisFAICreResNegaNminusOne* lisCreResNegaNmO;
+
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+
+    void initSignalsAndListeners();
+    void signalizeCreateFlowRequest();
+    void signalizeCreateFlowResponsePositive();
+    void signalizeCreateFlowResponseNegative();
+    void signalizeDeleteFlowRequest();
+    void signalizeDeleteFlowResponse();
+    void signalizeAllocationRequestFromFai();
+    void signalizeDeallocateRequestFromFai();
+    void signalizeDeallocateResponseFromFai();
+    void signalizeAllocateResponseNegative();
+    void signalizeAllocateResponsePositive();
+
+  public:
     FAI();
     virtual ~FAI();
 
@@ -64,7 +116,6 @@ class FAI : public FAIBase  {
     virtual void receiveCreateFlowResponsePositiveFromNminusOne();
     virtual void receiveCreateFlowResponseNegativeFromNminusOne();
 
-
     void postInitialize(FABase* fa, Flow* fl, EFCP* efcp);
 
     const FABase* getFa() const {
@@ -80,68 +131,12 @@ class FAI : public FAIBase  {
     int getRemotePortId() const;
     void setRemotePortId(int remotePortId);
 
-  protected:
-    int localPortId;
-    int localCEPId;
-    int remotePortId;
-    int remoteCEPId;
-
-    AllocateRetryBase* AllocRetryPolicy;
-
-    cMessage* creReqTimer;
-    //double creReqTimeout;
-
-    FABase* FaModule;
-
-    //Signals
-    simsignal_t sigFAIAllocReq;
-    simsignal_t sigFAIDeallocReq;
-    simsignal_t sigFAIDeallocRes;
-    simsignal_t sigFAIAllocResPosi;
-    simsignal_t sigFAIAllocResNega;
-    simsignal_t sigFAICreReq;
-    simsignal_t sigFAIDelReq;
-    simsignal_t sigFAIDelRes;
-    simsignal_t sigFAICreResNega;
-    simsignal_t sigFAICreResPosi;
-
-    //Listeners
-    LisFAIAllocResNega*  lisAllocResNega;
-    LisFAIAllocResPosi*  lisAllocResPosi;
-    LisFAICreResNega*    lisCreResNega;
-    LisFAICreResPosi*    lisCreResPosi;
-    LisFAIDelReq*        lisDelReq;
-    LisFAIDelRes*        lisDelRes;
-    LisFAICreResPosiNminusOne* lisCreResPosiNmO;
-    LisFAICreResNegaNminusOne* lisCreResNegaNmO;
-
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-
-  private:
-    EFCP* EfcpModule;
-
-    void initSignalsAndListeners();
-
     bool createEFCPI();
     void createNorthGates();
     bool createBindings();
     bool deleteBindings();
 
     bool invokeAllocateRetryPolicy();
-
-    void signalizeCreateFlowRequest();
-    void signalizeCreateFlowResponsePositive();
-    void signalizeCreateFlowResponseNegative();
-    void signalizeDeleteFlowRequest();
-    void signalizeDeleteFlowResponse();
-    void signalizeAllocationRequestFromFai();
-    void signalizeDeallocateRequestFromFai();
-    void signalizeDeallocateResponseFromFai();
-    void signalizeAllocateResponseNegative();
-    void signalizeAllocateResponsePositive();
-    void signalizeAllocateRequestToOtherFais(Flow* flow);
-
 };
 
 //Free function

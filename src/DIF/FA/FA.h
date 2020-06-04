@@ -31,13 +31,9 @@
 
 //Standard libraries
 #include <omnetpp.h>
-#include <string>
+
 //RINASim libraries
 #include "DIF/FA/FABase.h"
-#include "DIF/FA/FAListeners.h"
-#include "DIF/FA/FAI.h"
-#include "Common/Flow.h"
-#include "Common/RINASignals.h"
 #include "Common/ExternConsts.h"
 
 //Constants
@@ -48,19 +44,59 @@ extern const int MAX_CEPID;
 extern const char* MOD_NEWFLOWREQPOLICY;
 
 // Forward declarations
-class EFCP;
 class DA;
-class RABase;
-class NewFlowRequestBase;
-class NFlowTable;
+class EFCP;
 class EnrollmentStateTable;
 class Enrollment;
+class FAI;
+class Flow;
+class NewFlowRequestBase;
+class NFlowTable;
+class RABase;
 
-class FA : public FABase
+class FA : public FABase, public cListener
 {
+  public:
+    // WIP to be used for all allocation response signals
+    class FANotification {
+      public:
+        Flow *flow;
+
+      public:
+        FANotification(Flow *flow) : flow(flow) {}
+    };
+
+    // Signals
+    static const simsignal_t createRequestForwardSignal; ///< Emitted on
+    static const simsignal_t createResponseNegative;
+
+  protected:
+    EFCP* efcp;
+    DA* difAllocator;
+    RABase* raModule;
+    NewFlowRequestBase* nFloReqPolicy;
+    Enrollment* enrollment;
+    EnrollmentStateTable* enrollmentStateTable;
+
   public:
     FA();
     virtual ~FA();
+
+    /** WIP!
+     * @brief Attempts to start allocation of a flow, returning a port as handle
+     *
+     * This function will be a more faithful implementation of the flow allocation procedure
+     * described in the RINA reference model.
+     *
+     * If a flow that meets the QoS requirements supplied already exists, a self message should
+     * be scheduled to notify the upper layer with an allocation response. This needs to be done
+     * to correctly supply the IPCP/AP of the upper layer with the port number required.
+     *
+     * @param [in] apnip  The naming information of the source and destination processes
+     * @param [in] qos    Quality of service
+     * @return A port ID/handle on success, -1 on failure
+     */
+    virtual int receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos);
 
     virtual bool receiveAllocateRequest(Flow* flow);
     virtual bool receiveMgmtAllocateRequest(Flow* mgmtflow);
@@ -77,41 +113,25 @@ class FA : public FABase
 
     bool invokeNewFlowRequestPolicy(Flow* flow);
 
-    //Signals
-    simsignal_t sigFACreReqFwd;
-    simsignal_t sigFACreResNega;
-
-    //Listeners
-    LisFACreFloPosi*    lisCreFloPosi;
-
   protected:
     //SimpleModule overloads
     virtual void initialize(int stage);
     virtual int numInitStages() const { return 1; };
     virtual void handleMessage(cMessage *msg);
-    void initPointers();
 
-  private:
-    EFCP* efcp;
-    DA* difAllocator;
-    RABase* raModule;
-    NewFlowRequestBase* nFloReqPolicy;
-    Enrollment* enrollment;
-    EnrollmentStateTable* enrollmentStateTable;
+    //cListener overload
+    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
+
+    void initPointers();
+    void initSignalsAndListeners();
 
     bool isMalformedFlow(Flow* flow);
     FAI* createFAI(Flow* flow);
-
-    void initSignalsAndListeners();
-
-    void signalizeCreateFlowRequestForward(Flow* flow);
-    void signalizeCreateFlowResponseNegative(Flow* flow);
 
     const Address getAddressFromDa(const APN& apn, bool useNeighbor, bool isMgmtFlow);
 
     bool changeDstAddresses(Flow* flow, bool useNeighbor);
     bool changeSrcAddress(Flow* flow, bool useNeighbor);
-
 };
 
 #endif /* FLOWALLOCATOR_H_ */

@@ -25,6 +25,17 @@
 const char*     TIM_CREREQ          = "CreateRequestTimer";
 const char*     MOD_ALLOCRETRYPOLICY= "allocateRetryPolicy";
 
+const simsignal_t FAI::allocateRequestSignal = registerSignal(SIG_FAI_AllocateRequest);
+const simsignal_t FAI::deallocateRequestSignal = registerSignal(SIG_FAI_DeallocateRequest);
+const simsignal_t FAI::deallocateResponseSignal = registerSignal(SIG_FAI_DeallocateResponse);
+const simsignal_t FAI::allocateResponsePositiveSignal = registerSignal(SIG_FAI_AllocateResponsePositive);
+const simsignal_t FAI::allocateResponseNegativeSignal = registerSignal(SIG_FAI_AllocateResponseNegative);
+const simsignal_t FAI::createRequestSignal = registerSignal(SIG_FAI_CreateFlowRequest);
+const simsignal_t FAI::deleteRequestSignal = registerSignal(SIG_FAI_DeleteFlowRequest);
+const simsignal_t FAI::deleteResponseSignal = registerSignal(SIG_FAI_DeleteFlowResponse);
+const simsignal_t FAI::createResponseNegativeSignal = registerSignal(SIG_FAI_CreateFlowResponseNegative);
+const simsignal_t FAI::createResponsePositiveSignal = registerSignal(SIG_FAI_CreateFlowResponsePositive);
+
 Define_Module(FAI);
 
 FAI::FAI() : FAIBase() {
@@ -499,17 +510,6 @@ void FAI::initSignalsAndListeners() {
     cModule* catcher2 = this->getModuleByPath("^.^");
     cModule* catcher3 = this->getModuleByPath("^.^.^");
     //Signals that module emits
-    sigFAIAllocReq      = registerSignal(SIG_FAI_AllocateRequest);
-    sigFAIDeallocReq    = registerSignal(SIG_FAI_DeallocateRequest);
-    sigFAIDeallocRes    = registerSignal(SIG_FAI_DeallocateResponse);
-    sigFAIAllocResPosi  = registerSignal(SIG_FAI_AllocateResponsePositive);
-    sigFAIAllocResNega  = registerSignal(SIG_FAI_AllocateResponseNegative);
-    sigFAICreReq        = registerSignal(SIG_FAI_CreateFlowRequest);
-    sigFAIDelReq        = registerSignal(SIG_FAI_DeleteFlowRequest);
-    sigFAIDelRes        = registerSignal(SIG_FAI_DeleteFlowResponse);
-    sigFAICreResNega    = registerSignal(SIG_FAI_CreateFlowResponseNegative);
-    sigFAICreResPosi    = registerSignal(SIG_FAI_CreateFlowResponsePositive);
-
     //Signals that module processes
     //  AllocationRespNegative
     this->lisAllocResNega   = new LisFAIAllocResNega(this);
@@ -542,41 +542,41 @@ void FAI::initSignalsAndListeners() {
 
 void FAI::signalizeCreateFlowRequest() {
     //Signalize RIBd to send M_CREATE(flow)
-    emit(this->sigFAICreReq, FlowObject);
+    emit(this->createRequestSignal, FlowObject);
 }
 
 void FAI::signalizeDeleteFlowResponse() {
-    emit(this->sigFAIDelRes, this->FlowObject);
+    emit(this->deleteResponseSignal, this->FlowObject);
 
 }
 
 void FAI::signalizeCreateFlowResponsePositive() {
-    emit(this->sigFAICreResPosi, FlowObject);
+    emit(this->createResponsePositiveSignal, FlowObject);
 }
 
 void FAI::signalizeCreateFlowResponseNegative() {
-    emit(this->sigFAICreResNega, FlowObject);
+    emit(this->createResponseNegativeSignal, FlowObject);
 }
 
 void FAI::signalizeAllocationRequestFromFai() {
     EV << "Trying to notify " << FlowObject->getSrcApni() << endl;
-    emit(sigFAIAllocReq, FlowObject);
+    emit(allocateRequestSignal, FlowObject);
 }
 
 void FAI::signalizeDeleteFlowRequest() {
-    emit(this->sigFAIDelReq, this->FlowObject);
+    emit(this->deleteRequestSignal, this->FlowObject);
 }
 
 void FAI::signalizeAllocateResponseNegative() {
-    emit(this->sigFAIAllocResNega, this->FlowObject);
+    emit(this->allocateResponseNegativeSignal, this->FlowObject);
 }
 
 void FAI::signalizeDeallocateRequestFromFai() {
-    emit(this->sigFAIDeallocReq, this->FlowObject);
+    emit(this->deallocateRequestSignal, this->FlowObject);
 }
 
 void FAI::signalizeDeallocateResponseFromFai() {
-    emit(this->sigFAIDeallocRes, this->FlowObject);
+    emit(this->deallocateResponseSignal, this->FlowObject);
 }
 
 int FAI::getLocalCepId() const {
@@ -612,7 +612,7 @@ void FAI::setRemotePortId(int remotePortId) {
 }
 
 void FAI::signalizeAllocateResponsePositive() {
-    emit(this->sigFAIAllocResPosi, this->FlowObject);
+    emit(this->allocateResponsePositiveSignal, this->FlowObject);
 }
 
 void FAI::createNorthGates() {

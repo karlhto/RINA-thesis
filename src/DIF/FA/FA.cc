@@ -21,19 +21,27 @@
 // THE SOFTWARE.
 
 #include "DIF/FA/FA.h"
-#include "DIF/FA/NFlowTable.h"
-#include "DIF/EFCP/EFCP.h"
+
+#include "Common/Flow.h"
+#include "Common/RINASignals.h"
 #include "DAF/DA/DA.h"
-#include "DIF/RA/RABase.h"
-#include "DIF/FA/NewFlowRequest/NewFlowRequestBase.h"
+#include "DIF/EFCP/EFCP.h"
 #include "DIF/Enrollment/Enrollment.h"
 #include "DIF/Enrollment/EnrollmentStateTable.h"
+#include "DIF/FA/FAI.h"
+#include "DIF/FA/NFlowTable.h"
+#include "DIF/FA/NewFlowRequest/NewFlowRequestBase.h"
+#include "DIF/RA/RABase.h"
 
 //Constants
 const int RANDOM_NUMBER_GENERATOR = 0;
 const int MAX_PORTID = 65535;
 const int MAX_CEPID  = 65535;
 const char* MOD_NEFFLOWREQPOLICY = "newFlowRequestPolicy";
+
+// Signals that this module emits
+const simsignal_t FA::createRequestForwardSignal = registerSignal(SIG_FA_CreateFlowRequestForward);
+const simsignal_t FA::createResponseNegative = registerSignal(SIG_FA_CreateFlowResponseNegative);
 
 Define_Module(FA);
 
@@ -57,15 +65,11 @@ void FA::initPointers() {
 }
 
 void FA::initSignalsAndListeners() {
+    // tbh should be N-1 IPC Process
     cModule* catcher3 = this->getModuleByPath("^.^.^");
 
-    //Signals that this module is emitting
-    sigFACreReqFwd      = registerSignal(SIG_FA_CreateFlowRequestForward);
-    sigFACreResNega     = registerSignal(SIG_FA_CreateFlowResponseNegative);
-
     //AllocateResponsePositive
-    lisCreFloPosi = new LisFACreFloPosi(this);
-    catcher3->subscribe(SIG_FAI_AllocateResponsePositive, lisCreFloPosi);
+    catcher3->subscribe(FAI::allocateResponsePositiveSignal, this);
 }
 
 void FA::initialize(int stage) {
@@ -92,6 +96,7 @@ const Address FA::getAddressFromDa(const APN& apn, bool useNeighbor, bool isMgmt
     else {
         addr = Address(apn);
     }
+
     if (useNeighbor) {
         const APNList* apnlist = difAllocator->findApnNeigbors(addr.getApn());
         if (apnlist) {
@@ -105,6 +110,7 @@ const Address FA::getAddressFromDa(const APN& apn, bool useNeighbor, bool isMgmt
             }
         }
     }
+
     return addr;
 }
 bool FA::isMalformedFlow(Flow* flow) {
@@ -188,25 +194,43 @@ bool FA::setOriginalAddresses(Flow* flow) {
     flow->setDstAddr(adr);
     return true;
 }
+
 //XXX: Vesely - Dirty! Needs refactoring...
 bool FA::setNeighborAddresses(Flow* flow) {
     Address adr;
     if (!flow->isManagementFlowLocalToIPCP()) {
-        adr = getAddressFromDa(flow->getSrcApni().getApn(), true, flow->isManagementFlowLocalToIPCP());
+        // I mean, if we already know that it is not, why pass it as parameter?
+        adr = getAddressFromDa(flow->getSrcApni().getApn(), true, false);
         if (adr.isUnspecified())
             return false;
         flow->setSrcNeighbor(adr);
     }
 
-    adr = getAddressFromDa(flow->getDstApni().getApn(), true, flow->isManagementFlowLocalToIPCP());
+    adr = getAddressFromDa(flow->getDstApni().getApn(), true, false);
     if (adr.isUnspecified())
         return false;
     flow->setDstNeighbor(adr);
     return true;
 }
 
+
+int FA::receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos) {
+    Enter_Method("receiveAllocateRequest(%s)", apnip.info().c_str());
+
+    // 1. Find APN of remote IPCP
+
+    // 2. Create FAI
+
+    // 3. Create flow (Could possibly be delegated to FAI)
+
+    // 4. Validate QoS requirements
+
+    // 5. Possibly consider delegating a different flow. Should FA be the front-end to
+    return false;
+}
+
 // Possible API change. Port could be delegated instantly in above layer
-// bool FA::receiveAllocateRequest(APNIPair *apnip, QoSReq *qos, RMTPort *port)
+// bool FA::receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos, RMTPort *port)
 bool FA::receiveAllocateRequest(Flow* flow) {
     Enter_Method("receiveAllocateRequest()");
     EV << this->getFullPath() << " received AllocateRequest" << endl;
@@ -243,7 +267,6 @@ bool FA::receiveAllocateRequest(Flow* flow) {
     if (isMalformedFlow(flow)){
         nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_ERR);
         //TODO: Vesely - What about special signal for errors????
-        //this->signalizeAllocateResponseNegative(fl);
         return false;
     }
 
@@ -380,7 +403,7 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
         //App is not local but it should be (based on DA)
         if (flow->getSrcAddr() == this->getMyAddress()) {
             EV << "Rejecting flow allocation, APN not present on this system!" << endl;
-            this->signalizeCreateFlowResponseNegative(flow);
+            emit(this->createResponseNegative, flow);
             return false;
         }
         //
@@ -403,7 +426,7 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
                 nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_ERR);
                 //Schedule M_Create_R(Flow)
                 EV << "Hopcount decremented to zero!" << endl;
-                this->signalizeCreateFlowResponseNegative(flow);
+                emit(this->createResponseNegative, flow);
                 return false;
             }
 
@@ -455,7 +478,7 @@ void FA::receiveNM1FlowCreated(Flow* flow) {
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::FORWARDED);
     setNeighborAddresses(tmpfl);
 
-    this->signalizeCreateFlowRequestForward(tmpfl);
+    emit(this->createRequestForwardSignal, flow);
 }
 
 bool FA::invokeNewFlowRequestPolicy(Flow* flow) {
@@ -512,10 +535,24 @@ void FA::deinstantiateFai(Flow* flow) {
     //Prepare deinstantitation self-message
 }
 
-void FA::signalizeCreateFlowRequestForward(Flow* flow) {
-    emit(this->sigFACreReqFwd, flow);
-}
+void FA::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *) {
+    if (id != FAI::allocateResponsePositiveSignal)
+        throw cRuntimeError("Flow allocator received unsupported signal type");
 
-void FA::signalizeCreateFlowResponseNegative(Flow* flow) {
-    emit(this->sigFACreResNega, flow);
+    EV << "Received positive allocation response from " << src->getFullPath() << endl;
+    Flow *flow = dynamic_cast<Flow *>(obj);
+    if (flow == nullptr) {
+        throw cRuntimeError("Flow allocator received ");
+    } else if (myAddress.getApn() != flow->getSrcApni().getApn()) {
+        EV << "Allocation response not intended for this FA." << endl;
+        return;
+    } else if (flow->isManagementFlowLocalToIPCP()) {
+        EV << "Management flow allocated!" << endl;
+        return;
+    }
+
+    // TODO split this into separate functions
+    TFAIPtrs entries = nFlowTable->findEntriesByDstNeighborAndFwd(flow->getDstApni().getApn());
+    for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it)
+        receiveNM1FlowCreated((*it)->getFlow());
 }

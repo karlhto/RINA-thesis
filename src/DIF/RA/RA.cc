@@ -439,6 +439,7 @@ RMTPort* RA::bindNM1FlowToRMT(cModule* bottomIPC, FABase* fab, Flow* flow)
     interconnectModules(bottomIPC, thisIPC, bottomIPCGate.str(), thisIPCGate.str());
     interconnectModules(thisIPC, rmtModule, thisIPCGate.str(), thisIPCGate.str());
 
+    // bad
     // 2) attach a RMTPort instance (pretty much a representation of an (N-1)-port)
     RMTPort* port = rmtAllocator->addPort(flow);
     interconnectModules(rmtModule, port->getParentModule(), thisIPCGate.str(), std::string(GATE_SOUTHIO));
@@ -489,6 +490,7 @@ void RA::createNM1Flow(Flow *flow)
 {
     Enter_Method("createNM1Flow()");
 
+    // TODO karlhto (allocation rework) -> don't operate on N-1 flow explicitly
     fa->invokeNewFlowRequestPolicy(flow);
     const APN& dstApn = flow->getDstApni().getApn();
     //Vesely - Commenting unused variable

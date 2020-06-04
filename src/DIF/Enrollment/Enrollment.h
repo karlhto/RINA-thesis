@@ -126,7 +126,6 @@ class Enrollment : public cSimpleModule
     simsignal_t sigEnrollmentStopEnrollRes;
     simsignal_t sigEnrollmentStartOperReq;
     simsignal_t sigEnrollmentStartOperRes;
-    simsignal_t sigEnrollmentFinish;
 
     LisEnrollmentAllResPosi* lisEnrollmentAllResPosi;
     LisEnrollmentGetFlowFromFaiCreResPosi* lisEnrollmentGetFlowFromFaiCreResPosi;
