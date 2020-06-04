@@ -53,10 +53,10 @@ void CACE::initSignalsAndListeners(){
 
 void CACE::sendData(CDAPMessage *cmsg){
     Enter_Method("CACE SendData()");
-    take(check_and_cast<cOwnedObject*>(cmsg) );
+    CDAPMessage *msg = cmsg->dup();
 
     cGate* out = gateHalf(GATE_SPLITIO, cGate::OUTPUT);
-    send(cmsg, out);
+    send(msg, out);
 }
 
 void CACE::signalizeDataReceive(CDAPMessage* cmsg) {
