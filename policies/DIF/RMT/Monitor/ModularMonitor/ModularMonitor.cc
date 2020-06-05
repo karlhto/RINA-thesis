@@ -108,7 +108,8 @@ void ModularMonitor::prePDURelease(RMTQueue* queue) {
                     std::string qos = pdu->getConnId().getQoSId();
                     inTime.erase(pdu);
                     inPos.erase(pdu);
-                    emit(signal, new HopDelayMsg(qos, hdel, this));
+                    // FIXME this signal is erroneous. Should be replaced.
+                    // emit(signal, new HopDelayMsg(qos, hdel, this));
                     /*
                     if(InfectedDataTransferPDU * idt =
                             dynamic_cast<InfectedDataTransferPDU * >(

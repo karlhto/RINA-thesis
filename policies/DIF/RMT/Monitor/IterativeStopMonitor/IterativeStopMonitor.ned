@@ -33,4 +33,6 @@ simple IterativeStopMonitor like IntRMTQMonitorPolicy
         
         int stopAt = default(3);
         int restartAt = default(1);
+        @signal[EFCP-StartSending](type=Flow?);
+        @signal[EFCP-StopSending](type=Flow?);
 }
