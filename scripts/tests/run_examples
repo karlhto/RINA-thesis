@@ -15,6 +15,7 @@ RINA_ROOT=$(pwd)
 RINA_LIB=${RINA_ROOT}/policies/librinasim.so
 INET_ROOT=${RINA_ROOT}/../inet # the OMNeT++ way
 INET_LIB=${INET_ROOT}/src/libINET.so
+export NEDPATH=${INET_ROOT}/src/inet:${RINA_ROOT}
 
 # Run fingerprint test
 scripts/tests/fingerprints         \
@@ -23,6 +24,4 @@ scripts/tests/fingerprints         \
     --oppargs                      \
 	--cmdenv-express-mode=true \
 	-l ${INET_LIB}             \
-	-n ${INET_ROOT}/src/inet   \
-	-l ${RINA_LIB}             \
-	-n ${RINA_ROOT}
+	-l ${RINA_LIB}
