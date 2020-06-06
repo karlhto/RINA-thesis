@@ -13,5 +13,5 @@ jobs:
       - name: Build project
         run: scripts/tests/do_in_docker scripts/tests/build
       - name: Test project
-        run: scripts/do_in_docker scripts/tests/run_examples
+        run: scripts/tests/do_in_docker scripts/tests/run_examples
 

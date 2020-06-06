@@ -2,4 +2,4 @@
 set -oeu pipefail
 
 make makefiles
-make MODE=release -j12 all
+make MODE=release -j$(nproc) all

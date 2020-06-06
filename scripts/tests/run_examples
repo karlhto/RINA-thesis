@@ -23,5 +23,6 @@ scripts/tests/fingerprints         \
     --oppargs                      \
 	--cmdenv-express-mode=true \
 	-l ${INET_LIB}             \
+	-n ${INET_ROOT}/src/inet   \
 	-l ${RINA_LIB}             \
 	-n ${RINA_ROOT}
