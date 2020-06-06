@@ -1,4 +1,4 @@
-# RINA Simulator
+# RINA Simulator ![Build RINASim and execute examples](https://github.com/karlhto/RINA-thesis/workflows/Build%20RINASim%20and%20execute%20examples/badge.svg)
 
 ### Version changelog
 * February 2017 - Refactored examples, towards OMNeT++ 5.1 compatibility
