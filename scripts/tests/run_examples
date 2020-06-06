@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+#
+# Very simple test file for running regression tests on examples
+#
+# Note that this is meant for github actions, and as such executes as if in the top level
+# directory of the repository.
+#
+# The fingerprint script is taken from https://github.com/inet-framework/inet
+#
+
+set -euo pipefail
+
+RINA_ROOT=$(pwd)
+RINA_LIB=${RINA_ROOT}/policies/librinasim.so
+INET_ROOT=${RINA_ROOT}/../inet # the OMNeT++ way
+INET_LIB=${INET_ROOT}/src/libINET.so
+
+# Run fingerprint test
+scripts/tests/fingerprints         \
+    scripts/tests/examples.csv     \
+    --executable opp_run           \
+    --oppargs                      \
+	--cmdenv-express-mode=true \
+	-l ${INET_LIB}             \
+	-l ${RINA_LIB}             \
+	-n ${RINA_ROOT}
