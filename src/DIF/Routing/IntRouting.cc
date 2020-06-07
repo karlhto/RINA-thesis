@@ -22,70 +22,62 @@
 
 #include "DIF/Routing/IntRouting.h"
 
-void IntRouting::finish(){
-
-    cModule* catcher = this->getParentModule();
-    catcher->unsubscribe(SIG_RIBD_RoutingUpdateReceived, listener);
-    delete listener;
+void IntRouting::finish()
+{
+    cModule *catcher = this->getParentModule();
+    catcher->unsubscribe(SIG_RIBD_RoutingUpdateReceived, this);
 }
 
-void IntRouting::initialize(){
-
+void IntRouting::initialize()
+{
     // IPCProcess module.
-    cModule * ipcModule = getParentModule();
+    cModule *ipcModule = getParentModule();
 
-    myAddress   = Address(
-        ipcModule->par("ipcAddress").stringValue(),
-        ipcModule->par("difName").stringValue());
+    myAddress = Address(ipcModule->par("ipcAddress").stringValue(),
+                        ipcModule->par("difName").stringValue());
 
     getRINAModule<cObject *>(this, 1, {MOD_RESALLOC, MOD_PDUFWDGEN});
 
-    //Set FWDGenerator
+    // Set FWDGenerator
     fwdg = getRINAModule<IntPDUFG *>(this, 1, {MOD_RESALLOC, MOD_PDUFWDGEN});
 
     // Display active policy name.
     setPolicyDisplayString(this);
 
-    cModule* catcher = this->getParentModule();
+    cModule *catcher = this->getParentModule();
 
     // Signal emitters; there will be part of our outputs.
     sigRoutingUpdate = registerSignal(SIG_RIBD_RoutingUpdate);
 
     // Signal receivers; there will be part of our inputs.
-    listener = new LisRoutingRecv(this);
-    catcher->subscribe(SIG_RIBD_RoutingUpdateReceived, listener);
+    catcher->subscribe(SIG_RIBD_RoutingUpdateReceived, this);
 
     onPolicyInit();
-
 }
 
-void IntRouting::sendUpdate(IntRoutingUpdate * update) {
+void IntRouting::sendUpdate(IntRoutingUpdate *update)
+{
     update->setSource(myAddress);
     emit(sigRoutingUpdate, update);
 }
 
-void IntRouting::receiveUpdate(IntRoutingUpdate * update) {
-    if(processUpdate(update)) {
+void IntRouting::receiveUpdate(IntRoutingUpdate *update)
+{
+    if (processUpdate(update))
         fwdg->routingUpdated();
-    }
 }
 
+void IntRouting::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details)
+{
+    EV << "RoutingUpdate initiated by " << src->getFullPath() << " and processed by "
+       << getFullPath() << endl;
 
-LisRoutingRecv::LisRoutingRecv(IntRouting * _module){
-    module = _module;
-}
+    IntRoutingUpdate *update = dynamic_cast<IntRoutingUpdate *>(obj);
 
-void LisRoutingRecv::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details){
-    EV << "RoutingUpdate initiated by " << src->getFullPath()
-       << " and processed by " << module->getFullPath() << endl;
-
-    IntRoutingUpdate * update = dynamic_cast<IntRoutingUpdate *>(obj);
-
-    if (update) {
-        module->receiveUpdate(update);
-    } else {
+    if (update)
+        receiveUpdate(update);
+    else
         EV << "RoutingUpdate received unknown object!" << endl;
-    }
 
     delete update;
 }

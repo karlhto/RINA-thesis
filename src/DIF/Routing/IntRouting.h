@@ -32,9 +32,7 @@
 #include "Common/Address.h"
 #include "DIF/RA/PDUFG/IntPDUFG.h"
 
-class LisRoutingRecv;
-
-class IntRouting  : public cSimpleModule {
+class IntRouting : public cSimpleModule, public cListener {
 public:
     //Destructor
     virtual void finish();
@@ -53,22 +51,14 @@ protected:
     // Sends a Routing Update
     void sendUpdate(IntRoutingUpdate * update);
 
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details);
+
     // Called after initialize
     virtual void onPolicyInit() = 0;
 
 private:
-    LisRoutingRecv * listener;
     simsignal_t sigRoutingUpdate;
     IntPDUFG * fwdg;
-};
-
-/* Listener for routing updates.  */
-class LisRoutingRecv : public cListener {
-public:
-    LisRoutingRecv(IntRouting * _module);
-    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *details);
-protected:
-    IntRouting * module;
 };
 
 #endif /* INTROUTING_H_ */
