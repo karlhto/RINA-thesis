@@ -41,7 +41,7 @@ const char* MOD_NEFFLOWREQPOLICY = "newFlowRequestPolicy";
 
 // Signals that this module emits
 const simsignal_t FA::createRequestForwardSignal = registerSignal(SIG_FA_CreateFlowRequestForward);
-const simsignal_t FA::createResponseNegative = registerSignal(SIG_FA_CreateFlowResponseNegative);
+const simsignal_t FA::createResponseNegativeSignal = registerSignal(SIG_FA_CreateFlowResponseNegative);
 
 Define_Module(FA);
 
@@ -399,11 +399,13 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
 
     }
     //...if not then forward CreateRequest Flow to next neighbor
+    // TODO split into new function, add secondary function to easily replace
+    // this when the time comes
     else {
         //App is not local but it should be (based on DA)
         if (flow->getSrcAddr() == this->getMyAddress()) {
             EV << "Rejecting flow allocation, APN not present on this system!" << endl;
-            emit(this->createResponseNegative, flow);
+            emit(this->createResponseNegativeSignal, flow);
             return false;
         }
         //
@@ -426,7 +428,7 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
                 nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_ERR);
                 //Schedule M_Create_R(Flow)
                 EV << "Hopcount decremented to zero!" << endl;
-                emit(this->createResponseNegative, flow);
+                emit(this->createResponseNegativeSignal, flow);
                 return false;
             }
 

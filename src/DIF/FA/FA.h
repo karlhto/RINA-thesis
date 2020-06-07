@@ -67,8 +67,8 @@ class FA : public FABase, public cListener
     };
 
     // Signals
-    static const simsignal_t createRequestForwardSignal; ///< Emitted on
-    static const simsignal_t createResponseNegative;
+    static const simsignal_t createRequestForwardSignal;
+    static const simsignal_t createResponseNegativeSignal;
 
   protected:
     EFCP* efcp;
@@ -104,6 +104,12 @@ class FA : public FABase, public cListener
     virtual bool receiveMgmtAllocateFinish(APNIPair *apnip);
     virtual void receiveNM1FlowCreated(Flow* flow);
     virtual bool receiveDeallocateRequest(Flow* flow);
+
+    /**
+     * @brief Receive flow allocation request from remote application.
+     *
+     * Is this part of CACE phase, as in a request for management flow?
+     */
     virtual bool receiveCreateFlowRequestFromRibd(Flow* flow);
 
     virtual void deinstantiateFai(Flow* flow);
