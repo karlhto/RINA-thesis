@@ -23,24 +23,26 @@
 #include "EthShimDIF/ShimFA/ShimFA.h"
 
 #include "Common/RINASignals.h"
+#include "EthShimDIF/ShimFA/ShimFAI.h"
+#include "EthShimDIF/EthShim/EthShim.h"
+#include "EthShimDIF/RINArp/RINArp.h"
 #include "inet/linklayer/common/MACAddress.h"
-#include "omnetpp/simutil.h"
 
 const simsignal_t ShimFA::faiAllocateRequestSignal =
-    cComponent::registerSignal(SIG_FAI_AllocateRequest);
+    registerSignal(SIG_FAI_AllocateRequest);
 const simsignal_t ShimFA::faiDeallocateRequestSignal =
-    cComponent::registerSignal(SIG_FAI_DeallocateRequest);
+    registerSignal(SIG_FAI_DeallocateRequest);
 const simsignal_t ShimFA::faiAllocateResponsePositiveSignal =
-    cComponent::registerSignal(SIG_FAI_AllocateResponsePositive);
+    registerSignal(SIG_FAI_AllocateResponsePositive);
 const simsignal_t ShimFA::faiAllocateResponseNegativeSignal =
-    cComponent::registerSignal(SIG_FAI_AllocateResponseNegative);
+    registerSignal(SIG_FAI_AllocateResponseNegative);
 
 Define_Module(ShimFA);
 
 /*
  * Initialisation functionality
  */
-ShimFA::ShimFA() : FABase::FABase(), state(ConnectionState::UNALLOCATED) {}
+ShimFA::ShimFA() : FABase::FABase() {}
 
 ShimFA::~ShimFA() {}
 
@@ -53,6 +55,7 @@ void ShimFA::initialize(int stage)
         initSignals();
     } else if (stage == 1) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
+        // TODO look for alternative function
         setRegisteredApName();
 
         if (shimIpcProcess != nullptr) {
@@ -74,6 +77,8 @@ void ShimFA::initPointers()
     if (shim == nullptr)
         throw cRuntimeError("Shim FA needs shim module");
 
+    nFlowTable = dynamic_cast<NFlowTable *>(this->getParentModule()->getSubmodule("nFlowTable"));
+
     // Registering an application is not supported in RINASim since any upper
     // layer connected IPCP/AP is implicitly registered. We still need the AP name
     // of the upper layer. Unfortunately pretty hacky solution for the time being,
@@ -82,12 +87,12 @@ void ShimFA::initPointers()
     if (dstGate == nullptr) {
         EV_ERROR << "Shim IPC not connected to overlying application. It will be able to receive "
                  << "ARP requests, but will never send ARP reply" << endl;
-    } else {
-        connectedApplication = dstGate->getOwnerModule();
-        if (!connectedApplication->hasPar("apName"))
-            throw cRuntimeError(
-                "Shim IPC process not connected to overlying IPC/Application Process");
+        return;
     }
+
+    connectedApplication = dstGate->getOwnerModule();
+    if (!connectedApplication->hasPar("apName"))
+        throw cRuntimeError("Shim IPC process not connected to overlying IPC/Application Process");
 }
 
 void ShimFA::initSignals()
@@ -105,6 +110,9 @@ void ShimFA::setRegisteredApName()
 
 void ShimFA::handleMessage(cMessage *msg)
 {
+    if (msg->isSelfMessage()) {
+
+    }
     // self message is the only valid message here
     delete msg;
 }
@@ -116,10 +124,9 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     EV << "Received allocation request for flow with destination address "
        << flow->getDstApni().getApn() << endl;
 
-    if (state != ConnectionState::UNALLOCATED) {
-        EV << "A flow is already either allocated or pending." << endl;
-        return false;
-    }
+    // TODO check if there is one already
+    ShimFAI *fai = createFAI(flow);
+    this->fai = fai;
 
     const auto &apName = flow->getDstApni().getApn();
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
@@ -129,13 +136,11 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
 
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS) {
         // entry was found in cache, allocate flow at once and signal success
-        state = ConnectionState::ALLOCATED;
-        createBindings(0);
+        // Schedule self message here
+        scheduleAt(simTime(), new cMessage(TIM_FAPENDFLOWS) );
         return true;
     }
 
-    flowObject = flow;
-    state = ConnectionState::ALLOCATE_PENDING;
 
     return true;
 }
@@ -145,11 +150,9 @@ bool ShimFA::receiveDeallocateRequest(Flow *flow)
     Enter_Method("receiveDeallocateRequest()");
     EV << "Received deallocation request for flow with destination APN " << endl;
 
-    if (state == ConnectionState::UNALLOCATED) {
-        EV_WARN << "Deallocation requested, but no flow present." << endl;
-        return false;
-    }
+    fai->receiveAllocateRequest();
 
+    // Check state of FAI
     // remove bindings
 
     return false;
@@ -158,6 +161,7 @@ bool ShimFA::receiveDeallocateRequest(Flow *flow)
 void ShimFA::completedAddressResolution(const APN &dstApn)
 {
     Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
+    // Find correct FAI
     emit(faiAllocateRequestSignal, flowObject);
 }
 
@@ -167,10 +171,28 @@ void ShimFA::failedAddressResolution(const APN &dstApn)
     emit(faiAllocateResponseNegativeSignal, flowObject);
 }
 
-ShimFA::ConnectionState ShimFA::getState() const
+ShimFAI *ShimFA::createFAI(Flow *flow)
 {
-    Enter_Method_Silent();
-    return state;
+    cModuleType *type = cModuleType::get("rina.src.EthShimDIF.ShimFA.ShimFAI");
+    int portId = getEnvir()->getRNG(0)->intRand(USHRT_MAX);
+
+    std::ostringstream ostr;
+    ostr << "fai_" << portId;
+
+    //Instantiate module
+    cModule *module = type->create(ostr.str().c_str(), this->getParentModule());
+    module->par(PAR_LOCALPORTID) = portId;
+    module->finalizeParameters();
+    module->buildInside();
+
+    // create activation message
+    module->scheduleStart(simTime());
+    module->callInitialize();
+
+    ShimFAI *fai = dynamic_cast<ShimFAI *>(module);
+    fai->postInitialize(this, flow, shim);
+
+    return fai;
 }
 
 // Not sure what to do with this function as of yet. This is called by upper

@@ -25,8 +25,10 @@
 #include <omnetpp.h>
 
 #include "DIF/FA/FABase.h"
-#include "EthShimDIF/EthShim/EthShim.h"
-#include "EthShimDIF/RINArp/RINArp.h"
+
+class ShimFAI;
+class EthShim;
+class RINArp;
 
 /**
  * Shim specific Flow Allocator.
@@ -37,8 +39,6 @@
 class ShimFA : public FABase, public cListener
 {
   public:
-    enum ConnectionState { UNALLOCATED, ALLOCATE_PENDING, ALLOCATED };
-
     static const simsignal_t faiAllocateRequestSignal;
     static const simsignal_t faiDeallocateRequestSignal;
     static const simsignal_t faiAllocateResponsePositiveSignal;
@@ -49,11 +49,11 @@ class ShimFA : public FABase, public cListener
     cModule *connectedApplication;
     RINArp *arp;
     EthShim *shim;
+    FAIBase *fai;
 
     // Only one flow necessary
     Flow *flowObject;           // TODO or not? RINASim is pretty limited here
     APN registeredApplication;  ///< apName of "registered" application
-    ConnectionState state;
 
   public:
     ShimFA();
@@ -64,7 +64,6 @@ class ShimFA : public FABase, public cListener
     virtual void completedAddressResolution(const APN &apn);
     virtual void failedAddressResolution(const APN &apn);
     virtual void deinstantiateFai(Flow *flow);
-    virtual ConnectionState getState() const;
 
     /// These are all unused in shim layer, but still implemented
     virtual bool receiveMgmtAllocateRequest(Flow *mgmtflow);
@@ -85,6 +84,8 @@ class ShimFA : public FABase, public cListener
     virtual bool allocatePort(Flow *flow);
     virtual void createBindings(int portID);
     virtual void deleteBindings();
+
+    ShimFAI *createFAI(Flow *flow);
 
     /// SimpleModule overrides
     virtual void initialize(int stage) override;

@@ -22,17 +22,24 @@
 
 package rina.src.EthShimDIF.ShimFA;
 
-import rina.src.DIF.FA.NFlowTable;
-
-module ShimFlowAllocator {
+simple ShimFAI
+{
     parameters:
-        @display("i=block/fork;bgb=424,357");
-    submodules:
-        nFlowTable: NFlowTable {
-            @display("p=167,64");
-        }
+    	@display("i=block/rxtx");
+    	@signal[FAI-DeallocateRequest](type=Flow?);
+    	@signal[FAI-AllocateRequest](type=Flow?);
+    	@signal[FAI-AllocateResponsePositive](type=Flow?);
+    	@signal[FAI-AllocateResponseNegative](type=Flow?);
+    	@signal[FAI-CreateFlowRequest](type=Flow?);
+    	@signal[FAI-DeleteFlowRequest](type=Flow?);
+    	@signal[FAI-CreateFlowResponsePositive](type=Flow?);
+    	@signal[FAI-CreateFlowResponseNegative](type=Flow?);
+    	@signal[FAI-DeleteFlowResponse](type=Flow?);
 
-        fa: ShimFA {
-            @display("p=75,64");
-        }
+    	int localPortId 	= default(-1);
+    	int localCEPId 		= default(-1);
+    	int remotePortId 	= default(-1);
+    	int remoteCEPId 	= default(-1);
+
+    	//double createRequestTimeout @unit(s) = default(10s);
 }
