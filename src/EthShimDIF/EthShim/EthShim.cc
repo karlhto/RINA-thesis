@@ -21,19 +21,19 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
-#include "EthShimDIF/ShimFA/ShimFA.h"
-#include "EthShimDIF/RINArp/RINArpPacket_m.h"
+
 #include "Common/PDU.h"
+#include "EthShimDIF/RINArp/RINArpPacket_m.h"
+#include "EthShimDIF/ShimFA/ShimFA.h"
 
 Define_Module(EthShim);
 
-EthShim::EthShim() {
-}
+EthShim::EthShim() {}
 
-EthShim::~EthShim() {
-}
+EthShim::~EthShim() {}
 
-void EthShim::initialize() {
+void EthShim::initialize()
+{
     initPointers();
     initGates();
 
@@ -42,7 +42,8 @@ void EthShim::initialize() {
     arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 }
 
-void EthShim::initPointers() {
+void EthShim::initPointers()
+{
     ipcProcess = getModuleByPath("^");
     arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
     if (arp == nullptr)
@@ -52,7 +53,8 @@ void EthShim::initPointers() {
         throw cRuntimeError("EthShim needs ShimFlowAllocator module");
 }
 
-void EthShim::initGates() {
+void EthShim::initGates()
+{
     northIn = gate("northIo$i");
     northOut = gate("northIo$o");
     arpIn = gate("arpIn");
@@ -61,7 +63,8 @@ void EthShim::initGates() {
     ifOut = gate("ifOut");
 }
 
-void EthShim::handleMessage(cMessage *msg) {
+void EthShim::handleMessage(cMessage *msg)
+{
     if (msg->arrivedOn(northIn->getId())) {
         EV_INFO << "Received PDU from upper layer." << endl;
         PDU *pdu = check_and_cast<PDU *>(msg);
@@ -83,40 +86,47 @@ void EthShim::handleMessage(cMessage *msg) {
 }
 
 void EthShim::handlePDU(PDU *pdu) {
+    //inet::MACAddress mac = arp->resolveAddress();
     EV_INFO << "Doing stuff" << endl;
 }
 
-void EthShim::handleIncomingPDU(PDU *pdu) {
+void EthShim::handleIncomingPDU(PDU *pdu)
+{
     EV_INFO << "Should be passed to connected IPCP" << endl;
 }
 
-void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket) {
+void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
+{
     EV_INFO << "Sending " << arpPacket << " to arp." << endl;
     send(arpPacket, arpOut);
 }
 
-void EthShim::sendPacketToNIC(cPacket *packet) {
+void EthShim::sendPacketToNIC(cPacket *packet)
+{
     EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
     send(packet, ifOut);
 }
 
-inet::MACAddress EthShim::resolveApni(const APN &dstApni) const {
+inet::MACAddress EthShim::resolveApni(const APN &dstApni) const
+{
     Enter_Method("resolveApni(%s)", dstApni.getName().c_str());
-    EV_INFO << "Received request to resolve application name " << dstApni
-        << ". Passing to ARP." << endl;
+    EV_INFO << "Received request to resolve application name " << dstApni << ". Passing to ARP."
+            << endl;
     return arp->resolveAddress(dstApni);
 }
 
-void EthShim::registerApplication(const APN &apni) const {
+void EthShim::registerApplication(const APN &apni) const
+{
     Enter_Method("registerApplication(%s)", apni.getName().c_str());
-    EV_INFO << "Received request to register application name " << apni
-        << " with ARP module." << endl;
+    EV_INFO << "Received request to register application name " << apni << " with ARP module."
+            << endl;
 
     inet::MACAddress mac = getMacAddressOfNIC();
     arp->addStaticEntry(mac, apni);
 }
 
-const inet::MACAddress EthShim::getMacAddressOfNIC() const {
+const inet::MACAddress EthShim::getMacAddressOfNIC() const
+{
     cModule *mac = ipcProcess->getModuleByPath(".eth.mac");
     if (mac == nullptr)
         throw cRuntimeError("Unable to get address from MAC interface");
@@ -125,8 +135,8 @@ const inet::MACAddress EthShim::getMacAddressOfNIC() const {
     return inet::MACAddress(mac->par("address").stringValue());
 }
 
-void EthShim::receiveSignal(cComponent *, simsignal_t signalID,
-                            cObject *obj, cObject *) {
+void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cObject *)
+{
     Enter_Method_Silent();
 
     if (signalID == RINArp::completedRINArpResolutionSignal)
@@ -137,11 +147,13 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID,
         throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
 }
 
-void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry) {
+void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
+{
     shimFA->completedAddressResolution(entry->apName);
 }
 
-void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry) {
+void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
+{
     shimFA->failedAddressResolution(entry->apName);
 }
 

@@ -30,11 +30,11 @@ Register_Abstract_Class(RINArp::ArpNotification);
 
 // Static signal entries
 const simsignal_t RINArp::initiatedRINArpResolutionSignal =
-    cComponent::registerSignal("initiatedRINArpResolution");
+    registerSignal("initiatedRINArpResolution");
 const simsignal_t RINArp::completedRINArpResolutionSignal =
-    cComponent::registerSignal("completedRINArpResolution");
+    registerSignal("completedRINArpResolution");
 const simsignal_t RINArp::failedRINArpResolutionSignal =
-    cComponent::registerSignal("failedRINArpResolution");
+    registerSignal("failedRINArpResolution");
 
 RINArp::RINArp() {}
 
