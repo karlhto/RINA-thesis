@@ -674,12 +674,13 @@ void RA::postNM1FlowAllocation(NM1FlowTableItem* ftItem)
     // mark this flow as connected and update info
     ftItem->setConnectionStatus(NM1FlowTableItem::CON_ESTABLISHED);
     RMTPort* port = ftItem->getRMTPort();
+    Flow* flow = ftItem->getFlow();
     port->setOutputReady();
     port->setInputReady();
-    port->setFlow(ftItem->getFlow());
+    port->setFlow(flow);
 
-    // if this is a management flow, notify the Enrollment module
-    if (ftItem->getFlow()->isManagementFlow())
+    // if not already enrolled to destination, do that
+    if (!enrollment->isEnrolledTo(flow->getDstApni().getApn()))
     {
         APNIPair* apnip = new APNIPair(ftItem->getFlow()->getSrcApni(), ftItem->getFlow()->getDstApni());
         enrollment->startCACE(apnip);

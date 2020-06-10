@@ -89,6 +89,8 @@ class Enrollment : public cSimpleModule
     void receiveStartOperationRequest(CDAPMessage* msg);
     void receiveStartOperationResponse(CDAPMessage* msg);
 
+    // Helper function to access state table
+    bool isEnrolledTo(const APN &dstApn);
 
   protected:
     void initPointers();

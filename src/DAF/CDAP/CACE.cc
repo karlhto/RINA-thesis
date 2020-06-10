@@ -55,24 +55,30 @@ void CACE::initSignalsAndListeners(){
 
 void CACE::sendData(CDAPMessage *cmsg){
     Enter_Method("CACE SendData()");
-    CDAPMessage *msg = cmsg->dup();
+    // FIXME This is really dirty. Why not let CACE module handle construction of messages?
+    // Note that this makes examples/Routing/UnreliableLinks -c HopsFloodMEntries crash.
+    take(check_and_cast<cOwnedObject*>(cmsg));
 
     cGate* out = gateHalf(GATE_SPLITIO, cGate::OUTPUT);
-    send(msg, out);
+    send(cmsg, out);
 }
 
 void CACE::signalizeDataReceive(CDAPMessage* cmsg) {
     emit(sigCACEReceiveData, cmsg);
 }
 
-void CACE::receiveSignal(cComponent* src, simsignal_t id,
-        cObject* obj, cObject *detail) {
+void CACE::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
+{
     EV << "SendData initiated by " << src->getFullPath() << " and processed by " << getFullPath() << endl;
     CDAPMessage* msg = dynamic_cast<CDAPMessage*>(obj);
     if (msg) {
         sendData(msg);
     } else {
         EV_ERROR << "Received not a CACEMessage!" << endl;
-        // Maybe crash here
+        // Maybe crash here, not meant to happen
     }
+
+    // Mitigate warnings, these are currently unused but required
+    (void)id;
+    (void)detail;
 }

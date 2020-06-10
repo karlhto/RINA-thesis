@@ -153,6 +153,13 @@ void Enrollment::startCACE(APNIPair* apnip) {
     Enter_Method("startCACE(%s)", apnip->info().c_str());
     EV_INFO << "Starting CACE phase" << endl;
 
+    // Check if we are already enrolled or in the process of enrolling
+    if (isEnrolledTo(apnip->second.getApn())) {
+        EV_INFO << "Already either enrolled or have begun enrollment with " << apnip->second
+                << endl;
+        return;
+    }
+
     auto entry = EnrollmentStateTableEntry(apnip->first, apnip->second, EnrollmentStateTableEntry::CON_AUTHENTICATING);
     StateTable->insert(entry);
 
@@ -464,6 +471,20 @@ void Enrollment::receiveStopEnrollmentResponse(CDAPMessage* msg) {
 void Enrollment::receiveStartOperationResponse(CDAPMessage* msg) {
     Enter_Method("receiveStartOperationResponse()");
 
+}
+
+bool Enrollment::isEnrolledTo(const APN &dstApn) {
+    Enter_Method_Silent();
+    auto entry = StateTable->findEntryByDstAPN(dstApn);
+    if (entry != NULL) {
+        auto status = entry->getCACEConStatus();
+        if (status != EnrollmentStateTableEntry::CON_ERROR &&
+            status != EnrollmentStateTableEntry::CON_NIL) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void Enrollment::processStopEnrollmentImmediate(EnrollmentStateTableEntry* entry) {
