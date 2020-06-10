@@ -21,6 +21,9 @@
 // THE SOFTWARE.
 
 #include "DAF/CDAP/CACE.h"
+#include "Common/RINASignals.h"
+#include "DAF/CDAP/CDAPMessage_m.h"
+#include "Common/ExternConsts.h"
 
 Define_Module(CACE);
 
@@ -46,8 +49,7 @@ void CACE::initSignalsAndListeners(){
 
     //Signals that this module is processing
     //send data from AE/Enrollment
-    lisCACESendData = new LisCACESendData(this);
-    catcher->subscribe(SIG_RIBD_CACESend, lisCACESendData);
+    catcher->subscribe(SIG_RIBD_CACESend, this);
 
 }
 
@@ -61,4 +63,16 @@ void CACE::sendData(CDAPMessage *cmsg){
 
 void CACE::signalizeDataReceive(CDAPMessage* cmsg) {
     emit(sigCACEReceiveData, cmsg);
+}
+
+void CACE::receiveSignal(cComponent* src, simsignal_t id,
+        cObject* obj, cObject *detail) {
+    EV << "SendData initiated by " << src->getFullPath() << " and processed by " << getFullPath() << endl;
+    CDAPMessage* msg = dynamic_cast<CDAPMessage*>(obj);
+    if (msg) {
+        sendData(msg);
+    } else {
+        EV_ERROR << "Received not a CACEMessage!" << endl;
+        // Maybe crash here
+    }
 }

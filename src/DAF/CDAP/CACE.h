@@ -24,28 +24,26 @@
 #define __RINA_CACE_H_
 
 #include <omnetpp.h>
-#include "Common/RINASignals.h"
-#include "DAF/CDAP/CDAPMessage_m.h"
-#include "DAF/CDAP/CACEListeners.h"
-#include "Common/ExternConsts.h"
 
-class LisCACESendData;
-class CACE : public cSimpleModule
+class CDAPMessage;
+class CACE : public cSimpleModule, public cListener
 {
-public:
+  public:
     void sendData(CDAPMessage *cmsg);
   protected:
-
     simsignal_t sigCACEReceiveData;
 
-    LisCACESendData* lisCACESendData;
-
+    // cSimpleModule overrides
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
+    // cListener override
+    virtual void receiveSignal(cComponent* src, simsignal_t id, cObject* obj, cObject *detail);
+
+    // Internal helper functions
     void initPointers();
     void initSignalsAndListeners();
     void signalizeDataReceive(CDAPMessage* cmsg);
-
 };
 
 #endif
