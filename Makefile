@@ -94,8 +94,8 @@ cleanall: clean
 
 cleanlibs:
 	$(qecho) Cleaning libraries ...
-	$(Q)find $(PROJECT_OUTPUT_DIR) -type f -name "librinasimcore.*" -exec rm -rf {} \;
-	$(Q)find $(PROJECT_OUTPUT_DIR) -type f -name "librinasim.*" -exec rm -rf {} \;
+	$(Q)find $(PROJECT_OUTPUT_DIR) -type f -regex '.*/librinasimcore\(_dbg\)?\..*' -exec rm -f {} \;
+	$(Q)find $(PROJECT_OUTPUT_DIR) -type f -regex '.*/librinasim\(_dbg\)?\..*' -exec rm -f {} \;
 
 cleansrc:
 	$(Q)cd src && $(MAKE) clean && rm -f .tmp* sta*
