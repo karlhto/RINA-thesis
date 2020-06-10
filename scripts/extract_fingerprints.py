@@ -21,31 +21,38 @@ def find_fingerprints(path: str) -> Generator[tuple, None, None]:
             yield (key, section['fingerprint'].strip('"'))
 
 
-def compile_row(path: Path, config: str, fingerprint: str) -> List[str]:
+def compile_row(path: Path, config: str,
+                fingerprint: str, run: int) -> List[str]:
     ''' Compiles a CSV ready row '''
-    cmdstring = '-f omnetpp.ini'
+    cmdstring = '-f omnetpp.ini -r ' + str(run)
     if "Config" in config:
         cmdstring += ' -c ' + config.split(' ')[1]
     return [path.parent, cmdstring, '', fingerprint, 'PASS', '']
 
 
-def build_csv(paths: List[Path]):
-    ''' Builds a CSV compatible with fingerprinttest '''
+def build_csv(paths: List[Path], runs: int):
+    ''' Builds a CSV compatible with INET's fingerprint tester '''
     with open('examples.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         for path in paths:
             for config, fingerprint in find_fingerprints(path):
-                row = compile_row(path, config, fingerprint)
-                writer.writerow(row)
+                for run in range(runs):
+                    row = compile_row(path, config, fingerprint, run)
+                    writer.writerow(row)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dir', default='.', help='Directory to look in')
-    parser.add_argument('-f', '--inifile', default='omnetpp.ini', help='Filename to look for')
+    parser.add_argument('-d', '--dir', default='.',
+                        help='Directory to look in')
+    parser.add_argument('-f', '--inifile',
+                        default='omnetpp.ini', help='Filename to look for')
+    parser.add_argument('-r', '--runs', type=int,
+                        default='1', help='Amount of runs to produce')
     args = parser.parse_args()
     path = args.dir
+    runs = args.runs
     filename = args.inifile
 
     files = Path(path).rglob(filename)
-    build_csv(files)
+    build_csv(files, runs)
