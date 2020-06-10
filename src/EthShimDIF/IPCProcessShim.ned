@@ -53,6 +53,7 @@ module IPCProcessShim
         }
         eth: <default("EthernetInterface")> like IWiredNic {
             parameters:
+                interfaceTableModule = "";
                 @display("p=368,406,row,60;q=txQueue");
         }
     connections allowunconnected:
