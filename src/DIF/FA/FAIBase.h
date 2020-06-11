@@ -30,6 +30,19 @@
 
 class FAIBase : public cSimpleModule {
   public:
+    //Signals
+    static const simsignal_t allocateRequestSignal;
+    static const simsignal_t deallocateRequestSignal;
+    static const simsignal_t deallocateResponseSignal;
+    static const simsignal_t allocateResponsePositiveSignal;
+    static const simsignal_t allocateResponseNegativeSignal;
+    static const simsignal_t createRequestSignal;
+    static const simsignal_t deleteRequestSignal;
+    static const simsignal_t deleteResponseSignal;
+    static const simsignal_t createResponseNegativeSignal;
+    static const simsignal_t createResponsePositiveSignal;
+
+  public:
     FAIBase();
     virtual ~FAIBase();
 

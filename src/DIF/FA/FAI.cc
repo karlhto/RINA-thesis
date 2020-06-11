@@ -25,17 +25,6 @@
 const char*     TIM_CREREQ          = "CreateRequestTimer";
 const char*     MOD_ALLOCRETRYPOLICY= "allocateRetryPolicy";
 
-const simsignal_t FAI::allocateRequestSignal = registerSignal(SIG_FAI_AllocateRequest);
-const simsignal_t FAI::deallocateRequestSignal = registerSignal(SIG_FAI_DeallocateRequest);
-const simsignal_t FAI::deallocateResponseSignal = registerSignal(SIG_FAI_DeallocateResponse);
-const simsignal_t FAI::allocateResponsePositiveSignal = registerSignal(SIG_FAI_AllocateResponsePositive);
-const simsignal_t FAI::allocateResponseNegativeSignal = registerSignal(SIG_FAI_AllocateResponseNegative);
-const simsignal_t FAI::createRequestSignal = registerSignal(SIG_FAI_CreateFlowRequest);
-const simsignal_t FAI::deleteRequestSignal = registerSignal(SIG_FAI_DeleteFlowRequest);
-const simsignal_t FAI::deleteResponseSignal = registerSignal(SIG_FAI_DeleteFlowResponse);
-const simsignal_t FAI::createResponseNegativeSignal = registerSignal(SIG_FAI_CreateFlowResponseNegative);
-const simsignal_t FAI::createResponsePositiveSignal = registerSignal(SIG_FAI_CreateFlowResponsePositive);
-
 Define_Module(FAI);
 
 FAI::FAI() : FAIBase() {
@@ -509,7 +498,6 @@ bool FAI::invokeAllocateRetryPolicy() {
 void FAI::initSignalsAndListeners() {
     cModule* catcher2 = this->getModuleByPath("^.^");
     cModule* catcher3 = this->getModuleByPath("^.^.^");
-    //Signals that module emits
     //Signals that module processes
     //  AllocationRespNegative
     this->lisAllocResNega   = new LisFAIAllocResNega(this);

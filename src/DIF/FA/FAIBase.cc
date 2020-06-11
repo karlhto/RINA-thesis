@@ -21,6 +21,19 @@
 // THE SOFTWARE.
 
 #include "DIF/FA/FAIBase.h"
+#include "Common/RINASignals.h"
+
+const simsignal_t FAIBase::allocateRequestSignal = registerSignal(SIG_FAI_AllocateRequest);
+const simsignal_t FAIBase::deallocateRequestSignal = registerSignal(SIG_FAI_DeallocateRequest);
+const simsignal_t FAIBase::deallocateResponseSignal = registerSignal(SIG_FAI_DeallocateResponse);
+const simsignal_t FAIBase::allocateResponsePositiveSignal = registerSignal(SIG_FAI_AllocateResponsePositive);
+const simsignal_t FAIBase::allocateResponseNegativeSignal = registerSignal(SIG_FAI_AllocateResponseNegative);
+// Listened to by thiBases IPCP's FANotifier
+const simsignal_t FAIBase::createRequestSignal = registerSignal(SIG_FAI_CreateFlowRequest);
+const simsignal_t FAIBase::deleteRequestSignal = registerSignal(SIG_FAI_DeleteFlowRequest);
+const simsignal_t FAIBase::deleteResponseSignal = registerSignal(SIG_FAI_DeleteFlowResponse);
+const simsignal_t FAIBase::createResponseNegativeSignal = registerSignal(SIG_FAI_CreateFlowResponseNegative);
+const simsignal_t FAIBase::createResponsePositiveSignal = registerSignal(SIG_FAI_CreateFlowResponsePositive);
 
 FAIBase::FAIBase() : FlowObject(NULL), degenerateDataTransfer(false)
 {
