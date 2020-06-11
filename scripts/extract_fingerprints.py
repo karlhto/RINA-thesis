@@ -13,12 +13,18 @@ from typing import Generator, List
 
 def find_fingerprints(path: str) -> Generator[tuple, None, None]:
     ''' Takes an ini file, yield pairs of section name and fingerprint '''
+    runs_base = "1"
     config = configparser.ConfigParser()
     config.read(path)
     for key in config:
+        runs = runs_base
         section = config[key]
+        if 'repeat' in section:
+            if section.name == "General":
+                runs_base = section['repeat']
+            runs = section['repeat']
         if 'fingerprint' in section:
-            yield (key, section['fingerprint'].strip('"'))
+            yield (int(runs), key, section['fingerprint'].strip('"'))
 
 
 def compile_row(path: Path, config: str,
@@ -30,13 +36,13 @@ def compile_row(path: Path, config: str,
     return [path.parent, cmdstring, '', fingerprint, 'PASS', '']
 
 
-def build_csv(paths: List[Path], runs: int):
+def build_csv(paths: List[Path], req_runs: int):
     ''' Builds a CSV compatible with INET's fingerprint tester '''
     with open('examples.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         for path in paths:
-            for config, fingerprint in find_fingerprints(path):
-                for run in range(runs):
+            for runs, config, fingerprint in find_fingerprints(path):
+                for run in range(min(runs, req_runs)):
                     row = compile_row(path, config, fingerprint, run)
                     writer.writerow(row)
 
@@ -48,7 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--inifile',
                         default='omnetpp.ini', help='Filename to look for')
     parser.add_argument('-r', '--runs', type=int,
-                        default='1', help='Amount of runs to produce')
+                        default='5', help='Amount of requested runs')
     args = parser.parse_args()
     path = args.dir
     runs = args.runs

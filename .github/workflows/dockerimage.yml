@@ -1,9 +1,9 @@
-name: Build RINASim and execute examples
+name: Build RINASim and run fingerprint regression tests
 on: [push]
 
 jobs:
   build:
-    name: "Build and run examples"
+    name: "Build RINASim and run fingerprint regression tests"
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout repository

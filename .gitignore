@@ -81,3 +81,8 @@ _deps
 .qtenvrc
 RINASim.cbp
 cmake-build-debug/
+
+# testing files
+*.UPDATED
+*.ERROR
+*.FAILED
