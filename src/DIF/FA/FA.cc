@@ -266,6 +266,7 @@ bool FA::receiveAllocateRequest(Flow* flow) {
     //Is malformed?
     if (isMalformedFlow(flow)){
         nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_ERR);
+        // FIXME: Shouldn't this come before an attempt to allocate management flow?
         //TODO: Vesely - What about special signal for errors????
         return false;
     }
@@ -492,6 +493,9 @@ FAI* FA::createFAI(Flow* flow) {
     // find factory object
     cModuleType *moduleType = cModuleType::get("rina.src.DIF.FA.FAI");
 
+    // FIXME an allocated port ID needs to be guaranteed to be available in the application
+    //       requesting the flow, or else conflicts may emerge
+    //       (see examples/Congestion/DCCongestion/omnetpp.ini, Config CongestionStream-20NodesT)
     //Prepare parameters
     int portId = getEnvir()->getRNG(RANDOM_NUMBER_GENERATOR)->intRand(MAX_PORTID);
     int cepId = getEnvir()->getRNG(RANDOM_NUMBER_GENERATOR)->intRand(MAX_CEPID);
