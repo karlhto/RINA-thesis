@@ -54,9 +54,6 @@ class EthShim : public cSimpleModule, public cListener
     /** @brief Registers Application Naming Information with ARP */
     virtual void registerApplication(const APN &apni) const;
 
-    /** @brief Attempts to resolve destination Application Naming Information */
-    virtual inet::MACAddress resolveApni(const APN &dstApni) const;
-
   protected:
     virtual void initGates();
     virtual void initPointers();

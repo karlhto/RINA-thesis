@@ -53,16 +53,22 @@ void ShimFA::initialize(int stage)
     if (stage == 0) {
         initPointers();
         initSignals();
+
+        // Sets up listening for this module
+        arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
+        arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
     } else if (stage == 1) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
         // TODO look for alternative function
         setRegisteredApName();
 
         if (shimIpcProcess != nullptr) {
+            // FIXME: Should probably add an API call to formally register application
             // Registers application with static entry in ARP, needs to be called after stage 0 to
             // guarantee allocation of MAC address
             shim->registerApplication(registeredApplication);
         }
+
     }
 }
 
@@ -162,7 +168,7 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
 {
     Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
     // Find correct FAI
-    emit(faiAllocateRequestSignal, flowObject);
+    emit(ShimFAI::createResponsePositiveSignal, flowObject);
 }
 
 void ShimFA::failedAddressResolution(const APN &dstApn)
@@ -212,6 +218,17 @@ void ShimFA::deleteBindings() {}
 
 void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
+    Enter_Method_Silent();
+    RINArp::ArpNotification *notification = check_and_cast<RINArp::ArpNotification *>(obj);
+    if (signalID == RINArp::completedRINArpResolutionSignal)
+        completedAddressResolution(notification->apName);
+    else if (signalID == RINArp::failedRINArpResolutionSignal)
+        failedAddressResolution(notification->apName);
+    else
+        throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
+
+    (void)source;
+    (void)details;
 }
 
 /* Mandatory function implementations */

@@ -36,10 +36,6 @@ void EthShim::initialize()
 {
     initPointers();
     initGates();
-
-    // Sets up listening for this module
-    arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
-    arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 }
 
 void EthShim::initPointers()
@@ -107,14 +103,6 @@ void EthShim::sendPacketToNIC(cPacket *packet)
     send(packet, ifOut);
 }
 
-inet::MACAddress EthShim::resolveApni(const APN &dstApni) const
-{
-    Enter_Method("resolveApni(%s)", dstApni.getName().c_str());
-    EV_INFO << "Received request to resolve application name " << dstApni << ". Passing to ARP."
-            << endl;
-    return arp->resolveAddress(dstApni);
-}
-
 void EthShim::registerApplication(const APN &apni) const
 {
     Enter_Method("registerApplication(%s)", apni.getName().c_str());
@@ -149,12 +137,14 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cO
 
 void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
 {
-    shimFA->completedAddressResolution(entry->apName);
+    (void)entry;
+    // something about notifying SDU queues here
 }
 
 void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
 {
-    shimFA->failedAddressResolution(entry->apName);
+    (void)entry;
+    // something about notifying SDU queues here
 }
 
 /* How to handle delimiting? Should the delimiting module be reused, should the
