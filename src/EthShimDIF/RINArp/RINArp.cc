@@ -164,6 +164,20 @@ const inet::MACAddress RINArp::resolveAddress(const APN &apn)
     return inet::MACAddress::UNSPECIFIED_ADDRESS;
 }
 
+APN RINArp::getAddressFor(const inet::MACAddress &mac) const {
+    Enter_Method_Silent();
+
+    if (mac.isUnspecified())
+        return APN::UNSPECIFIED_APN;
+
+    simtime_t now = simTime();
+    for (const auto &elem : arpCache)
+        if (elem.second->macAddress == mac && elem.second->lastUpdate + cacheTimeout >= now)
+            return elem.first;
+
+    return APN::UNSPECIFIED_APN;
+}
+
 void RINArp::initiateArpResolution(ArpCacheEntry *entry)
 {
     const APN &apn = entry->myIter->first;
@@ -252,7 +266,6 @@ void RINArp::processArpPacket(RINArpPacket *arp)
             break;
         }
         case ARP_REPLY: {
-            // We also need to notify here
             delete arp;
             break;
         }
