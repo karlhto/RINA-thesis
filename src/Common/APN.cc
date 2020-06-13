@@ -22,6 +22,8 @@
 
 #include "Common/APN.h"
 
+const APN APN::UNSPECIFIED_APN = APN("");
+
 APN::APN()
 {
     this->name = "";

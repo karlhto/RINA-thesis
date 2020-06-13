@@ -76,6 +76,8 @@ class APN : public std::string
      */
     bool isUnspecified() const;
 
+    static const APN UNSPECIFIED_APN; ///< just an empty APN
+
   protected:
     /**
      * @brief Attribute holding APN name
