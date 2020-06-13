@@ -22,9 +22,11 @@
 
 #include "EthShimDIF/EthShim/EthShim.h"
 
-#include "Common/PDU.h"
+#include "Common/SDUData_m.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
+#include "inet/linklayer/common/Ieee802Ctrl.h"
+
 
 Define_Module(EthShim);
 
@@ -51,8 +53,6 @@ void EthShim::initPointers()
 
 void EthShim::initGates()
 {
-    northIn = gate("northIo$i");
-    northOut = gate("northIo$o");
     arpIn = gate("arpIn");
     arpOut = gate("arpOut");
     ifIn = gate("ifIn");
@@ -61,34 +61,99 @@ void EthShim::initGates()
 
 void EthShim::handleMessage(cMessage *msg)
 {
-    if (msg->arrivedOn(northIn->getId())) {
-        EV_INFO << "Received PDU from upper layer." << endl;
-        PDU *pdu = check_and_cast<PDU *>(msg);
-        handlePDU(pdu);
-    } else if (msg->arrivedOn(arpIn->getId())) {
+    if (msg->arrivedOn(arpIn->getId())) {
         EV_INFO << "Received ARP packet." << endl;
         sendPacketToNIC(PK(msg));
     } else if (msg->arrivedOn(ifIn->getId())) {
         EV_INFO << "Received " << msg << " from network." << endl;
         if (auto arpPacket = dynamic_cast<RINArpPacket *>(msg))
             handleIncomingArpPacket(arpPacket);
-        else if (auto pdu = dynamic_cast<PDU *>(msg))
-            handleIncomingPDU(pdu);
+        else if (auto sdu = dynamic_cast<SDUData *>(msg))
+            handleIncomingSDU(sdu);
         else
             throw cRuntimeError(msg, "Unsupported message type");
     } else {
-        throw cRuntimeError("Received message from invalid gate");
+        cGate *gate = msg->getArrivalGate();
+        EV_INFO << "Received PDU from upper layer." << endl;
+        SDUData *sdu = check_and_cast<SDUData *>(msg);
+        handleSDU(sdu, gate);
     }
 }
 
-void EthShim::handlePDU(PDU *pdu) {
-    //inet::MACAddress mac = arp->resolveAddress();
-    EV_INFO << "Doing stuff" << endl;
+bool EthShim::addPort(const APN &dstApn, int portId) {
+    std::ostringstream gateName;
+    gateName << GATE_NORTHIO_ << portId;
+    const std::string &tmp = gateName.str();
+    const char *gateStr = tmp.c_str();
+
+    addGate(gateStr, cGate::INOUT, false);
+    cGate *shimIn = gateHalf(gateStr, cGate::INPUT);
+    cGate *shimOut = gateHalf(gateStr, cGate::OUTPUT);
+
+    if (!ipcProcess->hasGate(gateStr))
+        ipcProcess->addGate(gateStr, cGate::INOUT, false);
+    cGate *ipcDownIn = ipcProcess->gateHalf(gateStr, cGate::INPUT);
+    cGate *ipcDownOut = ipcProcess->gateHalf(gateStr, cGate::OUTPUT);
+
+    shimOut->connectTo(ipcDownOut);
+    ipcDownIn->connectTo(shimIn);
+    if (!shimOut->isConnected() || !shimIn->isConnected())
+        return false;
+
+    gateMap[shimIn] = dstApn;
+    return true;
 }
 
-void EthShim::handleIncomingPDU(PDU *pdu)
+void EthShim::handleSDU(SDUData *sdu, cGate *gate) {
+    EV_INFO << "Doing stuff" << endl;
+    const APN &dstAddr = gateMap[gate];
+    inet::MACAddress mac = arp->resolveAddress(dstAddr);
+
+    // TODO need DIF name here as VLAN ID, too
+    // TODO additionally need hashing function for DIF name so it fits into
+    //      12 bits (which is size of VLAN tag)
+
+    inet::Ieee802Ctrl *controlInfo = new inet::Ieee802Ctrl();
+    controlInfo->setDest(mac);
+    controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
+    sdu->setControlInfo(controlInfo);
+    sendPacketToNIC(sdu);
+}
+
+void EthShim::handleIncomingSDU(SDUData *sdu)
 {
+    (void)sdu;
     EV_INFO << "Should be passed to connected IPCP" << endl;
+    // TODO ask ARP if we know this one to find dstApn
+
+    inet::Ieee802Ctrl *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->getControlInfo());
+    const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
+    const APN srcApn = arp->getAddressFor(srcMac);
+    if (srcApn.isUnspecified()) {
+        delete sdu; // just place in a queue with discard timer?
+        return;
+    }
+
+    cGate *gate = nullptr;
+    for (const auto &elem : gateMap)
+        if (elem.second == srcApn)
+            gate = elem.first;
+
+    if (gate == nullptr) {
+        insertSDU(sdu, srcApn);
+        shimFA->createUpperFlow(srcApn);
+        return;
+    }
+    // TODO if no dstApn, ask FA to pass creation request to upper layer,
+    //      store this in a queue of some kind of queue that becomes
+
+    // TODO if dstApn, forward it to correct gate and we're good to go
+}
+
+void EthShim::insertSDU(SDUData *sdu, const APN &srcApn)
+{
+    auto vec = &(queue[srcApn]);
+    vec->push_back(sdu);
 }
 
 void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)

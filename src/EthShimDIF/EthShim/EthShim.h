@@ -28,19 +28,23 @@
 #include "EthShimDIF/RINArp/RINArp.h"
 #include "inet/linklayer/common/MACAddress.h"
 
-class PDU;
+class SDUData;
 class ShimFA;
 class RINArpPacket;
 
 class EthShim : public cSimpleModule, public cListener
 {
   protected:
-    cGate *northIn;
-    cGate *northOut;
+    cGate *northGateBaseId;
     cGate *arpIn;
     cGate *arpOut;
     cGate *ifIn;
     cGate *ifOut;
+
+    std::map<cGate *, APN> gateMap;
+    std::map<cGate *, APN>::iterator gateMapIt;
+    std::map<APN, std::vector<SDUData *>> queue;
+    std::map<APN, std::vector<SDUData *>>::iterator queueIt;
 
     // Pointers to important modules
     cModule *ipcProcess;
@@ -54,16 +58,24 @@ class EthShim : public cSimpleModule, public cListener
     /** @brief Registers Application Naming Information with ARP */
     virtual void registerApplication(const APN &apni) const;
 
-  protected:
-    virtual void initGates();
-    virtual void initPointers();
+    /** @brief Adds mapping and creates bindings for a flow */
+    virtual bool addPort(const APN &dstApn, int portId);
 
-    virtual void handlePDU(PDU *pdu);
-    virtual void handleIncomingPDU(PDU *pdu);
-    virtual void handleIncomingArpPacket(RINArpPacket *arpPacket);
-    virtual void sendPacketToNIC(cPacket *packet);
+  protected:
+    void initGates();
+    void initPointers();
+
+    void handleSDU(SDUData *sdu, cGate *gate);
+    void handleIncomingSDU(SDUData *sdu);
+    void handleIncomingArpPacket(RINArpPacket *arpPacket);
+    void sendPacketToNIC(cPacket *packet);
+
+    void insertSDU(SDUData *sdu, const APN &srcApn);
 
     const virtual inet::MACAddress getMacAddressOfNIC() const;
+
+    void arpResolutionCompleted(RINArp::ArpNotification *entry);
+    void arpResolutionFailed(RINArp::ArpNotification *entry);
 
     /// cSimpleModule overrides
     virtual void initialize() override;
@@ -72,7 +84,4 @@ class EthShim : public cSimpleModule, public cListener
     /// cListener overrides, for ARP signals
     virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
                                cObject *details) override;
-
-    virtual void arpResolutionCompleted(RINArp::ArpNotification *entry);
-    virtual void arpResolutionFailed(RINArp::ArpNotification *entry);
 };
