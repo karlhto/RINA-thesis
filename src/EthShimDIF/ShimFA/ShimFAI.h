@@ -1,15 +1,20 @@
 #pragma once
 
 #include <omnetpp.h>
+
 #include "DIF/FA/FAIBase.h"
 
-class FABase;
+class ShimFA;
 class EthShim;
 
-class ShimFAI : public FAIBase {
+class ShimFAI : public FAIBase
+{
   public:
     // Some public objects?
     enum ConnectionState { UNALLOCATED, ALLOCATE_PENDING, ALLOCATED };
+
+    // oh god why
+    static const simsignal_t ribdCreateFlowResponsePositive;
 
   protected:
     // Important protected objects
@@ -17,7 +22,7 @@ class ShimFAI : public FAIBase {
     int remotePortId;
 
     cMessage *creReqTimer;
-    FABase* fa;
+    ShimFA *fa;
     EthShim *shim;
     Flow *flow;
 
@@ -31,16 +36,17 @@ class ShimFAI : public FAIBase {
     virtual bool receiveAllocateResponsePositive();
     virtual void receiveAllocateResponseNegative();
     virtual bool receiveCreateRequest();
-    virtual bool receiveCreateResponsePositive(Flow* flow);
+    virtual bool receiveCreateResponsePositive(Flow *flow);
     virtual bool receiveCreateResponseNegative();
     virtual bool receiveDeallocateRequest();
-    virtual void receiveDeleteRequest(Flow* flow);
+    virtual void receiveDeleteRequest(Flow *flow);
     virtual void receiveDeleteResponse();
 
     virtual void receiveCreateFlowResponsePositiveFromNminusOne();
     virtual void receiveCreateFlowResponseNegativeFromNminusOne();
 
-    void postInitialize(FABase *fa, Flow *flow, EthShim *shim);
+    void postInitialize(ShimFA *fa, Flow *flow, EthShim *shim);
+    int getLocalPortId() const;
 
   protected:
     // cSimpleModule overrides

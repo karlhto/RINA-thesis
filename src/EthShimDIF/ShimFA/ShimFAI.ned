@@ -26,6 +26,7 @@ simple ShimFAI
 {
     parameters:
     	@display("i=block/rxtx");
+        @signal[RIBd-CreateFlowResponsePositive](type=Flow?);
     	@signal[FAI-DeallocateRequest](type=Flow?);
     	@signal[FAI-AllocateRequest](type=Flow?);
     	@signal[FAI-AllocateResponsePositive](type=Flow?);

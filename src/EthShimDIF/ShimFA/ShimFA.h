@@ -38,21 +38,14 @@ class RINArp;
  */
 class ShimFA : public FABase, public cListener
 {
-  public:
-    static const simsignal_t faiAllocateRequestSignal;
-    static const simsignal_t faiDeallocateRequestSignal;
-    static const simsignal_t faiAllocateResponsePositiveSignal;
-    static const simsignal_t faiAllocateResponseNegativeSignal;
-
   protected:
     cModule *shimIpcProcess;
     cModule *connectedApplication;
     RINArp *arp;
     EthShim *shim;
-    FAIBase *fai;
+    ShimFAI *fai;
 
     // Only one flow necessary
-    Flow *flowObject;           // TODO or not? RINASim is pretty limited here
     APN registeredApplication;  ///< apName of "registered" application
 
   public:
@@ -64,6 +57,7 @@ class ShimFA : public FABase, public cListener
     virtual void completedAddressResolution(const APN &apn);
     virtual void failedAddressResolution(const APN &apn);
     virtual void deinstantiateFai(Flow *flow);
+    virtual bool createUpperFlow(const APN &apn);
 
     /// These are all unused in shim layer, but still implemented
     virtual bool receiveMgmtAllocateRequest(Flow *mgmtflow);
@@ -77,7 +71,6 @@ class ShimFA : public FABase, public cListener
     virtual bool setNeighborAddresses(Flow *flow);
 
   protected:
-    virtual void initSignals();
     virtual void initPointers();
     virtual void setRegisteredApName();
 

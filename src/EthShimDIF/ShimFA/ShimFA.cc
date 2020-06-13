@@ -28,21 +28,12 @@
 #include "EthShimDIF/RINArp/RINArp.h"
 #include "inet/linklayer/common/MACAddress.h"
 
-const simsignal_t ShimFA::faiAllocateRequestSignal =
-    registerSignal(SIG_FAI_AllocateRequest);
-const simsignal_t ShimFA::faiDeallocateRequestSignal =
-    registerSignal(SIG_FAI_DeallocateRequest);
-const simsignal_t ShimFA::faiAllocateResponsePositiveSignal =
-    registerSignal(SIG_FAI_AllocateResponsePositive);
-const simsignal_t ShimFA::faiAllocateResponseNegativeSignal =
-    registerSignal(SIG_FAI_AllocateResponseNegative);
-
 Define_Module(ShimFA);
 
 /*
  * Initialisation functionality
  */
-ShimFA::ShimFA() : FABase::FABase() {}
+ShimFA::ShimFA() : FABase::FABase(), fai(nullptr) {}
 
 ShimFA::~ShimFA() {}
 
@@ -52,7 +43,6 @@ void ShimFA::initialize(int stage)
 
     if (stage == 0) {
         initPointers();
-        initSignals();
 
         // Sets up listening for this module
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
@@ -101,13 +91,6 @@ void ShimFA::initPointers()
         throw cRuntimeError("Shim IPC process not connected to overlying IPC/Application Process");
 }
 
-void ShimFA::initSignals()
-{
-    // We unfortunately have to handle some signals.
-
-    // Should emit:
-}
-
 void ShimFA::setRegisteredApName()
 {
     std::string name = connectedApplication->par("apName").stringValue();
@@ -116,11 +99,17 @@ void ShimFA::setRegisteredApName()
 
 void ShimFA::handleMessage(cMessage *msg)
 {
-    if (msg->isSelfMessage()) {
+    if (msg->isSelfMessage() && opp_strcmp(msg->getName(), TIM_FAPENDFLOWS) == 0) {
 
     }
     // self message is the only valid message here
     delete msg;
+}
+
+bool ShimFA::createUpperFlow(const APN &dstApn) {
+    Enter_Method("createUpperFlow(%s)", dstApn.c_str());
+
+    return true;
 }
 
 bool ShimFA::receiveAllocateRequest(Flow *flow)
@@ -130,9 +119,16 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     EV << "Received allocation request for flow with destination address "
        << flow->getDstApni().getApn() << endl;
 
+    // Insert new Flow into FAITable
+    nFlowTable->insertNew(flow);
+
+    // Change allocation status to pending
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
+
     // TODO check if there is one already
-    ShimFAI *fai = createFAI(flow);
-    this->fai = fai;
+    fai = createFAI(flow);
+    // Update flow object
+    flow->setSrcPortId(fai->getLocalPortId());
 
     const auto &apName = flow->getDstApni().getApn();
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
@@ -140,23 +136,19 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     // TODO implement QoS validation
     // validateQosRequirements(flow);
 
-    if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS) {
-        // entry was found in cache, allocate flow at once and signal success
-        // Schedule self message here
-        scheduleAt(simTime(), new cMessage(TIM_FAPENDFLOWS) );
-        return true;
-    }
-
+    if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS)
+        return fai->receiveAllocateRequest();
 
     return true;
 }
 
 bool ShimFA::receiveDeallocateRequest(Flow *flow)
 {
+    (void)flow;
     Enter_Method("receiveDeallocateRequest()");
     EV << "Received deallocation request for flow with destination APN " << endl;
 
-    fai->receiveAllocateRequest();
+    fai->receiveDeallocateRequest();
 
     // Check state of FAI
     // remove bindings
@@ -166,15 +158,17 @@ bool ShimFA::receiveDeallocateRequest(Flow *flow)
 
 void ShimFA::completedAddressResolution(const APN &dstApn)
 {
-    Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
-    // Find correct FAI
-    emit(ShimFAI::createResponsePositiveSignal, flowObject);
+    //Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
+    EV << "Completed address resolution for " << dstApn << endl;
+    // TODO expand this
+    if (fai != nullptr)
+        fai->receiveAllocateRequest();
 }
 
 void ShimFA::failedAddressResolution(const APN &dstApn)
 {
     Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
-    emit(faiAllocateResponseNegativeSignal, flowObject);
+    // something something FAI stop createresponsenegative
 }
 
 ShimFAI *ShimFA::createFAI(Flow *flow)
@@ -185,18 +179,21 @@ ShimFAI *ShimFA::createFAI(Flow *flow)
     std::ostringstream ostr;
     ostr << "fai_" << portId;
 
-    //Instantiate module
-    cModule *module = type->create(ostr.str().c_str(), this->getParentModule());
-    module->par(PAR_LOCALPORTID) = portId;
-    module->finalizeParameters();
-    module->buildInside();
+    // Instantiate module
+    ShimFAI *fai =
+        check_and_cast<ShimFAI *>(type->create(ostr.str().c_str(), this->getParentModule()));
+    fai->par(PAR_LOCALPORTID) = portId;
+    fai->finalizeParameters();
+    fai->buildInside();
 
     // create activation message
-    module->scheduleStart(simTime());
-    module->callInitialize();
-
-    ShimFAI *fai = dynamic_cast<ShimFAI *>(module);
+    fai->scheduleStart(simTime());
+    fai->callInitialize();
     fai->postInitialize(this, flow, shim);
+
+    // Change state in FAITable
+    nFlowTable->setFaiToFlow(fai, flow);
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
 
     return fai;
 }
@@ -204,15 +201,15 @@ ShimFAI *ShimFA::createFAI(Flow *flow)
 // Not sure what to do with this function as of yet. This is called by upper
 // layer, but not checked. It's possible at least a subset of the flow
 // allocation policies should be implemented
-bool ShimFA::invokeNewFlowRequestPolicy(Flow *flow) { return true; }
+bool ShimFA::invokeNewFlowRequestPolicy(Flow *) { return true; }
 
-bool ShimFA::setOriginalAddresses(Flow *flow) { return false; }
+bool ShimFA::setOriginalAddresses(Flow *) { return false; }
 
-bool ShimFA::setNeighborAddresses(Flow *flow) { return false; }
+bool ShimFA::setNeighborAddresses(Flow *) { return false; }
 
-bool ShimFA::allocatePort(Flow *flow) {}
+bool ShimFA::allocatePort(Flow *) { return false; }
 
-void ShimFA::createBindings(int portID) {}
+void ShimFA::createBindings(int) {}
 
 void ShimFA::deleteBindings() {}
 
