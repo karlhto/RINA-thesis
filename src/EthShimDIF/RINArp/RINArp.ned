@@ -27,7 +27,7 @@ simple RINArp {
         double retryTimeout @unit("s") = default(1s);
         int retryCount = default(3);
         double cacheTimeout @unit("s") = default(120s);
-        @display("i=block/fork");
+        @display("i=block/layer");
         @signal[initiatedRINArpResolution](type=RINArp::ArpNotification);
         @signal[completedRINArpResolution](type=RINArp::ArpNotification);
         @signal[failedRINArpResolution](type=RINArp::ArpNotification);

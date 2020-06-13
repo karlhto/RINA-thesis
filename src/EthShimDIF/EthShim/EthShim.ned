@@ -25,9 +25,9 @@ package rina.src.EthShimDIF.EthShim;
 simple EthShim
 {
     parameters:
-        @display("i=block/fork");
+        @display("i=block/routing");
     gates:
-        inout northIo; // Incoming SDUs
+        // PDU input added on demand
         input ifIn;
         output ifOut;
         input arpIn;
