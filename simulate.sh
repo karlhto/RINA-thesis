@@ -14,6 +14,8 @@ opp_xargs=""
 rina_root="$( readlink -f "$( dirname $0 )" )"
 rina_lib="${rina_root}/policies/librinasim"
 mode="release"
+gdb=""
+ned=${rina_root}
 
 # process command line arguments
 process_args()
@@ -30,13 +32,15 @@ process_args()
 
     shift
 
-    while getopts "dGc:x:i:" opt; do
+    while getopts "dgGc:x:i:" opt; do
       case $opt in
         "d") rina_lib="${rina_lib}_dbg"
              mode="debug" ;;
         "G") rina_ui="Qtenv" ;;
         "c") rina_conf="$OPTARG" ;;
+        "g") gdb="gdb --args" ;;
         "x") opp_xargs="$OPTARG" ;;
+	"i") ned="${ned}:${ned}/$OPTARG" ;;
         *) ;;
       esac
     done
@@ -65,16 +69,17 @@ run_simulation()
         cmd=${cmd}_dbg
     fi
 
-    $cmd -u "$2" \
-         -c "$3" \
-         -n "$rina_root" \
-         -l "$rina_lib" \
-         $opp_xargs omnetpp.ini
+    $gdb $cmd -u "$2" \
+ 	      -c "$3" \
+ 	      -l "$rina_lib" \
+ 	      $opp_xargs omnetpp.ini
 }
 
 process_args $@
 
 check_library ${rina_lib}
+
+export NEDPATH="${ned}"
 
 run_simulation "$rina_example" "$rina_ui" "$rina_conf" "$opp_xargs"
 
