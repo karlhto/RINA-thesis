@@ -42,7 +42,7 @@ void EthShim::initialize()
 
 void EthShim::initPointers()
 {
-    ipcProcess = getModuleByPath("^");
+    ipcProcess = getParentModule();
     arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
     if (arp == nullptr)
         throw cRuntimeError("EthShim needs ARP module");
@@ -122,7 +122,6 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate) {
 
 void EthShim::handleIncomingSDU(SDUData *sdu)
 {
-    (void)sdu;
     EV_INFO << "Should be passed to connected IPCP" << endl;
     // TODO ask ARP if we know this one to find dstApn
 
@@ -144,10 +143,14 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
         shimFA->createUpperFlow(srcApn);
         return;
     }
-    // TODO if no dstApn, ask FA to pass creation request to upper layer,
-    //      store this in a queue of some kind of queue that becomes
+
+
 
     // TODO if dstApn, forward it to correct gate and we're good to go
+}
+
+void EthShim::sendWaitingSDUs(const APN &srcApn) {
+
 }
 
 void EthShim::insertSDU(SDUData *sdu, const APN &srcApn)

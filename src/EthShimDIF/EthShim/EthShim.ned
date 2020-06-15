@@ -27,7 +27,6 @@ simple EthShim
     parameters:
         @display("i=block/routing");
     gates:
-        // PDU input added on demand
         input ifIn;
         output ifOut;
         input arpIn;
