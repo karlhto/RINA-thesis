@@ -58,7 +58,6 @@ void ShimFA::initialize(int stage)
             // guarantee allocation of MAC address
             shim->registerApplication(registeredApplication);
         }
-
     }
 }
 
@@ -109,7 +108,16 @@ void ShimFA::handleMessage(cMessage *msg)
 bool ShimFA::createUpperFlow(const APN &dstApn) {
     Enter_Method("createUpperFlow(%s)", dstApn.c_str());
 
-    return true;
+    Flow *flow = new Flow();
+    flow->setDstAddr(dstApn);
+    flow->setSrcAddr(registeredApplication);
+
+    nFlowTable->insertNew(flow);
+
+    ShimFAI *fai = createFAI(flow);
+    flow->setSrcPortId(fai->getLocalPortId());
+
+    return fai->receiveCreateRequest();
 }
 
 bool ShimFA::receiveAllocateRequest(Flow *flow)

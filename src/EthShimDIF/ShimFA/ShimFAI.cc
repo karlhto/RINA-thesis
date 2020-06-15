@@ -34,8 +34,19 @@ bool ShimFAI::receiveAllocateRequest()
     Enter_Method("receiveAllocateRequest()");
     bool res = shim->addPort(flow->getDstApni().getApn(), localPortId);
     if (res) {
-        EV << "Emitting a signal" << endl;
+        EV << "Successfully allocated flow" << endl;
         emit(ribdCreateFlowResponsePositive, flow);
+    }
+
+    return res;
+}
+
+bool ShimFAI::receiveCreateRequest() {
+    Enter_Method("receiveCreateRequest()");
+    bool res = shim->addPort(flow->getDstApni().getApn(), localPortId);
+    if (res) {
+        EV << "Successfully added bindings, notifying N+1" << endl;
+        emit(allocateRequestSignal, flow);
     }
 
     return res;
@@ -43,7 +54,6 @@ bool ShimFAI::receiveAllocateRequest()
 
 bool ShimFAI::receiveAllocateResponsePositive() { return false; }
 void ShimFAI::receiveAllocateResponseNegative() {}
-bool ShimFAI::receiveCreateRequest() { return false; }
 bool ShimFAI::receiveCreateResponsePositive(Flow *) { return false; }
 bool ShimFAI::receiveCreateResponseNegative() { return false; }
 bool ShimFAI::receiveDeallocateRequest() { return false; }
