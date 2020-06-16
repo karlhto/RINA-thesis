@@ -25,41 +25,37 @@ package rina.src.EthShimDIF;
 import rina.src.EthShimDIF.ShimFA.ShimFlowAllocator;
 import rina.src.EthShimDIF.EthShim.EthShim;
 import rina.src.EthShimDIF.RINArp.RINArp;
-import inet.linklayer.contract.IWiredNic;
 
 module IPCProcessShim
 {
     parameters:
-        @display("bgb=457,307;i=misc/square,#008000,50");
+        @display("bgb=402,307;i=misc/square,#008000,50");
         string ipcAddress;
         string difName;
         string apName = default(ipcAddress + "_" + difName);
+        string interfaceTableModule;
+        *.interfaceTableModule = default(absPath(interfaceTableModule));
+
     gates:
         inout northIo;
-        inout ethg;
+        input ifIn;
+        output ifOut;
     submodules:
         shim: EthShim {
             parameters:
-                @display("p=211,127");
+                @display("p=201,127");
         }
-        // This needs to look like a normal flow allocator to DA
         flowAllocator: ShimFlowAllocator {
             parameters:
                 @display("p=346,48");
         }
         arp: RINArp {
             parameters:
-                @display("p=62,127");
-        }
-        eth: <default("EthernetInterface")> like IWiredNic {
-            parameters:
-                interfaceTableModule = "";
-                @display("p=211,258,row,60;q=txQueue");
+                @display("p=55,127");
         }
     connections allowunconnected:
-        shim.arpOut --> arp.netwIn;
-        shim.arpIn <-- arp.netwOut;
-        shim.ifOut --> eth.upperLayerIn;
-        shim.ifIn <-- eth.upperLayerOut;
-        eth.phys <--> { @display("m=s"); } <--> ethg;
+        arp.netwOut --> shim.arpIn;
+        arp.netwIn <-- shim.arpOut;
+        shim.ifOut --> ifOut;
+        shim.ifIn <-- ifIn;
 }
