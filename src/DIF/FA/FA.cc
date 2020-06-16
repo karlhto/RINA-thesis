@@ -493,8 +493,8 @@ FAI* FA::createFAI(Flow* flow) {
     // find factory object
     cModuleType *moduleType = cModuleType::get("rina.src.DIF.FA.FAI");
 
-    // FIXME an allocated port ID needs to be guaranteed to be available in the application
-    //       requesting the flow, or else conflicts may emerge
+    // FIXME an allocated port ID needs to be guaranteed to be unambiguous for both the application
+    //       requesting the flow, and the FAIs. Move port allocation to resource allocator of (N+1)?
     //       (see examples/Congestion/DCCongestion/omnetpp.ini, Config CongestionStream-20NodesT)
     //Prepare parameters
     int portId = getEnvir()->getRNG(RANDOM_NUMBER_GENERATOR)->intRand(MAX_PORTID);

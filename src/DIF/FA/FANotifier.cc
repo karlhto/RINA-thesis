@@ -37,8 +37,6 @@ void FANotifier::initSignalsAndListeners() {
     //Signals that this module is emitting
     sigRIBDDelReqFlo     = registerSignal(SIG_RIBD_DeleteRequestFlow);
     sigRIBDDelResFlo     = registerSignal(SIG_RIBD_DeleteResponseFlow);
-    sigRIBDAllocResPosi  = registerSignal(SIG_AERIBD_AllocateResponsePositive);
-    sigRIBDAllocResNega  = registerSignal(SIG_AERIBD_AllocateResponseNegative);
     sigRIBDCreFlow       = registerSignal(SIG_RIBD_CreateFlow);
     sigRIBDCreResFloPosi = registerSignal(SIG_RIBD_CreateFlowResponsePositive);
     sigRIBDCreResFloNega = registerSignal(SIG_RIBD_CreateFlowResponseNegative);
@@ -253,7 +251,7 @@ void FANotifier::sendDeleteResponseFlow(Flow* flow) {
 
 void FANotifier::signalizeAllocateResponsePositive(Flow* flow) {
     EV << "Emits AllocateResponsePositive signal for flow" << endl;
-    emit(sigRIBDAllocResPosi, flow);
+    emit(allocateResponsePositiveSignal, flow);
 }
 
 void FANotifier::signalizeCreateResponseFlowPositive(Flow* flow) {
@@ -283,7 +281,7 @@ void FANotifier::signalizeDeleteRequestFlow(Flow* flow) {
 
 void FANotifier::signalizeAllocateResponseNegative(Flow* flow) {
     EV << "Emits AllocateResponseNegative signal for flow" << endl;
-    emit(sigRIBDAllocResNega, flow);
+    emit(allocateResponseNegativeSignal, flow);
 }
 
 void FANotifier::signalizeDeleteResponseFlow(Flow* flow) {
