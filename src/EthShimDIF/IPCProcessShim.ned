@@ -45,17 +45,20 @@ module IPCProcessShim
             parameters:
                 @display("p=201,127");
         }
+
         flowAllocator: ShimFlowAllocator {
             parameters:
                 @display("p=346,48");
         }
+
         arp: RINArp {
             parameters:
                 @display("p=55,127");
         }
+
     connections allowunconnected:
         arp.netwOut --> shim.arpIn;
         arp.netwIn <-- shim.arpOut;
-        shim.ifOut --> ifOut;
-        shim.ifIn <-- ifIn;
+        shim.ifOut --> { @display("m=s"); } --> ifOut;
+        shim.ifIn <-- { @display("m=s"); } <-- ifIn;
 }
