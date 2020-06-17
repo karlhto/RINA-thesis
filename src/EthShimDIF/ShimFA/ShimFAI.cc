@@ -1,6 +1,8 @@
 #include "EthShimDIF/ShimFA/ShimFAI.h"
 #include "Common/RINASignals.h"
 #include "EthShimDIF/EthShim/EthShim.h"
+#include "EthShimDIF/ShimFA/ShimFA.h"
+#include "DIF/FA/FANotifierBase.h"
 
 Define_Module(ShimFAI);
 
@@ -14,6 +16,10 @@ void ShimFAI::initialize()
 {
     localPortId = par(PAR_LOCALPORTID);
     remotePortId = par(PAR_REMOTEPORTID);
+
+    cModule *node = getModuleByPath("^.^.^");
+    node->subscribe(SIG_AERIBD_AllocateResponsePositive, this);
+    node->subscribe(SIG_AERIBD_AllocateResponseNegative, this);
 }
 
 void ShimFAI::postInitialize(ShimFA *fa, Flow *flow, EthShim *shim)
@@ -52,10 +58,45 @@ bool ShimFAI::receiveCreateRequest() {
     return res;
 }
 
-bool ShimFAI::receiveAllocateResponsePositive() { return false; }
-void ShimFAI::receiveAllocateResponseNegative() {}
-bool ShimFAI::receiveCreateResponsePositive(Flow *) { return false; }
 bool ShimFAI::receiveCreateResponseNegative() { return false; }
+
+bool ShimFAI::receiveAllocateResponsePositive()
+{
+    Enter_Method("receiveCreateResponsePositive()");
+    EV << "Received positive allocation response! Sending pending SDUs" << endl;
+    NFlowTable *nft = fa->getNFlowTable();
+    NFlowTableEntry *nfte = nft->findEntryByFlow(flow);
+    if (nfte == nullptr) {
+        EV_ERROR << "No table entry for this flow found!" << endl;
+        return false;
+    }
+
+    nft->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
+
+    shim->sendWaitingSDUs(flow->getDstApni().getApn());
+    return true;
+}
+
+void ShimFAI::receiveAllocateResponseNegative() {}
+
+
+void ShimFAI::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
+{
+    Flow *flow = check_and_cast<Flow *>(obj);
+    if (flow != this->flow)
+        return;
+
+    if (id == FANotifierBase::allocateResponsePositiveSignal)
+        receiveAllocateResponsePositive();
+    else if (id == FANotifierBase::allocateResponseNegativeSignal)
+        receiveAllocateResponseNegative();
+
+    (void)detail;
+    (void)src;
+}
+
+// Irrelevant functions
+bool ShimFAI::receiveCreateResponsePositive(Flow *) { return false; }
 bool ShimFAI::receiveDeallocateRequest() { return false; }
 void ShimFAI::receiveDeleteRequest(Flow *) {}
 void ShimFAI::receiveDeleteResponse() {}

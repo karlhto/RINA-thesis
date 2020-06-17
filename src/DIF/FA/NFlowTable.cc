@@ -170,6 +170,19 @@ NFlowTableEntry* NFlowTable::findEntryByFai(FAIBase* fai) {
     return NULL;
 }
 
+NFlowTableEntry *NFlowTable::findEntryByApnisAndQosId(const APN &srcApn, const APN &dstApn,
+                                                      const std::string &qosId)
+{
+    for (TFTIter it = NFlowTab.begin(); it != NFlowTab.end(); ++it) {
+        NFlowTableEntry tft = *it;
+        if (tft.getCFlow()->getSrcApni().getApn() == srcApn &&
+            tft.getCFlow()->getDstApni().getApn() == dstApn &&
+            tft.getCFlow()->getConId().getQoSId() == qosId)
+            return &(*it);
+    }
+    return nullptr;
+}
+
 void NFlowTable::changeAllocStatus(Flow* flow, NFlowTableEntry::EAllocateStatus status) {
     NFlowTableEntry* fte = findEntryByFlow(flow);
     if (fte) {

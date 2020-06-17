@@ -25,6 +25,7 @@
 #include <omnetpp.h>
 
 #include "DIF/FA/FABase.h"
+#include "inet/common/InitStages.h"
 
 class ShimFAI;
 class EthShim;
@@ -43,11 +44,11 @@ class ShimFA : public FABase, public cListener
     cModule *connectedApplication;
     RINArp *arp;
     EthShim *shim;
-    ShimFAI *fai;
 
     // Only one flow necessary
     APN registeredApplication;  ///< apName of "registered" application
 
+    QoSCube qos; ///< Unreliable stuff
   public:
     ShimFA();
     virtual ~ShimFA();
@@ -82,7 +83,7 @@ class ShimFA : public FABase, public cListener
 
     /// SimpleModule overrides
     virtual void initialize(int stage) override;
-    virtual int numInitStages() const override { return 2; }
+    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
     virtual void handleMessage(cMessage *msg) override;
 
     /// cListener overrides

@@ -7,7 +7,7 @@
 class ShimFA;
 class EthShim;
 
-class ShimFAI : public FAIBase
+class ShimFAI : public FAIBase, public cListener
 {
   public:
     // Some public objects?
@@ -52,4 +52,7 @@ class ShimFAI : public FAIBase
     // cSimpleModule overrides
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
+    // cListener override
+    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
 };

@@ -58,6 +58,7 @@ class NFlowTable : public cSimpleModule
     NFlowTableEntry* findEntryBySrcAddressAndFwd(const APN& apname);
     NFlowTableEntry* findEntryByFai(FAIBase* fai);
     NFlowTableEntry* findEntryByInvokeId(long invId);
+    NFlowTableEntry* findEntryByApnisAndQosId(const APN &srcApn, const APN &dstApn, const std::string &qosId);
     void setFaiToFlow(FAIBase* fai, Flow* flow);
     void changeAllocStatus(Flow* flow, NFlowTableEntry::EAllocateStatus status);
     void changeAllocStatus(FAIBase* fai, NFlowTableEntry::EAllocateStatus status);

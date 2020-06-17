@@ -33,7 +33,10 @@ Define_Module(ShimFA);
 /*
  * Initialisation functionality
  */
-ShimFA::ShimFA() : FABase::FABase(), fai(nullptr) {}
+ShimFA::ShimFA() : FABase::FABase(), fai(nullptr), qos(QoSCube())
+{
+    qos.setQosId(VAL_MGMTQOSID);
+}
 
 ShimFA::~ShimFA() {}
 
@@ -41,20 +44,20 @@ void ShimFA::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
 
-    if (stage == 0) {
+    if (stage == inet::INITSTAGE_LOCAL) {
         initPointers();
 
         // Sets up listening for this module
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
-    } else if (stage == 1) {
+    } else if (stage == inet::INITSTAGE_NETWORK_LAYER_2) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
         // TODO look for alternative function
         setRegisteredApName();
 
         if (shimIpcProcess != nullptr) {
             // FIXME: Should probably add an API call to formally register application
-            // Registers application with static entry in ARP, needs to be called after stage 0 to
+            // Registers application with static entry in Arp, needs to be called after stage 0 to
             // guarantee allocation of MAC address
             shim->registerApplication(registeredApplication);
         }
@@ -108,9 +111,17 @@ void ShimFA::handleMessage(cMessage *msg)
 bool ShimFA::createUpperFlow(const APN &dstApn) {
     Enter_Method("createUpperFlow(%s)", dstApn.c_str());
 
-    Flow *flow = new Flow();
-    flow->setDstAddr(dstApn);
-    flow->setSrcAddr(registeredApplication);
+    EV << "Received request to forward allocation request to N+1, with source address " << dstApn
+       << endl;
+
+    ConnectionId connId;
+    connId.setQoSId(VAL_MGMTQOSID);
+
+    Flow *flow = new Flow(registeredApplication, dstApn);
+    flow->setQosCube(qos);
+    flow->setConId(connId);
+    flow->setDstNeighbor(dstApn);
+    flow->setSrcNeighbor(registeredApplication);
 
     nFlowTable->insertNew(flow);
 
@@ -127,6 +138,12 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     EV << "Received allocation request for flow with destination address "
        << flow->getDstApni().getApn() << endl;
 
+    const auto &apName = flow->getDstApni().getApn();
+    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, apName, qos.getQosId());
+    if (nft != nullptr) {
+        return true;
+    }
+
     // Insert new Flow into FAITable
     nFlowTable->insertNew(flow);
 
@@ -134,11 +151,10 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
 
     // TODO check if there is one already
-    fai = createFAI(flow);
+    ShimFAI *fai = createFAI(flow);
     // Update flow object
     flow->setSrcPortId(fai->getLocalPortId());
 
-    const auto &apName = flow->getDstApni().getApn();
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
 
     // TODO implement QoS validation
@@ -156,7 +172,7 @@ bool ShimFA::receiveDeallocateRequest(Flow *flow)
     Enter_Method("receiveDeallocateRequest()");
     EV << "Received deallocation request for flow with destination APN " << endl;
 
-    fai->receiveDeallocateRequest();
+    //fai->receiveDeallocateRequest();
 
     // Check state of FAI
     // remove bindings
@@ -169,8 +185,14 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
     //Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
     EV << "Completed address resolution for " << dstApn << endl;
     // TODO expand this
-    if (fai != nullptr)
-        fai->receiveAllocateRequest();
+    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, qos.getQosId());
+    if (nft == nullptr) {
+        EV << "No such pending flow found" << endl;
+        return;
+    }
+    Flow *flow = nft->getFlow();
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
+    nft->getFai()->receiveAllocateRequest();
 }
 
 void ShimFA::failedAddressResolution(const APN &dstApn)
