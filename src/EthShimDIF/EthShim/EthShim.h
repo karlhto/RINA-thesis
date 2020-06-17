@@ -27,6 +27,7 @@
 #include "Common/APN.h"
 #include "EthShimDIF/RINArp/RINArp.h"
 #include "inet/linklayer/common/MACAddress.h"
+#include "inet/networklayer/common/InterfaceEntry.h"
 
 class SDUData;
 class ShimFA;
@@ -35,12 +36,6 @@ class RINArpPacket;
 class EthShim : public cSimpleModule, public cListener
 {
   protected:
-    cGate *northGateBaseId;
-    cGate *arpIn;
-    cGate *arpOut;
-    cGate *ifIn;
-    cGate *ifOut;
-
     std::map<cGate *, APN> gateMap;
     std::map<cGate *, APN>::iterator gateMapIt;
     std::map<APN, std::vector<SDUData *>> queue;
@@ -50,12 +45,13 @@ class EthShim : public cSimpleModule, public cListener
     cModule *ipcProcess;
     RINArp *arp;
     ShimFA *shimFA;
+    inet::InterfaceEntry *ie;
 
   public:
     EthShim();
     virtual ~EthShim();
 
-    /** @brief Registers Application Naming Information with ARP */
+    /** @brief Registers Application Naming Information with Arp */
     virtual void registerApplication(const APN &apni) const;
 
     /** @brief Adds mapping and creates bindings for a flow */
@@ -65,9 +61,6 @@ class EthShim : public cSimpleModule, public cListener
     virtual void sendWaitingSDUs(const APN &srcApn);
 
   protected:
-    void initGates();
-    void initPointers();
-
     void handleSDU(SDUData *sdu, cGate *gate);
     void handleIncomingSDU(SDUData *sdu);
     void handleIncomingArpPacket(RINArpPacket *arpPacket);
@@ -75,16 +68,15 @@ class EthShim : public cSimpleModule, public cListener
 
     void insertSDU(SDUData *sdu, const APN &srcApn);
 
-    const virtual inet::MACAddress getMacAddressOfNIC() const;
-
     void arpResolutionCompleted(RINArp::ArpNotification *entry);
     void arpResolutionFailed(RINArp::ArpNotification *entry);
 
     /// cSimpleModule overrides
-    virtual void initialize() override;
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const { return inet::NUM_INIT_STAGES; }
     virtual void handleMessage(cMessage *msg) override;
 
-    /// cListener overrides, for ARP signals
+    /// cListener overrides, for Arp signals
     virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
                                cObject *details) override;
 };

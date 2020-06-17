@@ -26,45 +26,45 @@
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
 #include "inet/linklayer/common/Ieee802Ctrl.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
+#include "inet/common/ModuleAccess.h"
 
 
 Define_Module(EthShim);
 
 EthShim::EthShim() {}
 
+// TODO delete messages in queue
 EthShim::~EthShim() {}
 
-void EthShim::initialize()
+void EthShim::initialize(int stage)
 {
-    initPointers();
-    initGates();
-}
+    cSimpleModule::initialize(stage);
 
-void EthShim::initPointers()
-{
-    ipcProcess = getParentModule();
-    arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
-    if (arp == nullptr)
-        throw cRuntimeError("EthShim needs ARP module");
-    shimFA = dynamic_cast<ShimFA *>(ipcProcess->getModuleByPath(".flowAllocator.fa"));
-    if (shimFA == nullptr)
-        throw cRuntimeError("EthShim needs ShimFlowAllocator module");
-}
-
-void EthShim::initGates()
-{
-    arpIn = gate("arpIn");
-    arpOut = gate("arpOut");
-    ifIn = gate("ifIn");
-    ifOut = gate("ifOut");
+    if (stage == inet::INITSTAGE_LOCAL) {
+        ipcProcess = getParentModule();
+        arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
+        if (arp == nullptr)
+            throw cRuntimeError("EthShim needs Arp module");
+        shimFA = dynamic_cast<ShimFA *>(ipcProcess->getModuleByPath(".flowAllocator.fa"));
+        if (shimFA == nullptr)
+            throw cRuntimeError("EthShim needs ShimFlowAllocator module");
+    } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
+        // Get correct interface entry
+        // FIXME change this to something more permanent
+        auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
+        ie = ift->getInterface(0);
+        if (ie == nullptr)
+            throw cRuntimeError("Interface entry is required for shim module to work");
+    }
 }
 
 void EthShim::handleMessage(cMessage *msg)
 {
-    if (msg->arrivedOn(arpIn->getId())) {
-        EV_INFO << "Received ARP packet." << endl;
+    if (msg->arrivedOn("arpIn")) {
+        EV_INFO << "Received Arp packet." << endl;
         sendPacketToNIC(PK(msg));
-    } else if (msg->arrivedOn(ifIn->getId())) {
+    } else if (msg->arrivedOn("ifIn")) {
         EV_INFO << "Received " << msg << " from network." << endl;
         if (auto arpPacket = dynamic_cast<RINArpPacket *>(msg))
             handleIncomingArpPacket(arpPacket);
@@ -122,8 +122,7 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate) {
 
 void EthShim::handleIncomingSDU(SDUData *sdu)
 {
-    EV_INFO << "Should be passed to connected IPCP" << endl;
-    // TODO ask ARP if we know this one to find dstApn
+    EV_INFO << "Passing SDU to correct gate" << endl;
 
     inet::Ieee802Ctrl *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->getControlInfo());
     const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
@@ -132,6 +131,8 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
         delete sdu; // just place in a queue with discard timer?
         return;
     }
+
+    EV_INFO << "SDU was from destination application " << srcApn << endl;
 
     cGate *gate = nullptr;
     for (const auto &elem : gateMap)
@@ -144,51 +145,52 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
         return;
     }
 
-
-
-    // TODO if dstApn, forward it to correct gate and we're good to go
+    // send to output gate
+    send(sdu, gate->getOtherHalf());
 }
 
 void EthShim::sendWaitingSDUs(const APN &srcApn) {
+    cGate *gate = nullptr;
+    for (const auto &elem : gateMap)
+        if (elem.second == srcApn)
+            gate = elem.first;
 
+    if (gate == nullptr) {
+        EV_ERROR << "Called to send SDUs from " << srcApn << ", but no gate present" << endl;
+        return;
+    }
+
+    auto &vec = queue[srcApn];
+    for (SDUData *sdu : vec)
+        send(sdu, gate->getOtherHalf());
 }
 
 void EthShim::insertSDU(SDUData *sdu, const APN &srcApn)
 {
-    auto vec = &(queue[srcApn]);
-    vec->push_back(sdu);
+    auto &vec = queue[srcApn];
+    vec.push_back(sdu);
 }
 
 void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
 {
     EV_INFO << "Sending " << arpPacket << " to arp." << endl;
-    send(arpPacket, arpOut);
+    send(arpPacket, "arpOut");
 }
 
 void EthShim::sendPacketToNIC(cPacket *packet)
 {
     EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
-    send(packet, ifOut);
+    send(packet, "ifOut");
 }
 
 void EthShim::registerApplication(const APN &apni) const
 {
     Enter_Method("registerApplication(%s)", apni.getName().c_str());
-    EV_INFO << "Received request to register application name " << apni << " with ARP module."
+    EV_INFO << "Received request to register application name " << apni << " with Arp module."
             << endl;
 
-    inet::MACAddress mac = getMacAddressOfNIC();
+    inet::MACAddress mac = ie->getMacAddress();
     arp->addStaticEntry(mac, apni);
-}
-
-const inet::MACAddress EthShim::getMacAddressOfNIC() const
-{
-    cModule *mac = ipcProcess->getModuleByPath(".eth.mac");
-    if (mac == nullptr)
-        throw cRuntimeError("Unable to get address from MAC interface");
-    if (!mac->hasPar("address"))
-        throw cRuntimeError("MAC interface has no address parameter");
-    return inet::MACAddress(mac->par("address").stringValue());
 }
 
 void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cObject *)
@@ -214,8 +216,3 @@ void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
     (void)entry;
     // something about notifying SDU queues here
 }
-
-/* How to handle delimiting? Should the delimiting module be reused, should the
- * upper layer be forced to deliver packets that are 1500 bytes long, or
- * should there be an internal delimiting module?
- */
