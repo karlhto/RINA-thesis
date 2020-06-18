@@ -44,6 +44,7 @@ extern const char*          STR_NO;
 extern const int            VAL_DEFAULT_QOS;
 extern const std::string    VAL_UNDEF_QOSID;
 extern const std::string    VAL_MGMTQOSID;
+extern const std::string    VAL_ANYQOSID;
 
 extern const char*          ELEM_ATIME;
 extern const char*          ELEM_EFCPPOL;
