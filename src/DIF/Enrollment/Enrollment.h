@@ -75,7 +75,7 @@ class Enrollment : public cSimpleModule
 
     Enrollment();
     virtual ~Enrollment();
-    void startCACE(APNIPair* apnip);
+    void startCACE(const APNIPair &apnip);
     void startEnrollment(EnrollmentStateTableEntry* entry);
     void insertStateTableEntry(Flow* flow);
     void receivePositiveConnectResponse(CDAPMessage* msg);
@@ -88,9 +88,6 @@ class Enrollment : public cSimpleModule
     void receiveStopEnrollmentResponse(CDAPMessage* msg);
     void receiveStartOperationRequest(CDAPMessage* msg);
     void receiveStartOperationResponse(CDAPMessage* msg);
-
-    // Helper function to access state table
-    bool isEnrolledTo(const APN &dstApn);
 
   protected:
     void initPointers();

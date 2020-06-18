@@ -30,6 +30,7 @@
 
 #include "DIF/RA/RA.h"
 #include "DIF/Enrollment/Enrollment.h"
+#include "DIF/Enrollment/EnrollmentStateTable.h"
 
 Define_Module(RA);
 
@@ -64,6 +65,7 @@ void RA::initialize(int stage)
     rmtAllocator = getRINAModule<RMTModuleAllocator*>(this, 2, {MOD_RELAYANDMUX, MOD_RMTALLOC});
     fa = getRINAModule<FABase*>(this, 2, {MOD_FLOWALLOC, MOD_FA});
     enrollment = getRINAModule<Enrollment*>(this, 2, {MOD_ENROLLMENTMODULE, MOD_ENROLLMENT});
+    enrollmentStateTable = getRINAModule<EnrollmentStateTable*>(this, 2, {MOD_ENROLLMENTMODULE, MOD_ENROLLMENTTABLE});
 
     // retrieve pointers to policies
     qAllocPolicy = getRINAModule<QueueAllocBase*>(this, 1, {MOD_POL_QUEUEALLOC});
@@ -679,12 +681,9 @@ void RA::postNM1FlowAllocation(NM1FlowTableItem* ftItem)
     port->setInputReady();
     port->setFlow(flow);
 
-    // if not already enrolled to destination, do that
-    if (!enrollment->isEnrolledTo(flow->getDstApni().getApn()))
-    {
-        APNIPair* apnip = new APNIPair(ftItem->getFlow()->getSrcApni(), ftItem->getFlow()->getDstApni());
-        enrollment->startCACE(apnip);
-    }
+    // if not already enrolled, attempt to enroll
+    if (!enrollmentStateTable->isEnrolled(fa->getMyAddress().getApn()))
+        enrollment->startCACE(APNIPair(flow->getSrcApni(), flow->getDstApni()));
 }
 
 void RA::removeNM1FlowBindings(NM1FlowTableItem* ftItem)

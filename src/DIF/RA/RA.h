@@ -58,6 +58,7 @@ extern const char* ELEM_QOSREQ;
 extern const char* ATTR_ID;
 
 class Enrollment;
+class EnrollmentStateTable;
 
 class RA : public RABase
 {
@@ -94,6 +95,7 @@ class RA : public RABase
     NM1FlowTable* flowTable;
     QueueAllocBase* qAllocPolicy;
     Enrollment* enrollment;
+    EnrollmentStateTable *enrollmentStateTable;
 
     // Forwarding and routing stuff...
     IntPDUFG * fwdtg;

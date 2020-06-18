@@ -306,8 +306,7 @@ bool FA::receiveMgmtAllocateRequest(Flow* mgmtflow) {
 
     if (status) {
         // If N-1 mgmt ready, then starting enrollment procedure
-        APNIPair* apnip = new APNIPair(mgmtflow->getSrcApni(), mgmtflow->getDstApni());
-        enrollment->startCACE(apnip);
+        enrollment->startCACE(APNIPair(mgmtflow->getSrcApni(), mgmtflow->getDstApni()));
     }
 
     return status;
@@ -332,8 +331,7 @@ bool FA::receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) {
 
     if (status) {
         // If N-1 mgmt ready, then starting enrollment procedure
-        APNIPair* apnip = new APNIPair(mgmtflow->getSrcApni(), mgmtflow->getDstApni());
-        enrollment->startCACE(apnip);
+        enrollment->startCACE(APNIPair(src, dst));
     }
 
     return status;

@@ -149,18 +149,25 @@ void Enrollment::initSignalsAndListeners() {
     catcher1->subscribe(SIG_RIBD_ConnectionRequest, lisEnrollmentConReq);
 }
 
-void Enrollment::startCACE(APNIPair* apnip) {
-    Enter_Method("startCACE(%s)", apnip->info().c_str());
+void Enrollment::startCACE(const APNIPair &apnip) {
+    Enter_Method("startCACE(%s)", apnip.info().c_str());
     EV_INFO << "Starting CACE phase" << endl;
 
+    APNamingInfo src(apnip.first);
+    APNamingInfo dst(apnip.second);
+
     // Check if we are already enrolled or in the process of enrolling
-    if (isEnrolledTo(apnip->second.getApn())) {
-        EV_INFO << "Already either enrolled or have begun enrollment with " << apnip->second
-                << endl;
-        return;
+    auto existingEntry = StateTable->findEntryByDstAPN(dst.getApn());
+    if (existingEntry != NULL) {
+        auto status = existingEntry->getCACEConStatus();
+        if (status != EnrollmentStateTableEntry::CON_NIL &&
+            status != EnrollmentStateTableEntry::CON_ERROR) {
+            EV << "Already in the process of enrolling with " << dst << endl;
+            return;
+        }
     }
 
-    auto entry = EnrollmentStateTableEntry(apnip->first, apnip->second, EnrollmentStateTableEntry::CON_AUTHENTICATING);
+    auto entry = EnrollmentStateTableEntry(src, dst, EnrollmentStateTableEntry::CON_AUTHENTICATING);
     StateTable->insert(entry);
 
     CDAP_M_Connect* msg = new CDAP_M_Connect(MSG_CONREQ);
@@ -176,36 +183,10 @@ void Enrollment::startCACE(APNIPair* apnip) {
 
     msg->setAuth(auth);
     msg->setAbsSyntax(GPB);
-
-    APNamingInfo src = APNamingInfo(entry.getLocal().getApn(),
-                entry.getLocal().getApinstance(),
-                entry.getLocal().getAename(),
-                entry.getLocal().getAeinstance());
-
-    APNamingInfo dst = APNamingInfo(entry.getRemote().getApn(),
-            entry.getRemote().getApinstance(),
-            entry.getRemote().getAename(),
-            entry.getRemote().getAeinstance());
-    /*
-     * XXX: Vesely@Jerabek> Removing unnecessary *.msg ADT when there exists
-     *                      exactly the same ADT in RINASim source codes.
-    naming_t dst;
-    dst.AEInst = entry.getRemote().getAeinstance();
-    dst.AEName = entry.getRemote().getAename();
-    dst.ApInst = entry.getRemote().getApinstance();
-    dst.ApName = entry.getRemote().getApn().getName();
-    naming_t src;
-    src.AEInst = entry.getLocal().getAeinstance();
-    src.AEName = entry.getLocal().getAename();
-    src.ApInst = entry.getLocal().getApinstance();
-    src.ApName = entry.getLocal().getApn().getName();
-    */
-
     msg->setSrc(src);
     msg->setDst(dst);
-
-    msg->setSrcAddr(Address(entry.getLocal().getApn()));
-    msg->setDstAddr(Address(entry.getRemote().getApn()));
+    msg->setSrcAddr(Address(src.getApn()));
+    msg->setDstAddr(Address(dst.getApn()));
 
     //send data to ribd to send
     signalizeCACESendData(msg);
@@ -471,20 +452,6 @@ void Enrollment::receiveStopEnrollmentResponse(CDAPMessage* msg) {
 void Enrollment::receiveStartOperationResponse(CDAPMessage* msg) {
     Enter_Method("receiveStartOperationResponse()");
 
-}
-
-bool Enrollment::isEnrolledTo(const APN &dstApn) {
-    Enter_Method_Silent();
-    auto entry = StateTable->findEntryByDstAPN(dstApn);
-    if (entry != NULL) {
-        auto status = entry->getCACEConStatus();
-        if (status != EnrollmentStateTableEntry::CON_ERROR &&
-            status != EnrollmentStateTableEntry::CON_NIL) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 void Enrollment::processStopEnrollmentImmediate(EnrollmentStateTableEntry* entry) {
