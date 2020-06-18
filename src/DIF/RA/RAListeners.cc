@@ -88,7 +88,8 @@ void LisRADelFlow::receiveSignal(cComponent* src, simsignal_t id, cObject* obj, 
 void LisEFCPStopSending::receiveSignal(cComponent* src, simsignal_t id, cObject* obj, cObject *detail)
 {
     Flow* flow = dynamic_cast<Flow*>(obj);
-    auto item = ra->getFlowTable()->lookup(flow);
+    auto item = ra->getFlowTable()->findFlowByDstApni(flow->getDstApni().getApn().getName(),
+                                                      flow->getConId().getQoSId());
 
     if (item)
     {
@@ -99,7 +100,8 @@ void LisEFCPStopSending::receiveSignal(cComponent* src, simsignal_t id, cObject*
 void LisEFCPStartSending::receiveSignal(cComponent* src, simsignal_t id, cObject* obj, cObject *detail)
 {
     Flow* flow = dynamic_cast<Flow*>(obj);
-    auto item = ra->getFlowTable()->lookup(flow);
+    auto item = ra->getFlowTable()->findFlowByDstApni(flow->getDstApni().getApn().getName(),
+                                                      flow->getConId().getQoSId());
 
     if (item)
     {
