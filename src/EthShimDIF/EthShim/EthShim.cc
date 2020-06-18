@@ -43,16 +43,12 @@ void EthShim::initialize(int stage)
 
     if (stage == inet::INITSTAGE_LOCAL) {
         ipcProcess = getParentModule();
-        arp = dynamic_cast<RINArp *>(ipcProcess->getSubmodule("arp"));
-        if (arp == nullptr)
-            throw cRuntimeError("EthShim needs Arp module");
-        shimFA = dynamic_cast<ShimFA *>(ipcProcess->getModuleByPath(".flowAllocator.fa"));
-        if (shimFA == nullptr)
-            throw cRuntimeError("EthShim needs ShimFlowAllocator module");
+        arp = getRINAModule<RINArp *>(this, 1, {"arp"});
+        shimFA = getRINAModule<ShimFA *>(this, 1, {MOD_FLOWALLOC, MOD_FA});
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
-        // FIXME change this to something more permanent
         auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
+        // FIXME please use something that doesn't suck
         ie = ift->getInterface(0);
         if (ie == nullptr)
             throw cRuntimeError("Interface entry is required for shim module to work");

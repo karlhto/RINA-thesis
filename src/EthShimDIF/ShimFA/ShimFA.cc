@@ -45,7 +45,30 @@ void ShimFA::initialize(int stage)
     cSimpleModule::initialize(stage);
 
     if (stage == inet::INITSTAGE_LOCAL) {
-        initPointers();
+        shimIpcProcess = getModuleByPath("^.^");
+        if (shimIpcProcess == nullptr)
+            throw cRuntimeError("ShimFA not used in any IPC Process");
+
+        arp = getRINAModule<RINArp *>(this, 2, {"arp"});
+        shim = getRINAModule<EthShim *>(this, 2, {"shim"});
+        nFlowTable = getRINAModule<NFlowTable *>(this, 1, {MOD_NFLOWTABLE});
+
+        // Registering an application is not supported in RINASim since any upper
+        // layer connected IPCP/AP is implicitly registered. We still need the AP name
+        // of the upper layer. Unfortunately pretty hacky solution for the time being,
+        // but finds connected IPC process
+        const cGate *dstGate = shimIpcProcess->gate("northIo$o")->getPathEndGate();
+        if (dstGate == nullptr) {
+            EV_ERROR
+                << "Shim IPC not connected to overlying application. It will be able to receive "
+                << "ARP requests, but will never send ARP reply" << endl;
+            return;
+        }
+
+        connectedApplication = dstGate->getOwnerModule();
+        if (!connectedApplication->hasPar("apName"))
+            throw cRuntimeError(
+                "Shim IPC process not connected to overlying IPC/Application Process");
 
         // Sets up listening for this module
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
@@ -62,35 +85,6 @@ void ShimFA::initialize(int stage)
             shim->registerApplication(registeredApplication);
         }
     }
-}
-
-void ShimFA::initPointers()
-{
-    shimIpcProcess = getModuleByPath("^.^");
-    arp = dynamic_cast<RINArp *>(shimIpcProcess->getSubmodule("arp"));
-    if (arp == nullptr)
-        throw cRuntimeError("Shim FA needs ARP module");
-
-    shim = dynamic_cast<EthShim *>(shimIpcProcess->getSubmodule("shim"));
-    if (shim == nullptr)
-        throw cRuntimeError("Shim FA needs shim module");
-
-    nFlowTable = dynamic_cast<NFlowTable *>(this->getParentModule()->getSubmodule("nFlowTable"));
-
-    // Registering an application is not supported in RINASim since any upper
-    // layer connected IPCP/AP is implicitly registered. We still need the AP name
-    // of the upper layer. Unfortunately pretty hacky solution for the time being,
-    // but finds connected IPC process
-    const cGate *dstGate = shimIpcProcess->gate("northIo$o")->getPathEndGate();
-    if (dstGate == nullptr) {
-        EV_ERROR << "Shim IPC not connected to overlying application. It will be able to receive "
-                 << "ARP requests, but will never send ARP reply" << endl;
-        return;
-    }
-
-    connectedApplication = dstGate->getOwnerModule();
-    if (!connectedApplication->hasPar("apName"))
-        throw cRuntimeError("Shim IPC process not connected to overlying IPC/Application Process");
 }
 
 void ShimFA::setRegisteredApName()

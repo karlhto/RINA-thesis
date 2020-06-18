@@ -55,7 +55,7 @@ void RA::initialize(int stage)
 
     // retrieve pointers to other modules
     thisIPC = this->getModuleByPath("^.^");
-    rmtModule = (getRINAModule<cModule*>(this, 2, {MOD_RELAYANDMUX}));
+    rmtModule = getRINAModule<cModule*>(this, 2, {MOD_RELAYANDMUX});
 
     // Get access to the forwarding and routing functionalities...
     fwdtg = getRINAModule<IntPDUFG *>(this, 1, {MOD_PDUFWDGEN});
@@ -580,24 +580,6 @@ void RA::createNM1FlowWithoutAllocate(Flow* flow)
     // A flow already exists from this ipc to the destination one(passing through a neighbor)?
     //
     Address addrs = Address(dstAPN.getName());
-    /*
-    PDUFGNeighbor* e = fwdtg->getNextNeighbor(addrs, qosID);
-
-    if(e)
-    {
-        NM1FlowTableItem * fi = flowTable->findFlowByDstAddr(
-                e->getPort()->getFlow()->getDstAddr().getApn().getName(),
-                e->getPort()->getFlow()->getConId().getQoSId());
-
-        if(fi)
-        {
-            return;
-        }
-    }
-    //
-    // End flow exists check.
-    //
-     */
 
     // Ask DA which IPC to use to reach dst App
     const Address* ad = difAllocator->resolveApnToBestAddress(dstAPN);
@@ -692,7 +674,8 @@ void RA::removeNM1FlowBindings(NM1FlowTableItem* ftItem)
 
     // disconnect and delete gates
     RMTPort* port = ftItem->getRMTPort();
-    const char* gateName = ftItem->getGateName().c_str();
+    const std::string &tmp = ftItem->getGateName();
+    const char* gateName = tmp.c_str();
     cGate* thisIpcIn = thisIPC->gateHalf(gateName, cGate::INPUT);
     cGate* thisIpcOut = thisIPC->gateHalf(gateName, cGate::OUTPUT);
     cGate* rmtModuleIn = rmtModule->gateHalf(gateName, cGate::INPUT);
@@ -741,6 +724,8 @@ bool RA::bindNFlowToNM1Flow(Flow* flow)
 {
     Enter_Method("bindNFlowToNM1Flow()");
 
+    // Hey, what's the point of QoSReq if you're going to force a QoS onto an
+    // N-1-flow regardless?
     EV << "Received a request to bind an (N)-flow (dst "
        << flow->getDstApni().getApn().getName() << ", QoS-id "
        << flow->getConId().getQoSId() << ") to an (N-1)-flow." << endl;

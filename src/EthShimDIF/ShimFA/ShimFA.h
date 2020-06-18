@@ -72,7 +72,6 @@ class ShimFA : public FABase, public cListener
     virtual bool setNeighborAddresses(Flow *flow);
 
   protected:
-    virtual void initPointers();
     virtual void setRegisteredApName();
 
     virtual bool allocatePort(Flow *flow);
