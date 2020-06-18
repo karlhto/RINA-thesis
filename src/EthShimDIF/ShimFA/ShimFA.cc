@@ -115,7 +115,7 @@ bool ShimFA::createUpperFlow(const APN &dstApn) {
        << endl;
 
     ConnectionId connId;
-    connId.setQoSId(VAL_MGMTQOSID);
+    connId.setQoSId(VAL_ANYQOSID);
 
     Flow *flow = new Flow(registeredApplication, dstApn);
     flow->setQosCube(qos);
@@ -123,10 +123,11 @@ bool ShimFA::createUpperFlow(const APN &dstApn) {
     flow->setDstNeighbor(dstApn);
     flow->setSrcNeighbor(registeredApplication);
 
-    nFlowTable->insertNew(flow);
-
     ShimFAI *fai = createFAI(flow);
+    nFlowTable->insertNew(flow);
     flow->setSrcPortId(fai->getLocalPortId());
+    nFlowTable->setFaiToFlow(fai, flow);
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
 
     return fai->receiveCreateRequest();
 }
@@ -141,23 +142,25 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     const auto &apName = flow->getDstApni().getApn();
     auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, apName, qos.getQosId());
     if (nft != nullptr) {
+        ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
+        flow->setSrcPortId(fai->getLocalPortId());
+        //fai->receiveAllocateRequest(flow);
         return true;
     }
 
-    // Insert new Flow into FAITable
-    nFlowTable->insertNew(flow);
+    ConnectionId connId;
+    connId.setQoSId(VAL_ANYQOSID);
+    flow->setConId(connId);
 
-    // Change allocation status to pending
-    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
-
-    // TODO check if there is one already
     ShimFAI *fai = createFAI(flow);
-    // Update flow object
+    nFlowTable->insertNew(flow);
     flow->setSrcPortId(fai->getLocalPortId());
+    nFlowTable->setFaiToFlow(fai, flow);
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
 
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
 
-    // TODO implement QoS validation
+    // TODO implement some form of QoS checking
     // validateQosRequirements(flow);
 
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS)
@@ -185,7 +188,7 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
     //Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
     EV << "Completed address resolution for " << dstApn << endl;
     // TODO expand this
-    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, qos.getQosId());
+    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, VAL_ANYQOSID);
     if (nft == nullptr) {
         EV << "No such pending flow found" << endl;
         return;
@@ -211,20 +214,9 @@ ShimFAI *ShimFA::createFAI(Flow *flow)
 
     // Instantiate module
     ShimFAI *fai =
-        check_and_cast<ShimFAI *>(type->create(ostr.str().c_str(), this->getParentModule()));
+        check_and_cast<ShimFAI *>(type->createScheduleInit(ostr.str().c_str(), getParentModule()));
     fai->par(PAR_LOCALPORTID) = portId;
-    fai->finalizeParameters();
-    fai->buildInside();
-
-    // create activation message
-    fai->scheduleStart(simTime());
-    fai->callInitialize();
     fai->postInitialize(this, flow, shim);
-
-    // Change state in FAITable
-    nFlowTable->setFaiToFlow(fai, flow);
-    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
-
     return fai;
 }
 
