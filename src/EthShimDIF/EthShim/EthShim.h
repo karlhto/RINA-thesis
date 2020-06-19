@@ -45,6 +45,8 @@ class EthShim : public cSimpleModule, public cListener
     queueMap inQueue, outQueue;
     queueMapIt inQueueIt, outQueueIt;
 
+    bool resolving;
+
     // Pointers to important modules
     cModule *ipcProcess;
     RINArp *arp;

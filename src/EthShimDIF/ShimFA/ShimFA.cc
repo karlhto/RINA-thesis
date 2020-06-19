@@ -33,7 +33,7 @@ Define_Module(ShimFA);
 /*
  * Initialisation functionality
  */
-ShimFA::ShimFA() : FABase::FABase(), qos(QoSCube())
+ShimFA::ShimFA() : FABase::FABase(), resolving(false), qos(QoSCube())
 {
     qos.setQosId(VAL_ANYQOSID);
 }

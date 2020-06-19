@@ -32,7 +32,7 @@
 
 Define_Module(EthShim);
 
-EthShim::EthShim() {}
+EthShim::EthShim() : resolving(false) {}
 
 // TODO delete messages in queue
 EthShim::~EthShim() {}
@@ -110,6 +110,7 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate) {
 
     if (mac.isUnspecified()) {
         insertSDU(sdu, dstApn, outQueue);
+        resolving = true;
         return;
     }
 
@@ -200,6 +201,9 @@ void EthShim::registerApplication(const APN &apni) const
 
 void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cObject *)
 {
+    if (!resolving)
+        return;
+
     if (signalID == RINArp::completedRINArpResolutionSignal)
         arpResolutionCompleted(check_and_cast<RINArp::ArpNotification *>(obj));
     else if (signalID == RINArp::failedRINArpResolutionSignal)
@@ -210,7 +214,8 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cO
 
 void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
 {
-    Enter_Method("arpResolutionCompleted()");
+    Enter_Method("arpResolutionCompleted(%s -> %s)", entry->apName.getName().c_str(),
+                 entry->macAddress.str().c_str());
 
     auto &vec = outQueue[entry->apName];
     for (SDUData *sdu : vec) {
@@ -220,6 +225,7 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
         sdu->setControlInfo(controlInfo);
         sendPacketToNIC(sdu);
     }
+    resolving = false;
 }
 
 void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
