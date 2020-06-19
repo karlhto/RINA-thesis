@@ -119,7 +119,7 @@ update_fingerprint()
 run_simulation()
 {
     cd "$1"
-    opp_run -u Cmdenv -c "$2" -n "$rina_root" -l "$rina_lib" omnetpp.ini 2>&1
+    opp_run -u Cmdenv -c "$2" -r 0 -n "$rina_root" -l "$rina_lib" omnetpp.ini 2>&1
 }
 
 # begin!
