@@ -44,6 +44,7 @@ class ShimFA : public FABase, public cListener
     cModule *connectedApplication;
     RINArp *arp;
     EthShim *shim;
+    bool resolving;
 
     // Only one flow necessary
     APN registeredApplication;  ///< apName of "registered" application

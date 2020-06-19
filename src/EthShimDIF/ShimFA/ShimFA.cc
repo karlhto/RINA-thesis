@@ -35,7 +35,7 @@ Define_Module(ShimFA);
  */
 ShimFA::ShimFA() : FABase::FABase(), qos(QoSCube())
 {
-    qos.setQosId(VAL_MGMTQOSID);
+    qos.setQosId(VAL_ANYQOSID);
 }
 
 ShimFA::~ShimFA() {}
@@ -121,7 +121,7 @@ bool ShimFA::createUpperFlow(const APN &dstApn) {
     nFlowTable->insertNew(flow);
     flow->setSrcPortId(fai->getLocalPortId());
     nFlowTable->setFaiToFlow(fai, flow);
-    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
 
     return fai->receiveCreateRequest();
 }
@@ -145,6 +145,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     ConnectionId connId;
     connId.setQoSId(VAL_ANYQOSID);
     flow->setConId(connId);
+    flow->setQosCube(qos);
 
     ShimFAI *fai = createFAI(flow);
     nFlowTable->insertNew(flow);
@@ -160,6 +161,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS)
         return fai->receiveAllocateRequest();
 
+    resolving = true;
     return true;
 }
 
@@ -179,14 +181,17 @@ bool ShimFA::receiveDeallocateRequest(Flow *flow)
 
 void ShimFA::completedAddressResolution(const APN &dstApn)
 {
-    //Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
+    Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
     EV << "Completed address resolution for " << dstApn << endl;
-    // TODO expand this
     auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, VAL_ANYQOSID);
     if (nft == nullptr) {
         EV << "No such pending flow found" << endl;
         return;
+    } else if (nft->getAllocateStatus() == NFlowTableEntry::TRANSFER) {
+        EV << "Flow already exists, continue sending" << endl;
     }
+
+    resolving = false;
     Flow *flow = nft->getFlow();
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
     nft->getFai()->receiveAllocateRequest();
@@ -195,6 +200,10 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
 void ShimFA::failedAddressResolution(const APN &dstApn)
 {
     Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
+    resolving = false;
+    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, VAL_ANYQOSID);
+    ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
+    fai->receiveDeallocateRequest();
     // something something FAI stop createresponsenegative
 }
 
@@ -231,7 +240,9 @@ void ShimFA::deleteBindings() {}
 
 void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
-    Enter_Method_Silent();
+    if (!resolving)
+        return;
+
     RINArp::ArpNotification *notification = check_and_cast<RINArp::ArpNotification *>(obj);
     if (signalID == RINArp::completedRINArpResolutionSignal)
         completedAddressResolution(notification->apName);
