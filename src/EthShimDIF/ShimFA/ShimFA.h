@@ -54,6 +54,7 @@ class ShimFA : public FABase, public cListener
     ShimFA();
     virtual ~ShimFA();
 
+    /** @brief Attempts to initialise new flow */
     virtual bool receiveAllocateRequest(Flow *flow);
     virtual bool receiveDeallocateRequest(Flow *flow);
     virtual void completedAddressResolution(const APN &apn);
@@ -73,6 +74,9 @@ class ShimFA : public FABase, public cListener
     virtual bool setNeighborAddresses(Flow *flow);
 
   protected:
+    /** @brief Initialises the QoS cube with parameters from ethernet interface */
+    virtual void initQoS();
+
     virtual void setRegisteredApName();
 
     virtual bool allocatePort(Flow *flow);

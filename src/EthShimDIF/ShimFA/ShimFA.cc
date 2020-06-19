@@ -78,12 +78,12 @@ void ShimFA::initialize(int stage)
         // TODO look for alternative function
         setRegisteredApName();
 
-        if (shimIpcProcess != nullptr) {
-            // FIXME: Should probably add an API call to formally register application
-            // Registers application with static entry in Arp, needs to be called after stage 0 to
-            // guarantee allocation of MAC address
-            shim->registerApplication(registeredApplication);
-        }
+        // FIXME: Should probably add an API call to formally register application
+        // Registers application with static entry in Arp, needs to be called after stage 0 to
+        // guarantee allocation of MAC address
+        shim->registerApplication(registeredApplication);
+
+        initQoS();
     }
 }
 
@@ -91,6 +91,10 @@ void ShimFA::setRegisteredApName()
 {
     std::string name = connectedApplication->par("apName").stringValue();
     registeredApplication = APN(name);
+}
+
+void ShimFA::initQoS()
+{
 }
 
 void ShimFA::handleMessage(cMessage *msg)

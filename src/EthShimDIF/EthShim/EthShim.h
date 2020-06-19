@@ -61,7 +61,7 @@ class EthShim : public cSimpleModule, public cListener
     virtual void registerApplication(const APN &apni) const;
 
     /** @brief Adds mapping and creates bindings for a flow */
-    virtual bool addPort(const APN &dstApn, int portId);
+    virtual bool addPort(const APN &dstApn, const int &portId);
 
     /** @brief Sends waiting SDUs in queue */
     virtual void sendWaitingSDUs(const APN &srcApn);

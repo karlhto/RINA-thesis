@@ -79,7 +79,7 @@ void EthShim::handleMessage(cMessage *msg)
     }
 }
 
-bool EthShim::addPort(const APN &dstApn, int portId) {
+bool EthShim::addPort(const APN &dstApn, const int &portId) {
     std::ostringstream gateName;
     gateName << GATE_NORTHIO_ << portId;
     const std::string &tmp = gateName.str();
