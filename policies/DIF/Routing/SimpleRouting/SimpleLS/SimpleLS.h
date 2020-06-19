@@ -156,6 +156,8 @@ protected:
 
 class SimpleLS: public IntSimpleRouting {
 public:
+    SimpleLS();
+
     //Process a Routing Update, return true => inform FWDG of the update
     bool processUpdate(IntRoutingUpdate * update);
 

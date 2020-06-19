@@ -52,6 +52,8 @@ linksStIt RoutingUpdate::entriesEnd(){
     return entries.end();
 }
 
+// Initialising primitives is important
+SimpleLS::SimpleLS() : IntSimpleRouting(), infMetric(0), secId(0), scheduledUpdate(false) {}
 
 //Flow inserted/removed
 void SimpleLS::insertFlow(const Address &addr, const std::string &dst, const std::string& qos, const unsigned short &metric){
