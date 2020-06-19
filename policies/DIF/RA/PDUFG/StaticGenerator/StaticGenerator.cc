@@ -32,6 +32,19 @@ using namespace std;
 
 // A new flow has been inserted/or removed
 void StaticGenerator::insertedFlow(const Address &addr, const QoSCube &qos, RMTPort * port){
+    if (qos.getQosId() == VAL_ANYQOSID) {
+        fwd->insert(addr, qos.getQosId(), port);
+        fwd->insert(addr, port);
+        const APNList* remoteApps = difA->findNeigborApns(addr.getApn());
+        if (remoteApps) {
+            for (ApnCItem it = remoteApps->begin(); it != remoteApps->end(); ++it) {
+                fwd->insert(Address(it->getName()), qos.getQosId(), port);
+                fwd->insert(Address(it->getName()), port);
+            }
+        }
+        return;
+    }
+
     //Iterate through all QoS cubes and check if qos is a valid
     for(QoSCube qosI : cubes) {
         if(comparer->isValid(qosI, qos)) {
