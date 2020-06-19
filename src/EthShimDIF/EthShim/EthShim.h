@@ -33,13 +33,17 @@ class SDUData;
 class ShimFA;
 class RINArpPacket;
 
+
 class EthShim : public cSimpleModule, public cListener
 {
   protected:
+    typedef std::vector<SDUData *> sduQueue;
+    typedef std::map<APN, sduQueue> queueMap;
+    typedef std::map<APN, sduQueue>::iterator queueMapIt;
     std::map<cGate *, APN> gateMap;
     std::map<cGate *, APN>::iterator gateMapIt;
-    std::map<APN, std::vector<SDUData *>> queue;
-    std::map<APN, std::vector<SDUData *>>::iterator queueIt;
+    queueMap inQueue, outQueue;
+    queueMapIt inQueueIt, outQueueIt;
 
     // Pointers to important modules
     cModule *ipcProcess;
@@ -66,7 +70,7 @@ class EthShim : public cSimpleModule, public cListener
     void handleIncomingArpPacket(RINArpPacket *arpPacket);
     void sendPacketToNIC(cPacket *packet);
 
-    void insertSDU(SDUData *sdu, const APN &srcApn);
+    void insertSDU(SDUData *sdu, const APN &srcApn, queueMap &queue);
 
     void arpResolutionCompleted(RINArp::ArpNotification *entry);
     void arpResolutionFailed(RINArp::ArpNotification *entry);

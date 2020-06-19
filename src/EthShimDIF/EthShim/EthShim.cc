@@ -45,6 +45,9 @@ void EthShim::initialize(int stage)
         ipcProcess = getParentModule();
         arp = getRINAModule<RINArp *>(this, 1, {"arp"});
         shimFA = getRINAModule<ShimFA *>(this, 1, {MOD_FLOWALLOC, MOD_FA});
+
+        arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
+        arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
         auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
@@ -102,8 +105,13 @@ bool EthShim::addPort(const APN &dstApn, int portId) {
 
 void EthShim::handleSDU(SDUData *sdu, cGate *gate) {
     EV_INFO << "Doing stuff" << endl;
-    const APN &dstAddr = gateMap[gate];
-    inet::MACAddress mac = arp->resolveAddress(dstAddr);
+    const APN &dstApn = gateMap[gate];
+    inet::MACAddress mac = arp->resolveAddress(dstApn);
+
+    if (mac.isUnspecified()) {
+        insertSDU(sdu, dstApn, outQueue);
+        return;
+    }
 
     // TODO need DIF name here as VLAN ID, too
     // TODO additionally need hashing function for DIF name so it fits into
@@ -124,6 +132,7 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
     const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
     const APN srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
+        EV_WARN << "ARP Resolved wrong address, " << endl;
         delete sdu; // just place in a queue with discard timer?
         return;
     }
@@ -136,7 +145,7 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
             gate = elem.first;
 
     if (gate == nullptr) {
-        insertSDU(sdu, srcApn);
+        insertSDU(sdu, srcApn, inQueue);
         shimFA->createUpperFlow(srcApn);
         return;
     }
@@ -156,14 +165,14 @@ void EthShim::sendWaitingSDUs(const APN &srcApn) {
         return;
     }
 
-    auto &vec = queue[srcApn];
+    auto &vec = inQueue[srcApn];
     for (SDUData *sdu : vec)
         send(sdu, gate->getOtherHalf());
 }
 
-void EthShim::insertSDU(SDUData *sdu, const APN &srcApn)
+void EthShim::insertSDU(SDUData *sdu, const APN &apn, queueMap &queue)
 {
-    auto &vec = queue[srcApn];
+    auto &vec = queue[apn];
     vec.push_back(sdu);
 }
 
@@ -191,8 +200,6 @@ void EthShim::registerApplication(const APN &apni) const
 
 void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cObject *)
 {
-    Enter_Method_Silent();
-
     if (signalID == RINArp::completedRINArpResolutionSignal)
         arpResolutionCompleted(check_and_cast<RINArp::ArpNotification *>(obj));
     else if (signalID == RINArp::failedRINArpResolutionSignal)
@@ -203,12 +210,20 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cO
 
 void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
 {
-    (void)entry;
-    // something about notifying SDU queues here
+    Enter_Method("arpResolutionCompleted()");
+
+    auto &vec = outQueue[entry->apName];
+    for (SDUData *sdu : vec) {
+        inet::Ieee802Ctrl *controlInfo = new inet::Ieee802Ctrl();
+        controlInfo->setDest(entry->macAddress);
+        controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
+        sdu->setControlInfo(controlInfo);
+        sendPacketToNIC(sdu);
+    }
 }
 
 void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
 {
     (void)entry;
-    // something about notifying SDU queues here
+    // discard all sdu entries for given APN, or retain?
 }
