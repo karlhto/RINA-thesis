@@ -8,18 +8,13 @@ Define_Module(ShimFAI);
 
 const simsignal_t ShimFAI::ribdCreateFlowResponsePositive = registerSignal(SIG_RIBD_CreateFlowResponsePositive);
 
-ShimFAI::ShimFAI() : localPortId(VAL_UNDEF_PORTID), remotePortId(VAL_UNDEF_PORTID) {}
+ShimFAI::ShimFAI() : localPortId(VAL_UNDEF_PORTID) {}
 
 ShimFAI::~ShimFAI() {}
 
 void ShimFAI::initialize()
 {
-    localPortId = par(PAR_LOCALPORTID);
-    remotePortId = par(PAR_REMOTEPORTID);
-
-    cModule *node = getModuleByPath("^.^.^");
-    node->subscribe(SIG_AERIBD_AllocateResponsePositive, this);
-    node->subscribe(SIG_AERIBD_AllocateResponseNegative, this);
+    localPortId = static_cast<int>(par(PAR_LOCALPORTID));
 }
 
 void ShimFAI::postInitialize(ShimFA *fa, Flow *flow, EthShim *shim)

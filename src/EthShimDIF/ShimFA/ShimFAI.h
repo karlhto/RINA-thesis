@@ -19,7 +19,6 @@ class ShimFAI : public FAIBase, public cListener
   protected:
     // Important protected objects
     int localPortId;
-    int remotePortId;
 
     cMessage *creReqTimer;
     ShimFA *fa;

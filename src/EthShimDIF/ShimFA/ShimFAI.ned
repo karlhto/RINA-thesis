@@ -38,9 +38,6 @@ simple ShimFAI
     	@signal[FAI-DeleteFlowResponse](type=Flow?);
 
     	int localPortId 	= default(-1);
-    	int localCEPId 		= default(-1);
-    	int remotePortId 	= default(-1);
-    	int remoteCEPId 	= default(-1);
 
     	//double createRequestTimeout @unit(s) = default(10s);
 }

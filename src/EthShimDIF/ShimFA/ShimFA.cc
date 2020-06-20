@@ -214,16 +214,26 @@ void ShimFA::failedAddressResolution(const APN &dstApn)
 ShimFAI *ShimFA::createFAI(Flow *flow)
 {
     cModuleType *type = cModuleType::get("rina.src.EthShimDIF.ShimFA.ShimFAI");
-    int portId = getEnvir()->getRNG(0)->intRand(USHRT_MAX);
+    int portId = intrand(MAX_PORTID, RANDOM_NUMBER_GENERATOR);
 
     std::ostringstream ostr;
     ostr << "fai_" << portId;
 
-    // Instantiate module
+    cModule *module = type->create(ostr.str().c_str(), getParentModule());
+    module->par(PAR_LOCALPORTID) = portId;
+    module->finalizeParameters();
+    module->buildInside();
+    module->scheduleStart(simTime());
+    module->callInitialize();
+
     ShimFAI *fai =
-        check_and_cast<ShimFAI *>(type->createScheduleInit(ostr.str().c_str(), getParentModule()));
-    fai->par(PAR_LOCALPORTID) = portId;
+        check_and_cast<ShimFAI *>(module);
     fai->postInitialize(this, flow, shim);
+
+    // Make created module listen to allocation responses from upper IPCP
+    connectedApplication->subscribe(SIG_AERIBD_AllocateResponsePositive, fai);
+    connectedApplication->subscribe(SIG_AERIBD_AllocateResponseNegative, fai);
+
     return fai;
 }
 
