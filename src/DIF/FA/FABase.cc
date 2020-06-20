@@ -23,6 +23,9 @@
 
 #include "DIF/FA/FABase.h"
 
+const int FABase::RANDOM_NUMBER_GENERATOR = 0;
+const int FABase::MAX_PORTID = 65535;
+const int FABase::MAX_CEPID  = 65535;
 const char* TIM_FAPENDFLOWS = "FA-PendingFlows";
 
 FABase::FABase() {

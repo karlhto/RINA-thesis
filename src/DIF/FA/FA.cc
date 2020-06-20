@@ -34,9 +34,6 @@
 #include "DIF/RA/RABase.h"
 
 //Constants
-const int RANDOM_NUMBER_GENERATOR = 0;
-const int MAX_PORTID = 65535;
-const int MAX_CEPID  = 65535;
 const char* MOD_NEFFLOWREQPOLICY = "newFlowRequestPolicy";
 
 // Signals that this module emits

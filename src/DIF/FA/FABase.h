@@ -66,6 +66,9 @@ class FABase : public cSimpleModule {
 
     void initMyAddress();
 
+    static const int RANDOM_NUMBER_GENERATOR;
+    static const int MAX_PORTID;
+    static const int MAX_CEPID;
 };
 
 
