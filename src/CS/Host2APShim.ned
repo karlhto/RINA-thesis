@@ -31,7 +31,7 @@ import rina.src.EthShimDIF.IPCProcessShim;
 import inet.linklayer.contract.IWiredNic;
 import inet.networklayer.common.InterfaceTable;
 
-module Host1APShim
+module Host2APShim
 {
     parameters:
         @display("i=device/pc;bgb=255,400");
@@ -43,6 +43,10 @@ module Host1APShim
 
     submodules:
         applicationProcess1: ApplicationProcess {
+            @display("p=70,56");
+        }
+
+        applicationProcess2: ApplicationProcess {
             @display("p=70,56");
         }
 
