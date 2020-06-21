@@ -115,13 +115,6 @@ class RA : public RABase
     RMTPort* bindNM1FlowToRMT(cModule* ipc, FABase* fab, Flow* flow);
     std::string normalizePortID(std::string ipcName, int flowPortID);
 
-    simsignal_t sigRACreFloPosi;
-    simsignal_t sigRACreFloNega;
-    simsignal_t sigRASDReqFromRMT;
-    simsignal_t sigRASDReqFromRIB;
-    simsignal_t sigRAMgmtAllocd;
-    simsignal_t sigRAMgmtDeallocd;
-
     LisRACreFlow* lisRACreFlow;
     LisRAAllocResPos* lisRAAllocResPos;
     LisRACreAllocResPos* lisRACreAllocResPos;
@@ -137,7 +130,6 @@ class RA : public RABase
     void signalizeCreateFlowNegativeToRIBd(Flow* flow);
     void signalizeSlowdownRequestToRIBd(cPacket* pdu);
     void signalizeSlowdownRequestToEFCP(cObject* obj);
-    void signalizeMgmtDeallocToEnrollment(Flow* flow);
 };
 
 

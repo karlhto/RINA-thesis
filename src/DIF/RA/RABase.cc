@@ -22,15 +22,14 @@
 
 #include "DIF/RA/RABase.h"
 
-RABase::RABase() {
+const simsignal_t RABase::createFlowPositiveSignal = registerSignal(SIG_RA_CreateFlowPositive);
+const simsignal_t RABase::createFlowNegativeSignal = registerSignal(SIG_RA_CreateFlowNegative);
+const simsignal_t RABase::invokeSlowdownSignal = registerSignal(SIG_RA_InvokeSlowdown);
+const simsignal_t RABase::executeSlowdownSignal = registerSignal(SIG_RA_ExecuteSlowdown);
 
+RABase::RABase() {}
 
-}
-
-RABase::~RABase() {
-
-
-}
+RABase::~RABase() {}
 
 const QoSCubeSet& RABase::getQoSCubes() const {
     return QoSCubes;

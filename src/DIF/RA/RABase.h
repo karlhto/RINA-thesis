@@ -36,6 +36,15 @@ typedef QoSCubeSet::const_iterator QCubeCItem;
 class RABase : public cSimpleModule
 {
   public:
+    static const simsignal_t createFlowPositiveSignal;
+    static const simsignal_t createFlowNegativeSignal;
+    static const simsignal_t invokeSlowdownSignal;
+    static const simsignal_t executeSlowdownSignal;
+
+  protected:
+    QoSCubeSet QoSCubes;
+
+  public:
     RABase();
     virtual ~RABase();
 
@@ -61,8 +70,6 @@ class RABase : public cSimpleModule
     //SimpleModule overloads
     virtual void initialize(int stage) = 0;
     virtual void handleMessage(cMessage *msg) = 0;
-
-    QoSCubeSet QoSCubes;
 };
 
 //Free function

@@ -144,12 +144,6 @@ void RA::handleMessage(cMessage *msg)
 
 void RA::initSignalsAndListeners()
 {
-    sigRACreFloPosi = registerSignal(SIG_RA_CreateFlowPositive);
-    sigRACreFloNega = registerSignal(SIG_RA_CreateFlowNegative);
-    sigRASDReqFromRMT = registerSignal(SIG_RA_InvokeSlowdown);
-    sigRASDReqFromRIB = registerSignal(SIG_RA_ExecuteSlowdown);
-    sigRAMgmtDeallocd = registerSignal(SIG_RA_MgmtFlowDeallocated);
-
     lisRAAllocResPos = new LisRAAllocResPos(this);
     thisIPC->subscribe(SIG_FAI_AllocateResponsePositive, lisRAAllocResPos);
 
@@ -801,31 +795,25 @@ void RA::unblockNM1PortOutput(NM1FlowTableItem* ftItem)
 
 void RA::signalizeCreateFlowPositiveToRIBd(Flow* flow)
 {
-    emit(sigRACreFloPosi, flow);
+    emit(createFlowPositiveSignal, flow);
 }
 
 void RA::signalizeCreateFlowNegativeToRIBd(Flow* flow)
 {
-    emit(sigRACreFloNega, flow);
+    emit(createFlowNegativeSignal, flow);
 }
 
 void RA::signalizeSlowdownRequestToRIBd(cPacket* pdu)
 {
     Enter_Method("signalizeSlowdownRequestToRIBd()");
-    emit(sigRASDReqFromRMT, pdu);
+    emit(invokeSlowdownSignal, pdu);
 }
 
 void RA::signalizeSlowdownRequestToEFCP(cObject* obj)
 {
     Enter_Method("signalizeSlowdownRequestToEFCP()");
     CongestionDescriptor* congInfo = check_and_cast<CongestionDescriptor*>(obj);
-    emit(sigRASDReqFromRIB, congInfo);
-}
-
-void RA::signalizeMgmtDeallocToEnrollment(Flow* flow)
-{
-    Enter_Method("signalizeMgmtDeallocToEnrollment()");
-    emit(sigRAMgmtDeallocd, flow);
+    emit(executeSlowdownSignal, congInfo);
 }
 
 NM1FlowTable* RA::getFlowTable()
