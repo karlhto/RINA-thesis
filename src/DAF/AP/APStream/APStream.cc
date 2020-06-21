@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "DAF/AP/APStream/APStream.h"
 
@@ -28,10 +28,10 @@ void APStream::initialize() {
     AP::initialize();
     if (strcmp(par("dstApName").stringValue(),"AppErr")) {
         m1 = new cMessage("start");
-        scheduleAt(simTime() + par("startAt").longValue(), m1);
+        scheduleAt(simTime() + static_cast<double>(par("startAt")), m1);
 
         m2 = new cMessage("stop");
-        scheduleAt(simTime() + par("stopAt").longValue(), m2);
+        scheduleAt(simTime() + static_cast<double>(par("stopAt")), m2);
     }
 }
 
@@ -45,7 +45,7 @@ void APStream::handleMessage(cMessage *msg) {
             a_close(conID);
         }
         else if (!strcmp(msg->getName(), "stream")){
-            if ((simTime().dbl()+1) < par("stopAt").longValue()) {
+            if ((simTime().dbl()+1) < static_cast<double>(par("stopAt"))) {
                 object_t obj;
                 obj.objectName = "stream";
                 obj.objectVal = (cObject*)"tmp";
