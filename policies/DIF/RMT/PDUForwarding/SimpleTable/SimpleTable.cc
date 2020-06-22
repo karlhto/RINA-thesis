@@ -69,9 +69,9 @@ vector<RMTPort *> SimpleTable::lookup(const Address &dst, const std::string&qos)
     }
     if (ret.empty())
     {
-        if (t->find(VAL_ANYQOSID) != t->end())
+        if (t->find(ANY_QOS) != t->end())
         {
-            ret.push_back((*t)[VAL_ANYQOSID]);
+           // ret.push_back((*t)[ANY_QOS]);
         }
     }
     return ret;
