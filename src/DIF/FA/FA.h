@@ -53,6 +53,7 @@ class Flow;
 class NewFlowRequestBase;
 class NFlowTable;
 class RABase;
+class QoSReq;
 
 class FA : public FABase, public cListener
 {

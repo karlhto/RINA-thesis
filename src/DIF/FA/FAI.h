@@ -32,17 +32,17 @@
 #include <omnetpp.h>
 //RINASim libraries
 #include "DIF/FA/FAIBase.h"
-#include "DIF/FA/FABase.h"
 #include "DIF/FA/FAIListeners.h"
-#include "Common/RINASignals.h"
-#include "DIF/EFCP/EFCP.h"
-#include "DIF/FA/AllocateRetry/AllocateRetryBase.h"
 
 //#include "PushBackChannel.h"
 
 //Constants
 extern const char* TIM_CREREQ;
 extern const char* MOD_ALLOCRETRYPOLICY;
+
+class FABase;
+class EFCP;
+class AllocateRetryBase;
 
 class FAI : public FAIBase  {
   public:
@@ -52,13 +52,13 @@ class FAI : public FAIBase  {
     int remotePortId;
     int remoteCEPId;
 
-    EFCP* EfcpModule;
+    EFCP* efcp;
     AllocateRetryBase* AllocRetryPolicy;
 
     cMessage* creReqTimer;
     //double creReqTimeout;
 
-    FABase* FaModule;
+    FABase* fa;
 
     //Listeners
     LisFAIAllocResNega*  lisAllocResNega;
@@ -107,7 +107,7 @@ class FAI : public FAIBase  {
     void postInitialize(FABase* fa, Flow* fl, EFCP* efcp);
 
     const FABase* getFa() const {
-        return FaModule;
+        return fa;
     }
 
     int getLocalCepId() const;

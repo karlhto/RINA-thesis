@@ -23,11 +23,12 @@
 #include "EthShimDIF/EthShim/EthShim.h"
 
 #include "Common/SDUData_m.h"
+#include "Common/Utils.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
+#include "inet/common/ModuleAccess.h"
 #include "inet/linklayer/common/Ieee802Ctrl.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
-#include "inet/common/ModuleAccess.h"
 
 
 Define_Module(EthShim);

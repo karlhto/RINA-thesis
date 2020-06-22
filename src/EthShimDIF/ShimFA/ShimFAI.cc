@@ -1,7 +1,9 @@
 #include "EthShimDIF/ShimFA/ShimFAI.h"
+
 #include "Common/RINASignals.h"
 #include "EthShimDIF/EthShim/EthShim.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
+#include "DIF/FA/NFlowTable.h"
 #include "DIF/FA/FANotifierBase.h"
 
 Define_Module(ShimFAI);

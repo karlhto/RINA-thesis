@@ -25,6 +25,7 @@
 #include <omnetpp.h>
 
 #include "DIF/FA/FABase.h"
+#include "Common/QoSCube.h"
 #include "inet/common/InitStages.h"
 
 class ShimFAI;

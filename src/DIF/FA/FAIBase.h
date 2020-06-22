@@ -25,8 +25,8 @@
 
 //Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
-#include "Common/Flow.h"
+
+class Flow;
 
 class FAIBase : public cSimpleModule {
   public:
@@ -41,6 +41,10 @@ class FAIBase : public cSimpleModule {
     static const simsignal_t deleteResponseSignal;
     static const simsignal_t createResponseNegativeSignal;
     static const simsignal_t createResponsePositiveSignal;
+
+  protected:
+    Flow* flowObject;
+    bool degenerateDataTransfer;
 
   public:
     FAIBase();
@@ -59,8 +63,8 @@ class FAIBase : public cSimpleModule {
     virtual void receiveCreateFlowResponsePositiveFromNminusOne() = 0;
     virtual void receiveCreateFlowResponseNegativeFromNminusOne() = 0;
 
-    Flow* getFlow()  {
-        return FlowObject;
+    Flow* getFlow() const {
+        return flowObject;
     }
 
     bool isDegenerateDataTransfer() const {
@@ -72,14 +76,9 @@ class FAIBase : public cSimpleModule {
     }
 
   protected:
-    Flow* FlowObject;
-    bool degenerateDataTransfer;
-
     //SimpleModule overloads
     virtual void initialize() = 0;
     virtual void handleMessage(cMessage *msg) = 0;
-
-
 };
 
 #endif /* FAIBASE_H_ */

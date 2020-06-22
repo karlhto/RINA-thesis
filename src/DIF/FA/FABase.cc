@@ -23,6 +23,10 @@
 
 #include "DIF/FA/FABase.h"
 
+#include "DIF/FA/NFlowTable.h"
+#include "Common/ExternConsts.h"
+#include "Common/APNamingInfo.h"
+
 const int FABase::RANDOM_NUMBER_GENERATOR = 0;
 const int FABase::MAX_PORTID = 65535;
 const int FABase::MAX_CEPID  = 65535;

@@ -22,6 +22,11 @@
 
 #include "DIF/FA/NFlowTableEntry.h"
 
+//RINASim libraries
+#include "DIF/FA/FAIBase.h"
+#include "Common/Flow.h"
+
+
 NFlowTableEntry::NFlowTableEntry() :
     fai(NULL), flow(NULL),
     allocStatus(this->UNKNOWN),
@@ -90,8 +95,6 @@ std::string NFlowTableEntry::getAllocateStatusString() const {
         case FORWARDED:         return "allocation forwarded";
         default:                return "UNKNOWN";
     }
-//    static std::string AllocateStatusStrings[] = {"Pending", "Allocation Positive", "Allocation Negative"};
-//    return AllocateStatusStrings[];
 }
 
 void NFlowTableEntry::setAllocateStatus(EAllocateStatus allocateStatus) {

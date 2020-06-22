@@ -158,7 +158,7 @@ void Enrollment::startCACE(const APNIPair &apnip) {
 
     // Check if we are already enrolled or in the process of enrolling
     auto existingEntry = StateTable->findEntryByDstAPN(dst.getApn());
-    if (existingEntry != NULL) {
+    if (existingEntry != nullptr) {
         auto status = existingEntry->getCACEConStatus();
         if (status != EnrollmentStateTableEntry::CON_NIL &&
             status != EnrollmentStateTableEntry::CON_ERROR) {

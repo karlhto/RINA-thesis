@@ -22,6 +22,10 @@
 
 #include "DIF/FA/NFlowTable.h"
 
+#include "Common/Flow.h"
+#include "Common/Utils.h"
+#include "Common/APN.h"
+
 //Statistic collextion
 const char* SIG_STAT_FT_SIZE             = "FT_FlowTableSize";
 
@@ -38,13 +42,6 @@ void NFlowTable::initialize()
 std::string NFlowTable::info() const {
     std::ostringstream os;
     os << "id=" << this->getId() << endl;
-    /*
-    for(TFTConstIter it = FaiTable.begin(); it != FaiTable.end(); ++it )
-    {
-        FAITableEntry tft = *it;
-        os << tft << endl;
-    }
-    */
     return os.str();
 }
 

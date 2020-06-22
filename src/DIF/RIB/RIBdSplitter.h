@@ -25,15 +25,13 @@
 
 //Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
-#include "Common/Utils.h"
-#include "DIF/FA/NFlowTable.h"
-#include "DAF/CDAP/CDAPMessage_m.h"
+
+class NFlowTable;
 
 class RIBdSplitter : public cSimpleModule
 {
   protected:
-    NFlowTable* FaiTable;
+    NFlowTable* nFlowTable;
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 

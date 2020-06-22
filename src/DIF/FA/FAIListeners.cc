@@ -21,6 +21,8 @@
 // THE SOFTWARE.
 
 #include "DIF/FA/FAIListeners.h"
+#include "Common/Flow.h"
+#include "DIF/FA/FABase.h"
 #include "DIF/FA/FAI.h"
 
 FAIListeners::FAIListeners(FAI* nfai) : fai(nfai) {}

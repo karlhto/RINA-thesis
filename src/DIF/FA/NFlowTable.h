@@ -26,7 +26,6 @@
 //Standard libraries
 #include <omnetpp.h>
 //RINASim library
-#include "Common/Utils.h"
 #include "DIF/FA/NFlowTableEntry.h"
 
 typedef std::list<NFlowTableEntry> TFAITable;
@@ -37,6 +36,10 @@ typedef TFAIPtrs::iterator TFTPtrsIter;
 
 //Statistic collextion
 extern const char* SIG_STAT_FT_SIZE;
+
+class APN;
+class Address;
+class APNIPair;
 
 class NFlowTable : public cSimpleModule
 {

@@ -22,10 +22,14 @@
 
 #include "EthShimDIF/ShimFA/ShimFA.h"
 
+#include "Common/ConnectionId.h"
+#include "Common/Flow.h"
 #include "Common/RINASignals.h"
-#include "EthShimDIF/ShimFA/ShimFAI.h"
+#include "Common/Utils.h"
+#include "DIF/FA/NFlowTable.h"
 #include "EthShimDIF/EthShim/EthShim.h"
 #include "EthShimDIF/RINArp/RINArp.h"
+#include "EthShimDIF/ShimFA/ShimFAI.h"
 #include "inet/linklayer/common/MACAddress.h"
 
 Define_Module(ShimFA);
@@ -198,7 +202,8 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
     resolving = false;
     Flow *flow = nft->getFlow();
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
-    nft->getFai()->receiveAllocateRequest();
+    ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
+    fai->receiveAllocateRequest();
 }
 
 void ShimFA::failedAddressResolution(const APN &dstApn)

@@ -21,6 +21,8 @@
 // THE SOFTWARE.
 
 #include "DIF/FA/FAIBase.h"
+
+#include "Common/Flow.h"
 #include "Common/RINASignals.h"
 
 const simsignal_t FAIBase::allocateRequestSignal = registerSignal(SIG_FAI_AllocateRequest);
@@ -35,12 +37,8 @@ const simsignal_t FAIBase::deleteResponseSignal = registerSignal(SIG_FAI_DeleteF
 const simsignal_t FAIBase::createResponseNegativeSignal = registerSignal(SIG_FAI_CreateFlowResponseNegative);
 const simsignal_t FAIBase::createResponsePositiveSignal = registerSignal(SIG_FAI_CreateFlowResponsePositive);
 
-FAIBase::FAIBase() : FlowObject(NULL), degenerateDataTransfer(false)
+FAIBase::FAIBase() : flowObject(nullptr), degenerateDataTransfer(false)
 {
 }
 
-FAIBase::~FAIBase() {
-    FlowObject = NULL;
-    degenerateDataTransfer = false;
-}
-
+FAIBase::~FAIBase() {}

@@ -26,9 +26,14 @@
 //Standard libraries
 #include <omnetpp.h>
 //RINASim libraries
-#include "DIF/FA/NFlowTable.h"
+#include "Common/Address.h"
 
 extern const char* TIM_FAPENDFLOWS;
+
+class APNamingInfo;
+class APNIPair;
+class NFlowTable;
+class Flow;
 
 class FABase : public cSimpleModule {
   public:

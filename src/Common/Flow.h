@@ -24,9 +24,9 @@
 #define FLOW_H_
 
 //Standard libraries
-#include <string>
-#include <sstream>
-//RINASim libraries
+#include <omnetpp.h>
+
+//RINA libraries
 #include "Common/APNamingInfo.h"
 #include "Common/ConnectionId.h"
 #include "Common/Address.h"

@@ -25,9 +25,9 @@
 
 //Standard libraries
 #include <omnetpp.h>
-#include <string>
-//RINASim libraries
-#include "DIF/FA/FAIBase.h"
+
+class FAIBase;
+class Flow;
 
 class NFlowTableEntry {
   public:

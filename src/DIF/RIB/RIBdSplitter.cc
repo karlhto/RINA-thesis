@@ -22,11 +22,16 @@
 
 #include "DIF/RIB/RIBdSplitter.h"
 
+#include "Common/ExternConsts.h"
+#include "Common/Utils.h"
+#include "DAF/CDAP/CDAPMessage_m.h"
+#include "DIF/FA/NFlowTable.h"
+
 Define_Module(RIBdSplitter);
 
 void RIBdSplitter::initialize()
 {
-    FaiTable = NULL;
+    nFlowTable = NULL;
     initPointers();
 }
 
@@ -48,7 +53,7 @@ void RIBdSplitter::handleMessage(cMessage *msg)
          */
 
         //CDAPMessage* cdapmsg = check_and_cast<CDAPMessage*>(msg);
-        //FAITableEntry* tfe = FaiTable->findMgmtEntryByDstNeighbor(cdapmsg->getDstAddr());
+        //FAITableEntry* tfe = nFlowTable->findMgmtEntryByDstNeighbor(cdapmsg->getDstAddr());
         //if (tfe
         //        && !dynamic_cast<CDAP_M_Create*>(msg)
         //        //&& tfe->getCFlow()->getSrcPortId() != VAL_UNDEF_PORTID
@@ -73,5 +78,5 @@ void RIBdSplitter::handleMessage(cMessage *msg)
 }
 
 void RIBdSplitter::initPointers() {
-    FaiTable = getRINAModule<NFlowTable*>(this, 2, {MOD_FLOWALLOC, MOD_NFLOWTABLE});
+    nFlowTable = getRINAModule<NFlowTable*>(this, 2, {MOD_FLOWALLOC, MOD_NFLOWTABLE});
 }

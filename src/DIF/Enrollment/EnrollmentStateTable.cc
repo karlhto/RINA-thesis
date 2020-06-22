@@ -60,13 +60,14 @@ EnrollmentStateTableEntry* EnrollmentStateTable::findEntryByDstAPN(const APN& ap
             return &(*it);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 
 void EnrollmentStateTable::handleMessage(cMessage *msg)
 {
-
+    delete(msg);
+    throw cRuntimeError("This module should not receive messages.");
 }
 
 
