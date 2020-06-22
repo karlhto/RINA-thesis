@@ -1,16 +1,5 @@
 <?xml version="1.0"?>
 <Configuration>
-  <ConnectionSets>
-    <ConnectionSet id="all">
-      <SimTime t="0">
-        <Connection src="11_Layer1" dst="22_Layer1" qosCube="mgmt"/>
-      </SimTime>
-      <SimTime t="1">
-        <Connection src="11_Layer1" dst="22_Layer1" qosCube="2"/>
-      </SimTime>
-    </ConnectionSet>
-  </ConnectionSets>
-
   <Host id="host1">
     <DA>
       <Directory>
@@ -27,11 +16,6 @@
           <DIF difName="Layer0" ipcAddress="2" />
         </APN>
       </Directory>
-      <NamingInfo>
-        <APN apn="App2">
-          <Synonym apn="AppErr" />
-        </APN>
-      </NamingInfo>
     </DA>
   </Host>
   <Host id="host2">
@@ -50,12 +34,6 @@
           <DIF difName="Layer0" ipcAddress="2" />
         </APN>
       </Directory>
-      <NamingInfo>
-        <APN apn="App2">
-          <Synonym apn="AppErr" />
-        </APN>
-      </NamingInfo>
-
     </DA>
   </Host>
 
