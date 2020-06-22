@@ -44,7 +44,7 @@ class NFlowTableEntry {
 
     bool operator== (const NFlowTableEntry& other) const;
 
-    std::string info() const;
+    std::string str() const;
 
     std::string getAllocateStatusString() const;
     FAIBase* getFai() const;

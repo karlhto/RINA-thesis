@@ -31,7 +31,7 @@ NamingInformationEntry::~NamingInformationEntry() {
     Synonyms.clear();
 }
 
-std::string NamingInformationEntry::info() const {
+std::string NamingInformationEntry::str() const {
     std::ostringstream os;
     os << "APN: " << Apn << ", Synonyms: " << Synonyms;
     return os.str();
@@ -58,7 +58,7 @@ void NamingInformationEntry::setSynonyms(const std::list<APN>& synonyms) {
 }
 
 std::ostream& operator <<(std::ostream& os, const NamingInformationEntry& nie) {
-    return os << nie.info();
+    return os << nie.str();
 }
 
 bool NamingInformationEntry::operator ==(

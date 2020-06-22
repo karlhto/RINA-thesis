@@ -247,7 +247,7 @@ const QoSCube QoSCube::MANAGEMENT(VAL_MGMTQOSID,
                                  );
 
 std::ostream& operator <<(std::ostream& os, const QoSCube& cube) {
-    return os << cube.info();
+    return os << cube.str();
 }
 
 int QoSCube::getAvgBand() const {
@@ -406,7 +406,7 @@ void QoSCube::setPduDropProbability(double pduDropProbability) {
     this->pduDropProbability = pduDropProbability;
 }
 
-std::string QoSCube::info() const {
+std::string QoSCube::str() const {
     std::ostringstream os;
 
     os << "QoSCube Id> " << this->getQosId();

@@ -60,7 +60,7 @@ void Directory::addDirEntry(const APN& apn) {
     Director.push_back(DirectoryEntry(apn));
 }
 
-std::string Directory::info() const {
+std::string Directory::str() const {
     std::ostringstream os;
     os << "id=" << this->getId() << endl;
     return os.str();
@@ -68,7 +68,8 @@ std::string Directory::info() const {
 
 void Directory::handleMessage(cMessage *msg)
 {
-
+    delete msg;
+    throw cRuntimeError("This module is not supposed to handle messages");
 }
 
 void Directory::addNewDif(const APN& apn, const Address& member) {

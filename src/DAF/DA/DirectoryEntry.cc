@@ -22,21 +22,6 @@
 
 #include "DAF/DA/DirectoryEntry.h"
 
-/*
-DirectoryEntry::DirectoryEntry() :
-    ipcPath(""), FlowAlloc(NULL)
-{
-
-}
-
-DirectoryEntry::DirectoryEntry(APNamingInfo napni, Address naddr, std::string path,
-        FABase* fa) :
-                apni(napni),
-                addr(naddr),
-                ipcPath(path), FlowAlloc(fa)
-{
-}
-*/
 DirectoryEntry::DirectoryEntry(const APN& napn) :
         Apn(napn)
 {
@@ -47,10 +32,10 @@ DirectoryEntry::~DirectoryEntry() {
 }
 
 std::ostream& operator <<(std::ostream& os, const DirectoryEntry& dte) {
-    return os << dte.info();
+    return os << dte.str();
 }
 
-std::string DirectoryEntry::info() const {
+std::string DirectoryEntry::str() const {
     std::ostringstream os;
     os << "APN: " << Apn << " is available via: ";
     for (AddrCItem it = SupportedDifs.begin(); it != SupportedDifs.end(); ++it)
@@ -91,41 +76,3 @@ void DirectoryEntry::addDif(const Address& member) {
 bool DirectoryEntry::operator ==(const DirectoryEntry& other) const {
     return Apn == other.Apn && SupportedDifs == other.SupportedDifs;
 }
-/*
-const APNamingInfo& DirectoryEntry::getApni() const {
-    return apni;
-}
-
-void DirectoryEntry::setApni(const APNamingInfo& apni) {
-    this->apni = apni;
-}
-
-FABase* DirectoryEntry::getFlowAlloc() const {
-    return FlowAlloc;
-}
-
-void DirectoryEntry::setFlowAlloc(FABase* flowAlloc) {
-    FlowAlloc = flowAlloc;
-}
-
-const std::string& DirectoryEntry::getIpcPath() const {
-    return ipcPath;
-}
-
-void DirectoryEntry::setIpcPath(const std::string& ipcPath) {
-    this->ipcPath = ipcPath;
-}
-*/
-/*
-const Address& DirectoryEntry::getAddr() const {
-    return addr;
-}
-
-void DirectoryEntry::setAddr(const Address& addr) {
-    this->addr = addr;
-}
-
-cModule* DirectoryEntry::getIpc() {
-    return  getFlowAlloc() ? getFlowAlloc()->getModuleByPath("^.^") : NULL;
-}
-*/

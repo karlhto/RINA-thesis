@@ -46,7 +46,7 @@ bool SearchTableEntry::operator ==(const SearchTableEntry& other) const {
     return Apn == other.Apn && PeerDAs == other.PeerDAs;
 }
 
-std::string SearchTableEntry::info() const {
+std::string SearchTableEntry::str() const {
     std::ostringstream os;
     os << "APN: " << Apn << ", Peer DifAllocs: " << PeerDAs;
     return os.str();
@@ -61,5 +61,5 @@ void SearchTableEntry::addPeer(const APN& peer) {
 }
 
 std::ostream& operator <<(std::ostream& os, const SearchTableEntry& ste) {
-    return os << ste.info();
+    return os << ste.str();
 }

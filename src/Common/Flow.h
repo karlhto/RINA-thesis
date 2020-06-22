@@ -88,7 +88,7 @@ class Flow : public cObject
      * Calls variety of other info functions to produce final output
      * @return String of Flow textual representation
      */
-    std::string info() const;
+    virtual std::string str() const override;
 
     /**
      * @brief Prints Flow source information as string

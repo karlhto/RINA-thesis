@@ -35,7 +35,7 @@ typedef TConTable::const_iterator TCTConstIter;
 class ConnectionTable : public cSimpleModule
 {
   public:
-    std::string info() const;
+    virtual std::string str() const override;
 
     void insertNew(Flow* flow);
     void insert(const ConnectionTableEntry& entry);

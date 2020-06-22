@@ -150,7 +150,7 @@ void Enrollment::initSignalsAndListeners() {
 }
 
 void Enrollment::startCACE(const APNIPair &apnip) {
-    Enter_Method("startCACE(%s)", apnip.info().c_str());
+    Enter_Method("startCACE(%s)", apnip.str().c_str());
     EV_INFO << "Starting CACE phase" << endl;
 
     APNamingInfo src(apnip.first);

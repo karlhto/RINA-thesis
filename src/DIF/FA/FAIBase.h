@@ -50,6 +50,8 @@ class FAIBase : public cSimpleModule {
     FAIBase();
     virtual ~FAIBase();
 
+    virtual std::string str() const = 0;
+
     virtual bool receiveAllocateRequest() = 0;
     virtual bool receiveAllocateResponsePositive() = 0;
     virtual void receiveAllocateResponseNegative() = 0;

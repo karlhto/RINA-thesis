@@ -40,7 +40,7 @@ bool DAP::operator ==(const DAP& other) const {
     return !name.compare(other.getName());
 }
 
-std::string DAP::info() const {
+std::string DAP::str() const {
     std::ostringstream os;
     os << this->getName();
     return os.str();
@@ -61,5 +61,5 @@ bool DAP::isUnspecified() const
 }
 
 std::ostream& operator <<(std::ostream& os, const DAP& dap) {
-    return os << dap.info();
+    return os << dap.str();
 }

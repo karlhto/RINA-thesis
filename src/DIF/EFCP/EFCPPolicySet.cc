@@ -296,7 +296,7 @@ bool EFCPPolicySet::init(cXMLElement* parent)
 }
 
 
-std::string EFCPPolicySet::info() const {
+std::string EFCPPolicySet::str() const {
     std::ostringstream os;
 
     os << "\n   Inititial Seq Num = ";
@@ -370,9 +370,9 @@ std::string EFCPPolicySet::info() const {
 
 
 std::ostream& operator <<(std::ostream& os, const EFCPPolicySet& efcpPolicySet) {
-    return os << efcpPolicySet.info();
+    return os << efcpPolicySet.str();
 }
 
 std::ostream& operator <<(std::ostream& os, const EFCPPolicySet* efcpPolicySet) {
-    return os << efcpPolicySet->info();
+    return os << efcpPolicySet->str();
 }

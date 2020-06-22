@@ -89,7 +89,7 @@ class FAI : public FAIBase  {
     FAI();
     virtual ~FAI();
 
-    std::string info() const;
+    virtual std::string str() const;
 
     virtual bool receiveAllocateRequest();
     virtual bool receiveAllocateResponsePositive();

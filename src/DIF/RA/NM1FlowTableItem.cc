@@ -31,11 +31,11 @@ NM1FlowTableItem::~NM1FlowTableItem() {
 
 }
 
-std::string NM1FlowTableItem::info() const {
+std::string NM1FlowTableItem::str() const {
     std::ostringstream os;
 
 
-    os << flow->info() << endl;
+    os << flow->str() << endl;
     os << "FA path: " << fa->getFullPath() << endl;
     os << "status: " << getConnectionStatusString() << endl;
     os << "RMT port: " << rmtPort->getFullName() << endl;
@@ -68,7 +68,7 @@ void NM1FlowTableItem::setConnectionStatus(ConnectionStatus conStatus) {
 }
 
 std::ostream& operator <<(std::ostream& os, const NM1FlowTableItem& cte) {
-    return os << cte.info();
+    return os << cte.str();
 }
 
 Flow* NM1FlowTableItem::getFlow() const

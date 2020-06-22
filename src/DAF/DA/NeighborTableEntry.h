@@ -33,7 +33,7 @@ class NeighborTableEntry {
 
     bool operator== (const NeighborTableEntry& other) const;
 
-    std::string info() const;
+    std::string str() const;
 
     const APN& getApn() const;
     void setApn(const APN& apn);

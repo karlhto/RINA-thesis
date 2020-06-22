@@ -56,7 +56,7 @@ class APN : public std::string
      * @brief Info text output suitable for << string streams and  WATCH
      * @return APN string name
      */
-    std::string info() const;
+    std::string str() const;
 
     /**
      * @brief Gets APN string name representation
@@ -109,7 +109,7 @@ typedef APNList::iterator ApnItem;
 //Free functions
 
 /**
- * @brief << operator overload that calls APN.info() method
+ * @brief << operator overload that calls APN.str() method
  * @param os Resulting ostream
  * @param apn APN class that is being converted to string
  * @return Infotext representing APN

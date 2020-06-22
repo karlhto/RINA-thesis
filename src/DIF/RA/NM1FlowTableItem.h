@@ -46,7 +46,7 @@ class NM1FlowTableItem
         CON_RELEASING
     };
 
-    std::string info() const;
+    std::string str() const;
 
     Flow* getFlow() const;
     FABase* getFABase() const;

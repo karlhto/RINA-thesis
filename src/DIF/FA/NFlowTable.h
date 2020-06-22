@@ -44,14 +44,13 @@ class APNIPair;
 class NFlowTable : public cSimpleModule
 {
   public:
-    std::string info() const;
+    virtual std::string str() const;
     void insertNew(Flow* flow);
     void insert(const NFlowTableEntry& entry);
     void removeByFlow(Flow* flow);
     unsigned int getSize() const;
     NFlowTableEntry* findEntryByFlow(const Flow* flow);
     NFlowTableEntry* findEntryByApns(const APN& srcApn, const APN& dstApn);
-    NFlowTableEntry* findMgmtEntry(const Flow* flow);
     NFlowTableEntry* findMgmtEntryByDstAddr(const Address& addr);
     NFlowTableEntry* findMgmtEntryByDstNeighbor(const Address& addr);
     NFlowTableEntry* findMgmtEntryByDstApni(const APN& dstApn);
@@ -78,12 +77,5 @@ class NFlowTable : public cSimpleModule
   private:
     TFAITable NFlowTab;
 };
-
-//Free functions
-/*
-std::ostream& operator<< (std::ostream& os, const FlowTable& ft);
-std::ostream& operator<< (std::ostream& os, const TFlowTable& ft);
-std::ostream& operator<< (std::ostream& os, const TFlowTableEntry& fte);
-*/
 
 #endif

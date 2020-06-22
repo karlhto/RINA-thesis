@@ -37,7 +37,7 @@ class CDAPMsgLog : public cSimpleModule {
     CDAPMsgLog();
     virtual ~CDAPMsgLog();
 
-    std::string info() const;
+    virtual std::string str() const override;
 
     void insert(CDAPMessage* cdapmsg, bool srflag);
     CDAPMsgLogEntry* findByMessage(CDAPMessage* cdapmsg);

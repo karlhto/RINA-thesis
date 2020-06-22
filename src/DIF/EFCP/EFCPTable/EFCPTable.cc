@@ -44,8 +44,9 @@ EFCPTable::~EFCPTable()
 
 }
 
-void EFCPTable::handleMessage(cMessage* msg){
-
+void EFCPTable::handleMessage(cMessage* msg) {
+    delete msg;
+    throw cRuntimeError("This module is not supposed to handle messages");
 }
 
 void EFCPTable::initialize(){
@@ -53,16 +54,9 @@ void EFCPTable::initialize(){
   WATCH_VECTOR(efcpTable);
 }
 
-std::string EFCPTable::info() const {
+std::string EFCPTable::str() const {
     std::ostringstream os;
     os << "id=" << endl;// this->getId() << endl;
-    /*
-    for(TFTConstIter it = FaiTable.begin(); it != FaiTable.end(); ++it )
-    {
-        FAITableEntry tft = *it;
-        os << tft << endl;
-    }
-    */
     return os.str();
 }
 

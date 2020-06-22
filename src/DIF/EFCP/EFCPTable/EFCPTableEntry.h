@@ -54,7 +54,7 @@ class EFCPTableEntry
     EFCPTableEntry();
     virtual ~EFCPTableEntry();
 
-    std::string info() const;
+    std::string str() const;
     Delimiting* getDelimit() const;
     TEFCPITab* getEfcpiTab();
     const Flow* getFlow() const;

@@ -256,7 +256,7 @@ void AP::receiveAllocationRequestFromFAI(Flow* flow) {
                 flow->getDstApni().getAename(), flow->getDstApni().getAeinstance(), flow, 0);
         //FlowObject = flow;
         //insertFlow();
-        //EV << "======================" << endl << flow->info() << endl;
+        //EV << "======================" << endl << flow->str() << endl;
         //Interconnect IRM and IPC
 
         //bool status = Irm->receiveAllocationResponsePositiveFromIpc(flow);

@@ -137,7 +137,7 @@ class RMTQueue : public cSimpleModule
     /**
      * Spews out some information about queue state.
      */
-    std::string info() const;
+    virtual std::string str() const override;
 
     void setFlow(Flow *);
     const Flow* getFlow() const;

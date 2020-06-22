@@ -34,7 +34,7 @@ CDAPMsgLogEntry::~CDAPMsgLogEntry() {
     sndFlag = false;
 }
 
-std::string CDAPMsgLogEntry::info() const {
+std::string CDAPMsgLogEntry::str() const {
     std::ostringstream os;
     os << (sndFlag ? "Sent " : "Received " )
        << getOpCodeString() << "(" << (int)opCode
@@ -44,7 +44,7 @@ std::string CDAPMsgLogEntry::info() const {
 }
 
 std::ostream& operator <<(std::ostream& os, const CDAPMsgLogEntry& mle) {
-    return os << mle.info();
+    return os << mle.str();
 }
 
 long CDAPMsgLogEntry::getInvokeId() const {
@@ -55,7 +55,7 @@ void CDAPMsgLogEntry::setInvokeId(long invokeId) {
     this->invokeId = invokeId;
 }
 
-const unsigned char CDAPMsgLogEntry::getOpCode() const {
+unsigned char CDAPMsgLogEntry::getOpCode() const {
     return opCode;
 }
 

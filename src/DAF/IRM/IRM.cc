@@ -119,23 +119,11 @@ bool IRM::createBindings(Flow* flow) {
     //Retrieve IPC process with allocated flow and prepared bindings
 
     ConnectionTableEntry* cte = ConTable->findEntryByFlow(flow);
-    //if (!cte) {
-    //    EV << "======================" << endl << flow->info() << endl;
-    //    return false;
-    //}
     cModule* Ipc = cte->getIpc();
     cModule* IrmMod = this->getParentModule();
 
     //Decide portId
     int portId = flow->getSrcPortId();
-    /*
-    if ( DifAllocator->isAppLocal(flow->getDstApni().getApn()) )
-        portId = flow->getDstPortId();
-    else if ( DifAllocator->isAppLocal(flow->getSrcApni().getApn()) )
-        portId
-    else
-        throw("Binding to inconsistant PortId occured!");
-    */
 
     //  Retrieve IPC gates
     std::ostringstream nam1;
@@ -221,13 +209,7 @@ bool IRM::receiveDeallocationRequestFromAe(Flow* flow) {
     }
     return status;
 }
-/*
-void IRM::signalizeAllocateRequest(Flow* flow) {
-    //EV << "!!!!VYemitovano" << endl;
-    //EV << "Emits AllocReq Flow = " << flow->getSrcApni() << "_" << flow->getDstApni() << endl;
-    emit(sigIRMAllocReq, flow);
-}
-*/
+
 void IRM::newFlow(Flow* flow) {
     Enter_Method("newFlow()");
 
@@ -260,11 +242,7 @@ void IRM::updateDisplayString() {
     os << "up: " << statPassUp << endl << "down: " << statPassDown << endl << "discard: " << statDiscarded;
     setPolicyDisplayString(this, os.str().c_str());
 }
-/*
-void IRM::signalizeDeallocateRequest(Flow* flow) {
-    emit(sigIRMDeallocReq, flow);
-}
-*/
+
 ConnectionTable* IRM::getConTable() const {
     return ConTable;
 }

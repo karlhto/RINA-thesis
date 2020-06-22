@@ -457,7 +457,7 @@ class QoSCube {
      * @brief Prints QoSCube information as string
      * @return String of QoSCube textual representation
      */
-    std::string info() const;
+    std::string str() const;
 
     const EFCPPolicySet* getEfcpPolicies() const;
     void setEfcpPolicies(EFCPPolicySet* efcpPolicies);

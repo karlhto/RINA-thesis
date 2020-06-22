@@ -46,7 +46,7 @@ class DirectoryEntry {
     const Addresses& getSupportedDifs() const;
     void setSupportedDifs(const Addresses& supportedDifs);
 
-    std::string info() const;
+    std::string str() const;
 
     void addDif(const Address& member);
     bool hasDif(const Address& member);

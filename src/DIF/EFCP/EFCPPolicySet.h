@@ -85,7 +85,7 @@ class EFCPPolicySet
     const char* getEcn() const;
     const char* getEcnSlowDown() const;
 
-    std::string info() const;
+    std::string str() const;
 };
 
 std::ostream& operator<< (std::ostream& os, const EFCPPolicySet& efcpPolicySet);

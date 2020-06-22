@@ -347,13 +347,12 @@ void QoSReq::setCostTime(double costTime) {
 }
 
 std::ostream& operator <<(std::ostream& os, const QoSReq& qosreq) {
-    return os << qosreq.info();
+    return os << qosreq.str();
 }
 
 //XXX: Vesely: BEAWARE! Do-not-care value might be the problem when comparing
 //             other AP with some requirements and this with none!!!
 bool QoSReq::compare(const QoSReq& other) const {
-    //EV << "!!!!!Mine" << endl << info() << endl << "!!!!Other" << other.info() ;
     return (other.getAvgBand() <= avgBand && other.getAvgSduBand() <= avgSDUBand
             && other.getPeakBandDuration() <= peakBandDuration && other.getPeakSduBandDuration() <= getPeakSduBandDuration()
             && other.getBurstPeriod() <= burstPeriod && other.getBurstDuration() <= burstDuration
@@ -365,7 +364,7 @@ bool QoSReq::compare(const QoSReq& other) const {
            ) ? true : false;
 }
 
-std::string QoSReq::info() const {
+std::string QoSReq::str() const {
     std::ostringstream os;
 
     os << "QoS Requirements List>";

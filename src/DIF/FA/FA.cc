@@ -212,7 +212,7 @@ bool FA::setNeighborAddresses(Flow* flow) {
 
 
 int FA::receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos) {
-    Enter_Method("receiveAllocateRequest(%s)", apnip.info().c_str());
+    Enter_Method("receiveAllocateRequest(%s)", apnip.str().c_str());
 
     // 1. Find APN of remote IPCP
 

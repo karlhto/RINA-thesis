@@ -57,8 +57,7 @@ class EFCPTable : public cSimpleModule
     DTP* getDTPBySrcCEP(int srcCEP);
     void insertEntry(EFCPTableEntry* entry);
 
-    std::string info() const;
-
+    virtual std::string str() const override;
 };
 
 #endif /* EFCPTABLE_H_ */

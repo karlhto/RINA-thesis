@@ -87,7 +87,7 @@ class Address {
      * @brief Info text output suitable for << string streams and  WATCH
      * @return Address string representation
      */
-    std::string info() const;
+    std::string str() const;
 
     /**
      * @brief Checks whether a given Address is unspecified which means that it has
@@ -149,7 +149,7 @@ typedef Addresses::iterator AddrItem;
 
 //Free function
 /**
- * @brief << operator overload that calls Address.info() method
+ * @brief << operator overload that calls Address.str() method
  * @param os Resulting ostream
  * @param addr Address class that is being converted to string
  * @return Infotext representing Address
@@ -157,7 +157,7 @@ typedef Addresses::iterator AddrItem;
 std::ostream& operator<< (std::ostream& os, const Address& addr);
 
 /**
- * @brief << operator overload that calls Address.info() method for each and every list member
+ * @brief << operator overload that calls Address.str() method for each and every list member
  * @param os Resulting ostream
  * @param dims List of Addresses
  * @return Infotext representing Address

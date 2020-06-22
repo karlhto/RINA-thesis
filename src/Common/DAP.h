@@ -60,7 +60,7 @@ class DAP {
      * @brief Info text output suitable for << string streams and WATCH
      * @return DAP string name
      */
-    std::string info() const;
+    std::string str() const;
 
     /**
      * @brief Gets DAP string name representation

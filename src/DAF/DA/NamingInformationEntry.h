@@ -38,7 +38,7 @@ class NamingInformationEntry {
     const std::list<APN>& getSynonyms() const;
     void setSynonyms(const std::list<APN>& synonyms);
 
-    std::string info() const;
+    std::string str() const;
 
     void addSynonym(const APN& synonym);
     bool hasSynonym(const APN& synonym);

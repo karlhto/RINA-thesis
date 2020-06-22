@@ -78,7 +78,7 @@ public:
     void setCACEConStatus(DAFEnrollmentStateTableEntry::CACEConnectionStatus status);
     void setDAFEnrollmentStatus(DAFEnrollmentStateTableEntry::DAFEnrollmentStatus status);
 
-    std::string info() const;
+    std::string str() const;
     std::string getCACEConnectionStatusString() const;
     std::string getDAFEnrollmentStatusString() const;
     const APNamingInfo& getLocal() const;

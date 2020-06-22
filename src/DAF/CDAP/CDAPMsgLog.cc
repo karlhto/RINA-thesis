@@ -61,9 +61,11 @@ CDAPMsgLogEntry* CDAPMsgLog::findRequestByInvId(CDAPMessage* cdapmsg) {
 }
 
 void CDAPMsgLog::handleMessage(cMessage* msg) {
+    delete msg;
+    throw cRuntimeError("This module is not supposed to handle messages");
 }
 
-std::string CDAPMsgLog::info() const {
+std::string CDAPMsgLog::str() const {
     std::string os;
     return os;
 }

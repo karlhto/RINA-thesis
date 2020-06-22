@@ -35,7 +35,7 @@ void PortsLoadMonitor::enhancedDebug()
 
         for(PMIter i = rates.begin(); i != rates.end(); ++i)
         {
-            str << i->first->info() << ", " << i->second << "\n";
+            str << i->first->str() << ", " << i->second << "\n";
         }
 
         cs.setTagArg("t", 1, "l");
@@ -66,7 +66,6 @@ void PortsLoadMonitor::handleMessage(cMessage* msg)
         // Save the current rate and reset every entry in the accumulation map.
         for(PMIter i = acc.begin(); i != acc.end(); ++i)
         {
-            //EV << "New rate computed: " << i->first->info() << " have " << i->second << endl;
             rates[i->first] = i->second;
             i->second = 0;
         }

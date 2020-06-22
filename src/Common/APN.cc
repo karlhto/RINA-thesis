@@ -49,7 +49,7 @@ void APN::setName(const std::string& name)
     this->name = name;
 }
 
-std::string APN::info() const
+std::string APN::str() const
 {
     std::ostringstream os;
     os << this->getName();
@@ -64,7 +64,7 @@ bool APN::isUnspecified() const
 //Free function
 std::ostream& operator<< (std::ostream& os, const APN& apn)
 {
-    return os << apn.info();
+    return os << apn.str();
 }
 
 std::ostream& operator <<(std::ostream& os, const APNList& apns)

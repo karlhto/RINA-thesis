@@ -82,10 +82,10 @@ class APNamingInfo
     }
 
     /**
-     * @brief Info text output suitable for << string streams and  WATCH
+     * @brief Text output suitable for << string streams and WATCH
      * @return APNI string representation
      */
-    std::string info() const;
+    virtual std::string str() const;
 
     /**
      * @brief Getter of AE-instance attribute
@@ -180,7 +180,7 @@ class APNI: public APNamingInfo {};
 
 //Free function
 /**
- * @brief << operator overload that calls APNI.info() method
+ * @brief << operator overload that calls APNI.str() method
  * @param os Resulting ostream
  * @param apni APNI class that is being converted to string
  * @return Infotext representing APNI
@@ -195,7 +195,7 @@ class APNIPair : public cObject
     APNIPair(const char* src, const char* dst);
     virtual ~APNIPair();
 
-    std::string info() const;
+    virtual std::string str() const override;
 
     APNamingInfo first;
     APNamingInfo second;

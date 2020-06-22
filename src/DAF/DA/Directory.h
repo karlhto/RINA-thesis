@@ -41,7 +41,7 @@ extern const char*      ATTR_DIFNAME;
 class Directory : public cSimpleModule
 {
   public:
-    std::string info() const;
+    virtual std::string str() const override;
 
     void addDirEntry(const APN& apn);
     DirectoryEntry* findDirEntryByApn(const APN& apn);

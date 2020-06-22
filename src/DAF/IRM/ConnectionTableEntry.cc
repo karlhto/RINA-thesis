@@ -50,9 +50,9 @@ ConnectionTableEntry::~ConnectionTableEntry() {
     this->FlowAlloc = NULL;
 }
 
-std::string ConnectionTableEntry::info() const {
+std::string ConnectionTableEntry::str() const {
     std::ostringstream os;
-    os << apni.info() << "\n";
+    os << apni.str() << "\n";
     if (FlowAlloc)
         os << "FA path: " << FlowAlloc->getFullPath() << "\n";
     if (northGateIn && northGateOut)
@@ -84,7 +84,7 @@ void ConnectionTableEntry::setConStatus(ConnectionStatus conStatus) {
 }
 
 std::ostream& operator <<(std::ostream& os, const ConnectionTableEntry& cte) {
-    return os << cte.info();
+    return os << cte.str();
 }
 
 FABase* ConnectionTableEntry::getFlowAlloc() const {

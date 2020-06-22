@@ -48,7 +48,7 @@ APNamingInfo::~APNamingInfo()
     this->aeinstance = "";
 }
 
-std::string APNamingInfo::info() const
+std::string APNamingInfo::str() const
 {
     std::ostringstream os;
     os << "AP: "<< apn;
@@ -58,14 +58,13 @@ std::string APNamingInfo::info() const
         os << " AE: " << aename;
     if (!aeinstance.empty())
         os << " (" << aeinstance << ")";
-    //os << endl;
     return os.str();
 }
 
 //Free function
 std::ostream& operator<< (std::ostream& os, const APNamingInfo& apni)
 {
-    return os << apni.info();
+    return os << apni.str();
 }
 
 Register_Class(APNIPair);
@@ -91,10 +90,10 @@ APNIPair::~APNIPair() {
 }
 
 std::ostream& operator <<(std::ostream& os, const APNIPair& apnip) {
-    return os << apnip.info();
+    return os << apnip.str();
 }
 
-std::string APNIPair::info() const {
+std::string APNIPair::str() const {
     std::ostringstream os;
     os << "SRC> "<< first << "\tDST> " << second;
     return os.str();

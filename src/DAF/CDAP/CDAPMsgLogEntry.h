@@ -37,14 +37,14 @@ class CDAPMsgLogEntry {
     CDAPMsgLogEntry(unsigned char opc, long invoke, bool srflag);
     virtual ~CDAPMsgLogEntry();
 
-    std::string info() const;
+    std::string str() const;
     std::string getOpCodeString() const;
 
     //Getters and Setters
     long getInvokeId() const;
     void setInvokeId(long invokeId);
 
-    const unsigned char getOpCode() const;
+    unsigned char getOpCode() const;
     void setOpCode(const unsigned char opCode);
 
     const simtime_t& getProcessedAt() const;

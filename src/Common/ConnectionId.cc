@@ -106,7 +106,7 @@ ConnectionId& ConnectionId::swapCepIds()
     return *this;
 }
 
-std::string ConnectionId::info() const
+std::string ConnectionId::str() const
 {
   std::ostringstream os;
 
@@ -116,6 +116,6 @@ std::string ConnectionId::info() const
 
 std::ostream& operator <<(std::ostream& os, const ConnectionId& connId)
 {
-    return os << connId.info();
+    return os << connId.str();
 }
 

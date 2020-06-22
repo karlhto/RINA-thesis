@@ -47,11 +47,11 @@ bool NeighborTableEntry::operator ==(const NeighborTableEntry& other) const {
     return Apn == other.Apn && Neigbors == other.Neigbors;
 }
 
-std::string NeighborTableEntry::info() const {
+std::string NeighborTableEntry::str() const {
     std::ostringstream os;
     os << "APN: " << Apn << ", Neighbors: ";
     for (auto n : Neigbors){
-        os << "\n\t" << n.info();
+        os << "\n\t" << n.str();
     }
     return os.str();
 }
@@ -65,7 +65,7 @@ void NeighborTableEntry::addNeighbor(const APN& neighbor) {
 }
 
 std::ostream& operator <<(std::ostream& os, const NeighborTableEntry& nte) {
-    return os << nte.info();
+    return os << nte.str();
 }
 
 bool NeighborTableEntry::hasNeighbor(const APN& neighbor) const

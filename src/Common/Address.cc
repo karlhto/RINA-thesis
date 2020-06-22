@@ -103,7 +103,7 @@ bool Address::operator <(const Address& other) const
     }
 }
 
-std::string Address::info() const
+std::string Address::str() const
 {
     std::ostringstream os;
     if (!ipcAddress.isUnspecified() && !difName.isUnspecified())
@@ -128,13 +128,13 @@ void Address::setIpcAddress(const APN& ipcAddress)
 
 std::ostream& operator <<(std::ostream& os, const Address& addr)
 {
-    return os << addr.info();
+    return os << addr.str();
 }
 
 std::ostream& operator <<(std::ostream& os, const Addresses& dims)
 {
     for (AddrCItem it = dims.begin(); it != dims.end(); ++it)
-        os << it->info() << endl;
+        os << it->str() << endl;
     return os;
 }
 

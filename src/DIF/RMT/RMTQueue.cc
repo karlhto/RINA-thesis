@@ -86,7 +86,7 @@ const Flow* RMTQueue::getFlow() const{
 }
 
 
-std::string RMTQueue::info() const
+std::string RMTQueue::str() const
 {
     std::ostringstream os;
 
@@ -99,7 +99,7 @@ std::string RMTQueue::info() const
 
 std::ostream& operator <<(std::ostream& os, const RMTQueue& cte)
 {
-    return os << cte.info();
+    return os << cte.str();
 }
 
 

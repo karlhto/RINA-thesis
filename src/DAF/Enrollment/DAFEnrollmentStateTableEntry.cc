@@ -151,7 +151,7 @@ std::string DAFEnrollmentStateTableEntry::getDAFEnrollmentStatusString() const {
     }
 }
 
-std::string DAFEnrollmentStateTableEntry::info() const {
+std::string DAFEnrollmentStateTableEntry::str() const {
     std::ostringstream os;
     if ( !(Source == Destination) ) {
         os << "Local> " << Source  << endl
@@ -162,14 +162,13 @@ std::string DAFEnrollmentStateTableEntry::info() const {
     }
     os << "CACEConnectionStatus: " << this->getCACEConnectionStatusString() << endl;
     os << "DAFEnrollmentStatus: " << this->getDAFEnrollmentStatusString() << endl;
-    //os << flow->info() <<  endl;
     return os.str();
 }
 
 
 
 std::ostream& operator <<(std::ostream& os, const DAFEnrollmentStateTableEntry& este) {
-    return os << este.info();
+    return os << este.str();
 }
 
 const APNamingInfo& DAFEnrollmentStateTableEntry::getLocal() const {

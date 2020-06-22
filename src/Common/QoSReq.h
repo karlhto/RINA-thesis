@@ -388,7 +388,7 @@ class QoSReq {
      * @brief Prints QoSReq information as string
      * @return String of QoSReq textual representation
      */
-    std::string info() const;
+    std::string str() const;
 };
 
 //Free function

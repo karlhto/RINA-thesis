@@ -290,22 +290,16 @@ void FANotifier::signalizeDeleteResponseFlow(Flow* flow) {
 }
 
 void FANotifier::processMCreate(CDAP_M_Create* msg) {
-//    EV << "Received M_Create";
     object_t object = msg->getObjectItem();
-//    EV << " with object '" << object.objectClass << "'" << endl;
     if (dynamic_cast<Flow*>(object.objectVal)) {
         Flow* fl = (check_and_cast<Flow*>(object.objectVal))->dup();
-        //EV << fl->info();
         fl->swapFlow();
-        //EV << "\n===========\n" << fl->info();
         flowAlloc->receiveCreateFlowRequestFromRibd(fl);
     }
 }
 
 void FANotifier::processMCreateR(CDAP_M_Create_R* msg) {
-//    EV << "Received M_Create_R";
     object_t object = msg->getObjectItem();
-//    EV << " with object '" << object.objectClass << "'" << endl;
     //CreateResponseFlow
     if (dynamic_cast<Flow*>(object.objectVal)) {
         Flow* flow = (check_and_cast<Flow*>(object.objectVal))->dup();
@@ -321,9 +315,7 @@ void FANotifier::processMCreateR(CDAP_M_Create_R* msg) {
 }
 
 void FANotifier::processMDelete(CDAP_M_Delete* msg) {
-//    EV << "Received M_Delete";
     object_t object = msg->getObjectItem();
-//    EV << " with object '" << object.objectClass << "'" << endl;
     //DeleteRequest Flow
     if (dynamic_cast<Flow*>(object.objectVal)) {
         Flow* fl = (check_and_cast<Flow*>(object.objectVal))->dup();
@@ -333,9 +325,7 @@ void FANotifier::processMDelete(CDAP_M_Delete* msg) {
 }
 
 void FANotifier::processMDeleteR(CDAP_M_Delete_R* msg) {
-//    EV << "Received M_Delete_R";
     object_t object = msg->getObjectItem();
-//    EV << " with object '" << object.objectClass << "'" << endl;
     //DeleteResponseFlow
     if (dynamic_cast<Flow*>(object.objectVal)) {
         Flow* flow = (check_and_cast<Flow*>(object.objectVal))->dup();

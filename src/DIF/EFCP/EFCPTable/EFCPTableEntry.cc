@@ -41,9 +41,9 @@ EFCPTableEntry::~EFCPTableEntry()
 }
 
 
-std::string EFCPTableEntry::info() const {
+std::string EFCPTableEntry::str() const {
     std::ostringstream os;
-    os << this->flow->info() << "\n" << "EFCPTanleEntry TODO";
+    os << this->flow->str() << "\n" << "EFCPTanleEntry TODO";
     return os.str();
 }
 
@@ -88,5 +88,5 @@ bool EFCPTableEntry::flushDTPs()
 }
 
 std::ostream& operator<< (std::ostream& os, const EFCPTableEntry* entry){
-    return os << entry->info();
+    return os << entry->str();
 }

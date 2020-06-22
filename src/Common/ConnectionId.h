@@ -121,7 +121,7 @@ class ConnectionId: public cObject {
      * @brief Info text outpu suitable for << strinng streams and WATCH
      * @return
      */
-    std::string info() const;
+    std::string str() const;
 
   protected:
     /**

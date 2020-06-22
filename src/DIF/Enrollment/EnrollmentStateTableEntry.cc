@@ -128,7 +128,7 @@ std::string EnrollmentStateTableEntry::getEnrollmentStatusString() const {
     }
 }
 
-std::string EnrollmentStateTableEntry::info() const {
+std::string EnrollmentStateTableEntry::str() const {
     std::ostringstream os;
     if ( !(Source == Destination) ) {
         os << "Local> " << Source  << endl
@@ -143,7 +143,7 @@ std::string EnrollmentStateTableEntry::info() const {
 }
 
 std::ostream& operator <<(std::ostream& os, const EnrollmentStateTableEntry& este) {
-    return os << este.info();
+    return os << este.str();
 }
 
 const APNamingInfo& EnrollmentStateTableEntry::getLocal() const {

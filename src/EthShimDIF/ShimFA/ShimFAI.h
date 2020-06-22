@@ -30,6 +30,8 @@ class ShimFAI : public FAIBase, public cListener
     ShimFAI();
     virtual ~ShimFAI();
 
+    virtual std::string str() const;
+
     // Need the rest of them
     virtual bool receiveAllocateRequest();
     virtual bool receiveAllocateResponsePositive();

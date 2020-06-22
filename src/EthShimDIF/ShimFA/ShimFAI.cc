@@ -92,6 +92,13 @@ void ShimFAI::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObje
     (void)src;
 }
 
+std::string ShimFAI::str() const {
+    std::stringstream os;
+    os << "FAI>" << endl
+       << "\tlocal  Port-ID: " << this->localPortId << endl;
+    return os.str();
+}
+
 // Irrelevant functions
 bool ShimFAI::receiveCreateResponsePositive(Flow *) { return false; }
 bool ShimFAI::receiveDeallocateRequest() { return false; }

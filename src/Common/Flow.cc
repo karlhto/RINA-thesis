@@ -262,7 +262,7 @@ std::string Flow::infoQoS() const {
     {
         os << " (aggregated)";
     }
-    os << endl << qosReqs.info();
+    os << endl << qosReqs.str();
     return os.str();
 }
 
@@ -324,7 +324,7 @@ void Flow::setQosRequirements(const QoSReq& qosParameters) {
     this->qosReqs = qosParameters;
 }
 
-std::string Flow::info() const {
+std::string Flow::str() const {
     std::stringstream os;
     os << infoSource() << endl;
     os << infoDestination() << endl;
@@ -334,7 +334,7 @@ std::string Flow::info() const {
 }
 
 std::ostream& operator<< (std::ostream& os, const Flow& fl) {
-    return os << fl.info();
+    return os << fl.str();
 }
 
 const Address& Flow::getDstNeighbor() const {
@@ -359,7 +359,6 @@ Flow* Flow::dupToMgmt() const {
     mgmtflow->setSrcApni(getSrcAddr().getApn());
     mgmtflow->setDstApni(getDstNeighbor().getApn());
     mgmtflow->setDstAddr(getDstNeighbor().getApn());
-    //EV << mgmtflow->info() << endl;
     return mgmtflow;
 }
 

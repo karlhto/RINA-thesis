@@ -39,7 +39,7 @@ void NFlowTable::initialize()
     WATCH_LIST(NFlowTab);
 }
 
-std::string NFlowTable::info() const {
+std::string NFlowTable::str() const {
     std::ostringstream os;
     os << "id=" << this->getId() << endl;
     return os.str();
@@ -101,20 +101,6 @@ NFlowTableEntry* NFlowTable::findEntryByInvokeId(long invId) {
     return NULL;
 }
 
-/*
-TFAIPtrs NFlowTable::findEntriesAffectedByMgmt(const Flow* flow) {
-    TFAIPtrs list;
-    for(TFTIter it = FaiTable.begin(); it != FaiTable.end(); ++it) {
-        NFlowTableEntry tft = *it;
-        if (tft.getCFlow()->getSrcNeighbor().getApname() == flow->getSrcApni().getApn()
-            && tft.getCFlow()->getDstNeighbor().getApname() == flow->getDstApni().getApn()
-            && tft.getAllocateStatus() == NFlowTableEntry::ALLOC_PEND)
-            list.push_back(&(*it));
-    }
-    return list;
-}
-*/
-
 //XXX: Vesely - This search does not yield exact intended match!
 NFlowTableEntry* NFlowTable::findMgmtEntryByDstNeighbor(const Address& addr) {
     for(TFTIter it = NFlowTab.begin(); it != NFlowTab.end(); ++it) {
@@ -128,6 +114,8 @@ NFlowTableEntry* NFlowTable::findMgmtEntryByDstNeighbor(const Address& addr) {
 
 void NFlowTable::handleMessage(cMessage *msg)
 {
+    delete msg;
+    throw cRuntimeError("This module is not supposed to handle messages");
 }
 
 void NFlowTable::insertNew(Flow* flow) {
@@ -211,15 +199,6 @@ void NFlowTable::updateDisplayString() {
 
 void NFlowTable::initSignalsAndListeners() {
     sigStatFTSize = registerSignal(SIG_STAT_FT_SIZE);
-}
-
-NFlowTableEntry* NFlowTable::findMgmtEntry(const Flow* flow) {
-    for(TFTIter it = NFlowTab.begin(); it != NFlowTab.end(); ++it) {
-        NFlowTableEntry tft = *it;
-        if (tft.getCFlow()->isManagementFlowLocalToIPCP())
-            return &(*it);
-    }
-    return NULL;
 }
 
 NFlowTableEntry* NFlowTable::findMgmtEntryByDstAddr(const Address& addr) {

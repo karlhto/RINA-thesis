@@ -324,7 +324,7 @@ void FAI::handleMessage(cMessage *msg) {
     delete msg;
 }
 
-std::string FAI::info() const {
+std::string FAI::str() const {
     std::stringstream os;
     os << "FAI>" << endl
        << "\tlocal  Port-ID: " << this->localPortId << "\tCEP-ID: " << this->localCEPId << endl
@@ -334,7 +334,7 @@ std::string FAI::info() const {
 
 //Free function
 std::ostream& operator<< (std::ostream& os, const FAI& fai) {
-    return os << fai.info();
+    return os << fai.str();
 }
 
 bool FAI::createEFCPI() {

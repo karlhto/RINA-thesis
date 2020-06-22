@@ -29,16 +29,9 @@ void ConnectionTable::initialize()
     WATCH_LIST(ConTable);
 }
 
-std::string ConnectionTable::info() const {
+std::string ConnectionTable::str() const {
     std::ostringstream os;
     os << "id=" << this->getId() << endl;
-    /*
-    for(TCTConstIter it = ConTable.begin(); it != ConTable.end(); ++it )
-    {
-        ConnectionTableEntry cte = *it;
-        os << cte << endl;
-    }
-    */
     return os.str();
 }
 

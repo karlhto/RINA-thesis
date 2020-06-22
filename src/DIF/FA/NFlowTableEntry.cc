@@ -48,7 +48,7 @@ NFlowTableEntry::~NFlowTableEntry() {
     timeDeleted     = 0;
 }
 
-std::string NFlowTableEntry::info() const {
+std::string NFlowTableEntry::str() const {
     std::ostringstream os;
     os << "STATUS: " << this->getAllocateStatusString() << endl;
     if ( this->getFai() )
@@ -65,7 +65,7 @@ std::string NFlowTableEntry::info() const {
 }
 
 std::ostream& operator <<(std::ostream& os, const NFlowTableEntry& fte) {
-    return os << fte.info();
+    return os << fte.str();
 }
 
 FAIBase* NFlowTableEntry::getFai() const {

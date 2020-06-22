@@ -44,7 +44,7 @@ class ConnectionTableEntry {
     ConnectionTableEntry(Flow* flow);
     virtual ~ConnectionTableEntry();
 
-    std::string info() const;
+    std::string str() const;
     std::string getConnectionStatusString() const;
 
     //Getters and Setters

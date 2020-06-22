@@ -41,7 +41,6 @@ void LisFAIAllocResNega::receiveSignal(cComponent* src, simsignal_t id,
         cObject* obj, cObject *detail) {
     EV << "AllocateResponseNegative initiated by " << src->getFullPath() << " and processed by " << fai->getFullPath() << endl;
     Flow* fl = dynamic_cast<Flow*>(obj);
-    //EV << "Emitted" << endl << fl->info() << endl << endl << "Recv" << fai->getFlow()->info() << endl;
     if (fai->getFlow() == fl)
         fai->receiveAllocateResponseNegative();
 }

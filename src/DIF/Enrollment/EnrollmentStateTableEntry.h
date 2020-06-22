@@ -78,7 +78,7 @@ public:
     void setCACEConStatus(EnrollmentStateTableEntry::CACEConnectionStatus status);
     void setEnrollmentStatus(EnrollmentStateTableEntry::EnrollmentStatus status);
 
-    std::string info() const;
+    std::string str() const;
     std::string getCACEConnectionStatusString() const;
     std::string getEnrollmentStatusString() const;
     const APNamingInfo& getLocal() const;
