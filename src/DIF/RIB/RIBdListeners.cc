@@ -29,7 +29,7 @@ RIBdListeners::RIBdListeners(RIBdBase* nribd) : ribd(nribd)
 }
 
 RIBdListeners::~RIBdListeners() {
-    ribd = NULL;
+    ribd = nullptr;
 }
 
 void LisRIBDRcvData::receiveSignal(cComponent* src, simsignal_t id,

@@ -59,12 +59,12 @@ NeighborTableEntry* NeighborTable::findNeighborEntryByApn(const APN& apn) {
         if (it->getApn() == apn)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 const APNList* NeighborTable::findNeighborsByApn(const APN& apn) {
     NeighborTableEntry* entry = findNeighborEntryByApn(apn);
-    return entry ? &(entry->getNeigbors()) : NULL;
+    return entry ? &(entry->getNeigbors()) : nullptr;
 }
 
 void NeighborTable::addNewNeighbor(const APN& apn, const APN& neighbor) {
@@ -86,8 +86,8 @@ const APNList* NeighborTable::findApnsByNeighbor(const APN& neighbor) {
 }
 
 void NeighborTable::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-    if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(ELEM_NEIGHTAB))
+    cXMLElement* mainTag = nullptr;
+    if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(ELEM_NEIGHTAB))
         mainTag = config->getFirstChildWithTag(ELEM_NEIGHTAB);
     else {
         EV << "configData parameter not initialized!" << endl;

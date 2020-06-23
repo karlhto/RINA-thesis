@@ -42,7 +42,7 @@
 class PDU : public PDU_Base
 {
   public:
-    PDU(const char *name = NULL, int kind = 0) : PDU_Base(name, kind) {}
+    PDU(const char *name = nullptr, int kind = 0) : PDU_Base(name, kind) {}
 
     virtual PDU *dup() const { return new PDU(*this); }
     // ADD CODE HERE to redefine and implement pure virtual functions from PDU_Base

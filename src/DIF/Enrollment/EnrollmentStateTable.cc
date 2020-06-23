@@ -84,8 +84,8 @@ bool EnrollmentStateTable::isEnrolled(const APN& myApn) {
 }
 
 void EnrollmentStateTable::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-        if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(ELEM_ENSTATETAB))
+    cXMLElement* mainTag = nullptr;
+        if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(ELEM_ENSTATETAB))
             mainTag = config->getFirstChildWithTag(ELEM_ENSTATETAB);
         else {
             EV << "configData parameter not initialized!" << endl;

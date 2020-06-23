@@ -20,7 +20,7 @@ DAFEnrollmentNotifierListeners::DAFEnrollmentNotifierListeners(DAFEnrollmentNoti
 }
 
 DAFEnrollmentNotifierListeners::~DAFEnrollmentNotifierListeners() {
-    enb = NULL;
+    enb = nullptr;
 }
 
 void LisDAFEnrollmentNotifierRcvCACE::receiveSignal(cComponent* src, simsignal_t id,

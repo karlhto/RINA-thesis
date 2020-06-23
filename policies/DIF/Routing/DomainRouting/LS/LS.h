@@ -89,7 +89,7 @@ struct psT {
     TreeNode* p;
     unsigned short metric;
     psT()
-        :p(NULL), metric(UINT16_MAX){}
+        :p(nullptr), metric(UINT16_MAX){}
     psT(TreeNode* _p, const unsigned short _metric)
         :p(_p), metric(_metric){}
 

@@ -52,7 +52,7 @@ NFlowTableEntry* NFlowTable::findEntryByDstAddressAndFwd(const APN& apname) {
                 && tft.getAllocateStatus() == NFlowTableEntry::FORWARDED)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 NFlowTableEntry* NFlowTable::findEntryBySrcAddressAndFwd(const APN& apname) {
@@ -65,7 +65,7 @@ NFlowTableEntry* NFlowTable::findEntryBySrcAddressAndFwd(const APN& apname) {
                 && tft.getAllocateStatus() == NFlowTableEntry::FORWARDED)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 
 }
 
@@ -77,7 +77,7 @@ NFlowTableEntry* NFlowTable::findEntryByApns(const APN& srcApn, const APN& dstAp
                 && tft.getAllocateStatus() == NFlowTableEntry::FORWARDED)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 TFAIPtrs NFlowTable::findEntriesByDstNeighborAndFwd(const APN& apname) {
@@ -92,13 +92,13 @@ TFAIPtrs NFlowTable::findEntriesByDstNeighborAndFwd(const APN& apname) {
 }
 
 NFlowTableEntry* NFlowTable::findEntryByInvokeId(long invId) {
-    if (!invId) return NULL;
+    if (!invId) return nullptr;
     for(TFTIter it = NFlowTab.begin(); it != NFlowTab.end(); ++it) {
         NFlowTableEntry tft = *it;
         if (tft.getCFlow()->getAllocInvokeId() == invId)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 //XXX: Vesely - This search does not yield exact intended match!
@@ -109,7 +109,7 @@ NFlowTableEntry* NFlowTable::findMgmtEntryByDstNeighbor(const Address& addr) {
             && tft.getCFlow()->isManagementFlowLocalToIPCP())
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 void NFlowTable::handleMessage(cMessage *msg)
@@ -143,7 +143,7 @@ NFlowTableEntry* NFlowTable::findEntryByFlow(const Flow* flow) {
         if (*(tft.getCFlow()) == *flow)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 NFlowTableEntry* NFlowTable::findEntryByFai(FAIBase* fai) {
@@ -152,7 +152,7 @@ NFlowTableEntry* NFlowTable::findEntryByFai(FAIBase* fai) {
         if (tft.getFai() == fai)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 NFlowTableEntry *NFlowTable::findEntryByApnisAndQosId(const APN &srcApn, const APN &dstApn,
@@ -208,7 +208,7 @@ NFlowTableEntry* NFlowTable::findMgmtEntryByDstAddr(const Address& addr) {
             && tft.getCFlow()->isManagementFlowLocalToIPCP())
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 NFlowTableEntry* NFlowTable::findMgmtEntryByDstApni(const APN& dstApn) {
@@ -218,7 +218,7 @@ NFlowTableEntry* NFlowTable::findMgmtEntryByDstApni(const APN& dstApn) {
             && tft.getCFlow()->isManagementFlowLocalToIPCP())
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 unsigned int NFlowTable::getSize() const {

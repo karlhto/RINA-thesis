@@ -63,7 +63,7 @@ DAFEnrollmentStateTableEntry* DAFEnrollmentStateTable::findEntryByDstAPN(const A
             return &(*it);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 DAFEnrollmentStateTableEntry* DAFEnrollmentStateTable::findEntryByDstAPNI(const APNamingInfo& apni) {
@@ -77,7 +77,7 @@ DAFEnrollmentStateTableEntry* DAFEnrollmentStateTable::findEntryByDstAPNI(const 
             return &(*it);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void DAFEnrollmentStateTable::handleMessage(cMessage *msg)
@@ -98,8 +98,8 @@ bool DAFEnrollmentStateTable::isEnrolled(const APN& myApn) {
 }
 
 void DAFEnrollmentStateTable::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-        if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(DAF_DAF_ELEM_ENSTATETAB))
+    cXMLElement* mainTag = nullptr;
+        if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(DAF_DAF_ELEM_ENSTATETAB))
             mainTag = config->getFirstChildWithTag(DAF_DAF_ELEM_ENSTATETAB);
         else {
             EV << "configData parameter not initialized!" << endl;

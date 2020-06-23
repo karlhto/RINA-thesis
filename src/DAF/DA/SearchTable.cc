@@ -50,7 +50,7 @@ SearchTableEntry* SearchTable::findSearchEntryByApn(const APN& apn) {
         if (it->getApn() == apn)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 void SearchTable::handleMessage(cMessage *msg)
@@ -64,7 +64,7 @@ void SearchTable::addSearchEntry(const APN& apn) {
 
 const APNList* SearchTable::findPeersByApn(const APN& apn) {
     SearchTableEntry* entry = findSearchEntryByApn(apn);
-    return entry ? &(entry->getPeers()) : NULL;
+    return entry ? &(entry->getPeers()) : nullptr;
 }
 
 void SearchTable::addNewPeerDa(const APN& apn, const APN& peer) {

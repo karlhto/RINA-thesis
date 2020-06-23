@@ -26,7 +26,7 @@ APListeners::APListeners(AP* nap) : ap(nap) {
 }
 
 APListeners::~APListeners() {
-    ap = NULL;
+    ap = nullptr;
 }
 
 void LisAPAllReqFromFai::receiveSignal(cComponent* src, simsignal_t id,

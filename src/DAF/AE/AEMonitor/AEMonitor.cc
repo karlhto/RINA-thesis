@@ -43,7 +43,7 @@ bool AEMonitor::onA_read(APIReqObj* obj) {
     object.objectName = obj->getObjName();
     object.objectClass = "int";
     object.objectInstance = -1;
-    object.objectVal = NULL;
+    object.objectVal = nullptr;
     ping->setObjectItem(object);
     ping->setByteLength((int)par("size").longValue());
 

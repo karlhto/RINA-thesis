@@ -32,9 +32,9 @@ const Address* DA::resolveApnToBestAddress(const APN& apn) {
     Enter_Method("resolveApnToBestAddress()");
 
     DirectoryEntry* de = resolveApn(apn);
-    if (de == NULL) {
+    if (de == nullptr) {
         EV << "DA does not know target application" << endl;
-        return NULL;
+        return nullptr;
     }
 
     //Return first local DIF address
@@ -44,16 +44,16 @@ const Address* DA::resolveApnToBestAddress(const APN& apn) {
     }
 
     EV << "None of found DIFs is local!" << endl;
-    return NULL;
+    return nullptr;
 }
 
 const Address* DA::resolveApnToBestAddress(const APN& apn, const DAP& difName) {
     Enter_Method("resolveApnToBestAddress()");
 
     DirectoryEntry* de = resolveApn(apn);
-    if (de == NULL) {
+    if (de == nullptr) {
         EV << "DA does not know target application" << endl;
-        return NULL;
+        return nullptr;
     }
 
     //Return address from a given DIF
@@ -63,7 +63,7 @@ const Address* DA::resolveApnToBestAddress(const APN& apn, const DAP& difName) {
     }
 
     EV << "None of found DIFs is local!" << endl;
-    return NULL;
+    return nullptr;
 }
 
 const APNList* DA::findNeigborApns(const APN& neighbor) {
@@ -164,7 +164,7 @@ cModule* DA::getDifMember(const DAP& difName) {
            )
             return submodp;
     }
-    return NULL;
+    return nullptr;
 }
 
 cModule* DA::findIpc(const Address& addr) {
@@ -177,7 +177,7 @@ cModule* DA::findIpc(const Address& addr) {
                 return submodp;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 FABase* DA::findFaInsideIpc(cModule* ipc) {
@@ -193,7 +193,7 @@ DirectoryEntry* DA::resolveApn(const APN& apn) {
         if (dre)
             return dre;
     }
-    return NULL;
+    return nullptr;
 }
 
 void DA::handleMessage(cMessage *msg)
@@ -209,7 +209,7 @@ cModule* DA::findApp(const APN& apn) {
             return submodp;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 
@@ -217,9 +217,9 @@ const Addresses* DA::resolveApnToAddressList(const APN& apn, const DAP& difName)
     Enter_Method("resolveApnToAddressList()");
 
     DirectoryEntry* de = resolveApn(apn);
-    if (de == NULL) {
+    if (de == nullptr) {
         EV << "DA does not know target application" << endl;
-        return NULL;
+        return nullptr;
     }
 
     Addresses* addrs = new Addresses();

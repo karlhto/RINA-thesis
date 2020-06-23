@@ -152,7 +152,7 @@ EFCPInstance* EFCP::createEFCPI(const Flow* flow, int cepId, int portId){
 
   //-1. Check for existing Delimiting module for this Flow
   EFCPTableEntry* tmpEfcpEntry;
-  if((tmpEfcpEntry = efcpTable->getEntryByFlow(flow)) ==NULL){
+  if((tmpEfcpEntry = efcpTable->getEntryByFlow(flow)) ==nullptr){
     tmpEfcpEntry = new EFCPTableEntry();
 
     //TODO A! If it works, delete Delimiting
@@ -188,7 +188,7 @@ EFCPInstance* EFCP::createEFCPI(const Flow* flow, int cepId, int portId){
   if(qosCube->isDTCPNeeded()){
       efcpi->setDtcp(this->createDTCP(efcpiModule, efcpPolicySet, qosCube));
   }else{
-    efcpi->setDtcp(NULL);
+    efcpi->setDtcp(nullptr);
   }
   //Put created EFCP instance to EFCP Table Entry
   tmpEfcpEntry->addEFCPI(efcpi);
@@ -247,7 +247,7 @@ EFCPInstance* EFCP::createEFCPI(const Flow* flow, int cepId, int portId){
   efcpiModule->callInitialize();
 
   DTCP* dtcp = efcpi->getDtcp();
-  if(dtcp != NULL){
+  if(dtcp != nullptr){
     cDisplayString& disp = dtcp->getDisplayString();
 
     disp.setTagArg("p", 0, 70);
@@ -360,7 +360,7 @@ Delimiting* EFCP::createDelimiting(cModule* efcpiModule, int portId){
 bool EFCP::deleteEFCPI(Flow* flow)
 {
   EFCPTableEntry* entry;
-  if((entry = efcpTable->getEntryByFlow(flow)) == NULL){
+  if((entry = efcpTable->getEntryByFlow(flow)) == nullptr){
 
     EV << getFullPath() << ": failed to found EFCPTableEntry by Flow to deallocate EFCPI" << endl;
     return false;

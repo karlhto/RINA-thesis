@@ -29,7 +29,7 @@ AuthListeners::AuthListeners(Auth* nauth): auth(nauth)
 }
 
 AuthListeners::~AuthListeners() {
-    auth = NULL;
+    auth = nullptr;
 }
 
 

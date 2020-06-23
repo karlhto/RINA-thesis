@@ -42,7 +42,7 @@ class DataTransferPDU : public DataTransferPDU_Base
       UserDataFieldPtr userDataField_var;
 
     public:
-      DataTransferPDU(const char *name=NULL, int kind=0);
+      DataTransferPDU(const char *name=nullptr, int kind=0);
       DataTransferPDU(const DataTransferPDU& other) : DataTransferPDU_Base(other) {copy(other);}
 //      DataTransferPDU& operator=(const DataTransferPDU& other) {if (this==&other) return *this; DataTransferPDU_Base::operator=(other); copy(other); return *this;}
       virtual DataTransferPDU *dup() const {return new DataTransferPDU(*this);}

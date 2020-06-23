@@ -48,7 +48,7 @@ CDAPMsgLogEntry* CDAPMsgLog::findByMessage(CDAPMessage* cdapmsg) {
             && it->getInvokeId() == cdapmsg->getInvokeID())
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 CDAPMsgLogEntry* CDAPMsgLog::findRequestByInvId(CDAPMessage* cdapmsg) {
@@ -57,7 +57,7 @@ CDAPMsgLogEntry* CDAPMsgLog::findRequestByInvId(CDAPMessage* cdapmsg) {
             && it->getInvokeId() == cdapmsg->getInvokeID())
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 void CDAPMsgLog::handleMessage(cMessage* msg) {

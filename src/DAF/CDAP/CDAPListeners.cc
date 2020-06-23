@@ -28,7 +28,7 @@ CDAPListeners::CDAPListeners(CDAP* ncdap): cdap(ncdap)
 }
 
 CDAPListeners::~CDAPListeners() {
-    cdap = NULL;
+    cdap = nullptr;
 }
 
 void LisCDAPSendData::receiveSignal(cComponent* src, simsignal_t id,

@@ -28,7 +28,7 @@ void DAFEnrollmentNotifier::initialize() {
 
 void DAFEnrollmentNotifier::initPointers() {
     RIBd = check_and_cast<AEMgmtBase*>( getModuleByPath("^.aemgmt") );
-    FlowObj = NULL;
+    FlowObj = nullptr;
 }
 
 void DAFEnrollmentNotifier::initSignalsAndListeners() {

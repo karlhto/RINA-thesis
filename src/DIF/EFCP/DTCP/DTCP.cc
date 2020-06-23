@@ -29,22 +29,22 @@ DTCP::DTCP() {
 //  rxControl = NULL;
 //  flowControl = NULL;
 
-  ecnPolicy = NULL;
-  rcvrFCPolicy = NULL;
-  rcvrAckPolicy = NULL;
-  receivingFCPolicy = NULL;
-  sendingAckPolicy = NULL;
-  lostControlPDUPolicy = NULL;
-  rcvrControlAckPolicy = NULL;
-  senderAckPolicy = NULL;
-  sndFcOverrunPolicy = NULL;
-  noOverridePeakPolicy = NULL;
-  txControlPolicy = NULL;
-  noRateSlowDownPolicy = NULL;
-  reconcileFCPolicy = NULL;
-  rateReductionPolicy = NULL;
-  ecnSlowDownPolicy = NULL;
-  rxTimerExpiryPolicy = NULL;
+  ecnPolicy = nullptr;
+  rcvrFCPolicy = nullptr;
+  rcvrAckPolicy = nullptr;
+  receivingFCPolicy = nullptr;
+  sendingAckPolicy = nullptr;
+  lostControlPDUPolicy = nullptr;
+  rcvrControlAckPolicy = nullptr;
+  senderAckPolicy = nullptr;
+  sndFcOverrunPolicy = nullptr;
+  noOverridePeakPolicy = nullptr;
+  txControlPolicy = nullptr;
+  noRateSlowDownPolicy = nullptr;
+  reconcileFCPolicy = nullptr;
+  rateReductionPolicy = nullptr;
+  ecnSlowDownPolicy = nullptr;
+  rxTimerExpiryPolicy = nullptr;
 
 
 
@@ -75,7 +75,7 @@ cModule* DTCP::createPolicyModule(const char* prefix, const char* name)
 {
   if (std::string(par(name).stringValue()).empty())
   {
-    return NULL;
+    return nullptr;
   }else{
     std::stringstream moduleName;
     moduleName << prefix << par(name).stringValue();

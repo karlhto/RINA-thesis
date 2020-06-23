@@ -20,7 +20,7 @@ EnrollmentNotifierListeners::EnrollmentNotifierListeners(EnrollmentNotifierBase*
 }
 
 EnrollmentNotifierListeners::~EnrollmentNotifierListeners() {
-    enb = NULL;
+    enb = nullptr;
 }
 
 void LisRIBDRcvCACE::receiveSignal(cComponent* src, simsignal_t id,

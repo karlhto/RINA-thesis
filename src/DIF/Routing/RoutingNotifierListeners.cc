@@ -22,7 +22,7 @@ RoutingNotifierListeners::RoutingNotifierListeners(RoutingNotifierBase* rnb) :
 
 RoutingNotifierListeners::~RoutingNotifierListeners()
 {
-    rnb = NULL;
+    rnb = nullptr;
 }
 
 void LisRIBDRoutingUpdate::receiveSignal(cComponent* src, simsignal_t id,

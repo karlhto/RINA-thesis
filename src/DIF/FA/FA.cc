@@ -43,11 +43,11 @@ const simsignal_t FA::createResponseNegativeSignal = registerSignal(SIG_FA_Creat
 Define_Module(FA);
 
 FA::FA() {
-    nFlowTable = NULL;
+    nFlowTable = nullptr;
 }
 
 FA::~FA() {
-    nFlowTable = NULL;
+    nFlowTable = nullptr;
 }
 
 void FA::initPointers() {
@@ -84,7 +84,7 @@ const Address FA::getAddressFromDa(const APN& apn, bool useNeighbor, bool isMgmt
     if (!isMgmtFlow) {
         //Ask DA which IPC to use to reach src App
         const Address* ad = difAllocator->resolveApnToBestAddress(apn, myAddress.getDifName());
-        if (ad == NULL) {
+        if (ad == nullptr) {
             EV << " DIF Allocator returned NULL for resolving " << apn << endl;
             return Address();
         }
@@ -145,7 +145,7 @@ bool FA::changeSrcAddress(Flow* flow, bool useNeighbor) {
     else {
         //Ask DA which IPC to use to reach src App
         const Address* ad = difAllocator->resolveApnToBestAddress(flow->getSrcApni().getApn(), myAddress.getDifName());
-        if (ad == NULL) {
+        if (ad == nullptr) {
             EV << "difAllocator returned NULL for resolving " << flow->getSrcApni().getApn() << endl;
             return false;
         }
@@ -158,7 +158,7 @@ bool FA::changeSrcAddress(Flow* flow, bool useNeighbor) {
 bool FA::changeDstAddresses(Flow* flow, bool useNeighbor) {
     //Ask DA which IPC to use to reach dst App
     const Address* ad = difAllocator->resolveApnToBestAddress(flow->getDstApni().getApn());
-    if (ad == NULL) {
+    if (ad == nullptr) {
         EV << "difAllocator returned NULL for resolving " << flow->getDstApni().getApn() << endl;
         return false;
     }

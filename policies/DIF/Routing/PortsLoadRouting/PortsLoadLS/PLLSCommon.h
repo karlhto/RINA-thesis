@@ -106,7 +106,7 @@ struct psT
 
     psT()
     {
-        p = NULL;
+        p = nullptr;
         metric = UINT16_MAX;
     }
 

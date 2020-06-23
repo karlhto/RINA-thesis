@@ -95,7 +95,7 @@ EFCPTableEntry* EFCPTable::getEntryByEFCPI(EFCPInstance* efcpi){
     }
   }
 
-  return NULL;
+  return nullptr;
 
 }
 
@@ -114,7 +114,7 @@ EFCPTableEntry* EFCPTable::getEntryByDelimit(Delimiting* delimit){
     }
   }
 
-  return NULL;
+  return nullptr;
 
 }
 
@@ -139,5 +139,5 @@ DTP* EFCPTable::getDTPBySrcCEP(int srcCEP)
       return (*it)->getEfcpiTab()->front()->getDtp();
     }
   }
-  return NULL;
+  return nullptr;
 }

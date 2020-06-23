@@ -33,11 +33,11 @@ const int FABase::MAX_CEPID  = 65535;
 const char* TIM_FAPENDFLOWS = "FA-PendingFlows";
 
 FABase::FABase() {
-    this->nFlowTable = NULL;
+    this->nFlowTable = nullptr;
 }
 
 FABase::~FABase() {
-    this->nFlowTable = NULL;
+    this->nFlowTable = nullptr;
 }
 
 NFlowTable* FABase::getNFlowTable() const {

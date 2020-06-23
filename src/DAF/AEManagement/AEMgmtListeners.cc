@@ -29,7 +29,7 @@ AEMgmtListeners::AEMgmtListeners(AEMgmtBase* naemgmt) : aemgmt(naemgmt)
 }
 
 AEMgmtListeners::~AEMgmtListeners() {
-    aemgmt = NULL;
+    aemgmt = nullptr;
 }
 
 

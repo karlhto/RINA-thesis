@@ -47,7 +47,7 @@ NamingInformationEntry* NamingInformation::findNamingEntryByApn(const APN& apn) 
         if (it->getApn() == apn)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 void NamingInformation::addNewSynonym(const APN& apn, const APN& synonym) {
@@ -63,13 +63,13 @@ NamingInformationEntry* NamingInformation::findNamingEntryBySynonym(const APN& s
         if (it->hasSynonym(synonym))
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 
 }
 
 const APN* NamingInformation::findApnBySynonym(const APN& synonym) {
     NamingInformationEntry* entry = findNamingEntryBySynonym(synonym);
-    return entry ? &(entry->getApn()) : NULL;
+    return entry ? &(entry->getApn()) : nullptr;
 }
 
 void NamingInformation::handleMessage(cMessage *msg)
@@ -83,16 +83,16 @@ const APNList NamingInformation::findAllApnNames(const APN& apn) {
 
     APNList result = APNList();
     //APN does not exist within NamingInfo
-    if (entry1 == NULL && entry2 == NULL) {
+    if (entry1 == nullptr && entry2 == nullptr) {
         EV << "No NamingInfo thus considering " << apn << " as unique!" << endl;
         result.push_back(apn);
     }
     //APN without any synonyms
-    else if (entry1 != NULL && entry2 == NULL) {
+    else if (entry1 != nullptr && entry2 == nullptr) {
         result.push_back(apn);
     }
     //Found based on synonym
-    else if (entry1 == NULL && entry2 != NULL) {
+    else if (entry1 == nullptr && entry2 != nullptr) {
         result = entry2->getSynonyms();
         result.push_back(apn);
     }
@@ -106,8 +106,8 @@ const APNList NamingInformation::findAllApnNames(const APN& apn) {
 }
 
 void NamingInformation::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-    if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(ELEM_NAMINGTABLE))
+    cXMLElement* mainTag = nullptr;
+    if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(ELEM_NAMINGTABLE))
         mainTag = config->getFirstChildWithTag(ELEM_NAMINGTABLE);
     else {
         EV << "configData parameter not initialized!" << endl;

@@ -59,7 +59,7 @@ public:
 //  SDU();
   virtual ~SDU();
 
-    SDU(const char *name=NULL, int kind=0);
+    SDU(const char *name=nullptr, int kind=0);
     SDU(const SDU& other); // : SDU_Base(other) {copy(other);}
     SDU& operator=(const SDU& other)
     {

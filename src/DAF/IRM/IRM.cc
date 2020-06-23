@@ -36,8 +36,8 @@ IRM::IRM() {
 }
 
 IRM::~IRM() {
-    ConTable = NULL;
-    DifAllocator = NULL;
+    ConTable = nullptr;
+    DifAllocator = nullptr;
     statPassUp = 0;
     statPassDown = 0;
     statDiscarded = 0;
@@ -218,7 +218,7 @@ void IRM::newFlow(Flow* flow) {
 
     //Ask DA which IPC to use to reach dst App
     const Address* ad = DifAllocator->resolveApnToBestAddress(flow->getDstApni().getApn());
-    if (ad == NULL) {
+    if (ad == nullptr) {
         EV << "DifAllocator returned NULL for resolving " << flow->getDstApni().getApn() << endl;
         return;
     }

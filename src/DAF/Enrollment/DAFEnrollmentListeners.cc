@@ -37,7 +37,7 @@ DAFEnrollmentListeners::DAFEnrollmentListeners(DAFEnrollment* nenrollment): enro
 }
 
 DAFEnrollmentListeners::~DAFEnrollmentListeners() {
-    enrollment = NULL;
+    enrollment = nullptr;
 }
 
 

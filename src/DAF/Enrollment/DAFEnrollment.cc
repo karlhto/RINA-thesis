@@ -49,13 +49,13 @@ const char* DAF_ELEM_CONNECT      = "Connect";
 const char* DAF_ELEM_RELEASE      = "Release";
 const char* DAF_ATTR_TIME         = "t";
 
-DAFEnrollment::DAFEnrollment() : cace(NULL), StateTable(NULL)//, aemgmt(NULL)
+DAFEnrollment::DAFEnrollment() : cace(nullptr), StateTable(nullptr)//, aemgmt(NULL)
 {
 }
 
 DAFEnrollment::~DAFEnrollment(){
-    StateTable = NULL;
-    cace = NULL;
+    StateTable = nullptr;
+    cace = nullptr;
     //aemgmt = NULL;
 }
 
@@ -759,8 +759,8 @@ void DAFEnrollment::signalizeEnrollmentFinished(DAFEnrollmentStateTableEntry* en
 }
 
 void DAFEnrollment::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-    if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(DAF_ELEM_PREENROL))
+    cXMLElement* mainTag = nullptr;
+    if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(DAF_ELEM_PREENROL))
         mainTag = config->getFirstChildWithTag(DAF_ELEM_PREENROL);
     else {
         EV << "configData parameter not initialized!" << endl;

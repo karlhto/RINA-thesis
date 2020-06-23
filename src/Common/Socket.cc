@@ -69,7 +69,7 @@ QueueInfo* Socket::makeQueueInfo()
 
 void Socket::handleMessage(cMessage* msg) {
   std::string str = msg->getArrivalGate()->getName();
-  if(strstr(msg->getArrivalGate()->getName(), "southIo$i") != NULL){
+  if(strstr(msg->getArrivalGate()->getName(), "southIo$i") != nullptr){
 
       if(readImm){
           send(msg,"cdapIo$o");

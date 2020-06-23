@@ -52,7 +52,7 @@ void DTPState::setBlockingPort(bool blockingPort)
 
 void DTPState::resetRcvVars()
 {
-  currentPDU = NULL;
+  currentPDU = nullptr;
 //  dropDup = 0;
 //  lastSDUDelivered = 0;
   rcvLeftWinEdge = 0;
@@ -108,7 +108,7 @@ void DTPState::initDefaults(){
   qoSCube = nullptr;
 
   /* Rcv */
-  currentPDU = NULL;
+  currentPDU = nullptr;
   dropDup = 0;
   lastSDUDelivered = 0;
   rcvLeftWinEdge = 0;
@@ -364,7 +364,7 @@ void DTPState::pushBackToReassemblyPDUQ(DataTransferPDU* pdu)
 void DTPState::addPDUToReassemblyQ(DataTransferPDU* pdu)
 {
 
-  if (pdu != NULL)
+  if (pdu != nullptr)
   {
     take(pdu);
     if (reassemblyPDUQ.empty())

@@ -26,7 +26,7 @@ DAFRIBdListeners::DAFRIBdListeners(DAFRIBdBase* nribd) : ribd(nribd) {
 }
 
 DAFRIBdListeners::~DAFRIBdListeners() {
-    ribd = NULL;
+    ribd = nullptr;
 }
 
 void LisDAFRIBDRcvData::receiveSignal(cComponent* src, simsignal_t id,

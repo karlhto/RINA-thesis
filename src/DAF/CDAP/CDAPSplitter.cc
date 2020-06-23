@@ -32,11 +32,11 @@ void CDAPSplitter::initialize()
 }
 
 CDAPSplitter::CDAPSplitter() {
-    MsgLog = NULL;
+    MsgLog = nullptr;
 }
 
 CDAPSplitter::~CDAPSplitter() {
-    MsgLog = NULL;
+    MsgLog = nullptr;
 }
 
 void CDAPSplitter::handleMessage(cMessage *msg)
@@ -64,7 +64,7 @@ void CDAPSplitter::handleMessage(cMessage *msg)
     cGate* out = nullptr;
 
     //Received from south gates
-    if ( strstr(msg->getArrivalGate()->getName(), GATE_SOUTHIO) != NULL ) {
+    if ( strstr(msg->getArrivalGate()->getName(), GATE_SOUTHIO) != nullptr ) {
         MsgLog->insert(cdapmsg, false);
 
         //Pass it to the CACE module
@@ -91,7 +91,7 @@ void CDAPSplitter::handleMessage(cMessage *msg)
 
     }
     //Received from north gates
-    else if (strstr(msg->getArrivalGate()->getName(), GATE_SOUTHIO) == NULL) {
+    else if (strstr(msg->getArrivalGate()->getName(), GATE_SOUTHIO) == nullptr) {
         MsgLog->insert(check_and_cast<CDAPMessage*>(msg), true);
 
         out = gateHalf(GATE_SOUTHIO, cGate::OUTPUT);

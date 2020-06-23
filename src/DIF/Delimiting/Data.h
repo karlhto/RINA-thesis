@@ -38,7 +38,7 @@ class Data : public Data_Base
     private:
       void copy(const Data& other) {};
     public:
-     Data(const char *name=NULL, int kind=0) : Data_Base(name,kind) {}
+     Data(const char *name=nullptr, int kind=0) : Data_Base(name,kind) {}
      Data(const Data& other) : Data_Base(other) {copy(other);}
      Data& operator=(const Data& other) {if (this==&other) return *this; Data_Base::operator=(other); copy(other); return *this;}
      virtual Data *dup() const {return new Data(*this);}

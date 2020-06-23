@@ -114,7 +114,7 @@ void CACEGeneric::startCACE(Flow* flow) {
 void CACEGeneric::insertStateTableEntry(Flow* flow) {
     //Enter_Method("insertStateTableEntry()");
     //insert only first flow created (management flow)
-    if(StateTable->findEntryByDstAPNI(flow->getDstApni()) != NULL) {
+    if(StateTable->findEntryByDstAPNI(flow->getDstApni()) != nullptr) {
         return;
     }
     StateTable->insert(DAFEnrollmentStateTableEntry(flow->getSrcApni(), flow->getDstApni(), DAFEnrollmentStateTableEntry::CON_CONNECTPENDING));

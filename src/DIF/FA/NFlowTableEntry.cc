@@ -28,21 +28,21 @@
 
 
 NFlowTableEntry::NFlowTableEntry() :
-    fai(NULL), flow(NULL),
+    fai(nullptr), flow(nullptr),
     allocStatus(this->UNKNOWN),
     timeCreated(0), timeDeleted(0)
 {
 }
 
-NFlowTableEntry::NFlowTableEntry(Flow* nflow): fai(NULL), allocStatus(this->UNKNOWN) {
+NFlowTableEntry::NFlowTableEntry(Flow* nflow): fai(nullptr), allocStatus(this->UNKNOWN) {
     this->flow           = nflow;
     this->timeCreated    = simTime();
     this->timeDeleted    = 0;
 }
 
 NFlowTableEntry::~NFlowTableEntry() {
-    this->fai       = NULL;
-    this->flow      = NULL;
+    this->fai       = nullptr;
+    this->flow      = nullptr;
     allocStatus     = this->UNKNOWN;
     timeCreated     = 0;
     timeDeleted     = 0;

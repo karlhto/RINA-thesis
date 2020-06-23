@@ -20,7 +20,7 @@ FANotifierListeners::FANotifierListeners(FANotifierBase* nfanb) : fanb(nfanb)
 }
 
 FANotifierListeners::~FANotifierListeners() {
-    fanb = NULL;
+    fanb = nullptr;
 }
 
 void LisRIBDCreReq::receiveSignal(cComponent* src, simsignal_t id, cObject* obj, cObject *detail) {

@@ -144,7 +144,7 @@ cPacket* SDU::getUserData(){
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 /**

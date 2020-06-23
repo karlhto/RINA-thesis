@@ -53,7 +53,7 @@ ConnectionTableEntry* ConnectionTable::findEntryByAPNI(const APNamingInfo& apni)
         if ( it->getApni() == apni )
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 ConnectionTableEntry* ConnectionTable::findEntryByFlow(Flow* flow) {
@@ -103,7 +103,7 @@ cGate* ConnectionTable::findOutputGate(cGate* input, bool& isGoingUp) {
             return it->getNorthGateOut();
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 bool ConnectionTable::setStatus(Flow* flow, ConnectionTableEntry::ConnectionStatus status) {
@@ -123,7 +123,7 @@ void ConnectionTable::handleMessage(cMessage *msg)
 
 FABase* ConnectionTable::getFa(Flow* flow) {
     ConnectionTableEntry* cte = findEntryByAPNI(flow->getSrcApni());
-    return cte ? cte->getFlowAlloc() : NULL;
+    return cte ? cte->getFlowAlloc() : nullptr;
 }
 
 ConnectionTableEntry::ConnectionStatus ConnectionTable::getStatus(Flow* flow) {

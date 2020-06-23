@@ -35,7 +35,7 @@ EnrollmentListeners::EnrollmentListeners(Enrollment* nenrollment): enrollment(ne
 }
 
 EnrollmentListeners::~EnrollmentListeners() {
-    enrollment = NULL;
+    enrollment = nullptr;
 }
 
 void LisEnrollmentGetFlowFromFaiCreResPosi::receiveSignal(cComponent* src, simsignal_t id,

@@ -31,7 +31,7 @@ Define_Module(RIBdSplitter);
 
 void RIBdSplitter::initialize()
 {
-    nFlowTable = NULL;
+    nFlowTable = nullptr;
     initPointers();
 }
 
@@ -41,7 +41,7 @@ void RIBdSplitter::handleMessage(cMessage *msg)
     cGate* out;
 
     //From CDAP
-    if(strstr(msg->getArrivalGate()->getName(), GATE_CDAPIO) != NULL) {
+    if(strstr(msg->getArrivalGate()->getName(), GATE_CDAPIO) != nullptr) {
         /*
          * FIXME: Vesely
          * After huge debate with John, we understand now, that reliability of management

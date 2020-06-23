@@ -57,7 +57,7 @@ class UserDataField: public UserDataField_Base
 
   public:
 //    UserDataField();
-    UserDataField(const char *name=NULL, int kind=0);
+    UserDataField(const char *name=nullptr, int kind=0);
     UserDataField(const UserDataField& other);
 //    UserDataField(const UserDataField& other) : UserDataField_Base(other) {copy(other);}
     virtual ~UserDataField();

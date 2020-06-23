@@ -53,7 +53,7 @@ DirectoryEntry* Directory::findDirEntryByApn(const APN& apn) {
         if (entry.getApn() == apn)
             return &(*it);
     }
-    return NULL;
+    return nullptr;
 }
 
 void Directory::addDirEntry(const APN& apn) {
@@ -81,8 +81,8 @@ void Directory::removeDirEntry(const APN& apn) {
 }
 
 void Directory::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-    if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(ELEM_DIRDATA))
+    cXMLElement* mainTag = nullptr;
+    if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(ELEM_DIRDATA))
         mainTag = config->getFirstChildWithTag(ELEM_DIRDATA);
     else {
         EV << "configData parameter not initialized!" << endl;

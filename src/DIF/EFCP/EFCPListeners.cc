@@ -50,7 +50,7 @@ void LisEFCPCongestFromRA::receiveSignal(cComponent* src, simsignal_t id, cObjec
   CongestionDescriptor* cd = (CongestionDescriptor*) obj;
   DTP* dtp = efcpTable->getDTPBySrcCEP(cd->getConnectionId().getSrcCepId());
 
-  if(dtp != NULL){
+  if(dtp != nullptr){
     dtp->runCongestionNotificationPolicy();
   }else{
     //Error
@@ -65,7 +65,7 @@ void LisEFCPQueueInfoFromRMT::receiveSignal(cComponent* src, simsignal_t id, cOb
   EFCPTableEntry* entry = efcpTable->getEntryByFlow(qi->getFlow());
   DTP* dtp = (*(entry->getEfcpiTab()->begin()))->getDtp();
 
-  if(dtp != NULL){
+  if(dtp != nullptr){
     dtp->handleQueueInfoFromRMT(qi);
   }else{
     //Error
@@ -86,7 +86,7 @@ void LisEFCPQueueInfoFromAE::receiveSignal(cComponent* src, simsignal_t id, cObj
   }
   DTP* dtp = (*(entry->getEfcpiTab()->begin()))->getDtp();
 
-  if(dtp != NULL){
+  if(dtp != nullptr){
     dtp->handleQueueInfoFromSocket(qi);
   }else{
     //Error

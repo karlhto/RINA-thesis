@@ -59,7 +59,7 @@ protected:
     virtual bool a_read_r(int CDAPconn, int invokeID, std::string objName, object_t *obj, bool complete = true) = 0;
     virtual APIRetObj* a_get_read_r(int CDAPConn, int invokeID) = 0;
     virtual bool a_cancelread_r(int CDAPConn, int invokeID = 0) = 0;
-    virtual APIRetObj* a_getwrite_r(int CDAPconn, int invokeID, APIResult* result, std::string objName, object_t *obj = NULL) = 0;
+    virtual APIRetObj* a_getwrite_r(int CDAPconn, int invokeID, APIResult* result, std::string objName, object_t *obj = nullptr) = 0;
 
     int getNewInvokeID();
 

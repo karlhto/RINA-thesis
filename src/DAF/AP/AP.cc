@@ -99,7 +99,7 @@ bool AP::a_open(int invokeID, std::string APName, std::string APInst, std::strin
         this->insertAEReq(tmp);
     }
     else
-        return createIAE(APName, APInst, AEName, AEInst, NULL, invokeID);
+        return createIAE(APName, APInst, AEName, AEInst, nullptr, invokeID);
 
     return false;
 }
@@ -141,11 +141,11 @@ bool AP::a_write(int CDAPConn, std::string objName, object_t *obj, int invokeID)
 }
 
 APIRetObj* AP::a_getopen_r(int invokeID) {
-    return NULL;
+    return nullptr;
 }
 
 APIRetObj* AP::a_getclose_r(int CDAPConn, int invokeID) {
-    return NULL;
+    return nullptr;
 }
 
 bool AP::a_read_r(int CDAPconn, int invokeID, std::string objName, object_t *obj, bool complete) {
@@ -153,7 +153,7 @@ bool AP::a_read_r(int CDAPconn, int invokeID, std::string objName, object_t *obj
 }
 
 APIRetObj* AP::a_get_read_r(int CDAPConn, int invokeID) {
-    return NULL;
+    return nullptr;
 }
 
 bool AP::a_cancelread_r(int CDAPConn, int invokeID) {
@@ -161,7 +161,7 @@ bool AP::a_cancelread_r(int CDAPConn, int invokeID) {
 }
 
 APIRetObj* AP::a_getwrite_r(int CDAPconn, int invokeID, APIResult* result, std::string objName, object_t *obj){
-    return NULL;
+    return nullptr;
 }
 
 bool AP::createIAE(std::string APName, std::string APInst, std::string AEName, std::string AEInst, Flow* flow, int invokeID) {
@@ -223,7 +223,7 @@ bool AP::createIAE(std::string APName, std::string APInst, std::string AEName, s
     submodule->par("dstAeName") = AEName;
     submodule->par("dstAeInstance") = AEInst;
 
-    if (flow == NULL)
+    if (flow == nullptr)
         submodule->par("initiator") = true;
     else
         submodule->par("initiator") = false;
@@ -315,7 +315,7 @@ void AP::startRequestedConnections() {
         tmp = this->ConReqStack.back();
         this->createIAE(tmp.getDstApni().getApn().getName(), tmp.getDstApni().getApinstance(),
                 tmp.getDstApni().getAename(), tmp.getDstApni().getAeinstance(),
-                NULL, tmp.getAllocInvokeId());
+                nullptr, tmp.getAllocInvokeId());
         this->ConReqStack.pop_back();
     }
     this->isEnrolled = this->EnrollmentState::ENROLLED;

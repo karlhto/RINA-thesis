@@ -51,7 +51,7 @@ class RINArp : public cSimpleModule
         bool pending = false;
         simtime_t lastUpdate;
         int numRetries = 0;
-        cMessage *timer = 0;
+        cMessage *timer = nullptr;
         ArpCache::iterator myIter;
     };
 

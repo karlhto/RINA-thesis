@@ -28,7 +28,7 @@ AEListeners::AEListeners(AE* nae) : ae(nae)
 }
 
 AEListeners::~AEListeners() {
-    ae = NULL;
+    ae = nullptr;
 }
 
 void LisAEReceiveData::receiveSignal(cComponent* src, simsignal_t id,

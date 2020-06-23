@@ -25,9 +25,9 @@
 Define_Module(AE);
 
 AE::AE() :
-        Irm(NULL), Cdap(NULL)
+        Irm(nullptr), Cdap(nullptr)
 {
-    FlowObject = NULL;
+    FlowObject = nullptr;
     connectionState = NIL;
     maxConRetries = 3;
     authType = AUTH_NONE;
@@ -35,9 +35,9 @@ AE::AE() :
 
 AE::~AE() {
     connectionState = NIL;
-    FlowObject = NULL;
-    Irm = NULL;
-    Cdap = NULL;
+    FlowObject = nullptr;
+    Irm = nullptr;
+    Cdap = nullptr;
 }
 
 void AE::initialize() {
@@ -388,11 +388,11 @@ void AE::sendData(Flow* flow, CDAPMessage* msg) {
     if (handle != VAL_UNDEF_HANDLE) {
         //Pass Data to CDAP
         //Connection/Release or send data msg
-        if (dynamic_cast<CDAP_M_Connect*>(msg) != NULL &&
+        if (dynamic_cast<CDAP_M_Connect*>(msg) != nullptr &&
                 getConStatus() == CONNECTION_PENDING){
             signalizeConnectionRequest(msg);
         }
-        else if(dynamic_cast<CDAP_M_Release*>(msg) != NULL){
+        else if(dynamic_cast<CDAP_M_Release*>(msg) != nullptr){
             signalizeReleaseRequest(msg);
             changeConStatus(RELEASING);
         }

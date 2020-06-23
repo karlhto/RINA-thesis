@@ -54,13 +54,13 @@ const char* ELEM_RELEASE      = "Release";
 const char* ATTR_TIME         = "t";
 
 Enrollment::Enrollment() :
-        StateTable(NULL), RibDaemon(NULL)
+        StateTable(nullptr), RibDaemon(nullptr)
 {
 }
 
 Enrollment::~Enrollment(){
-    StateTable = NULL;
-    RibDaemon = NULL;
+    StateTable = nullptr;
+    RibDaemon = nullptr;
 }
 
 void Enrollment::initialize()
@@ -194,7 +194,7 @@ void Enrollment::startCACE(const APNIPair &apnip) {
 
 void Enrollment::insertStateTableEntry(Flow* flow){
     //insert only first flow created (management flow)
-    if(StateTable->findEntryByDstAPN(APN(flow->getDstAddr().getApn().getName().c_str())) != NULL) {
+    if(StateTable->findEntryByDstAPN(APN(flow->getDstAddr().getApn().getName().c_str())) != nullptr) {
         return;
     }
     StateTable->insert(EnrollmentStateTableEntry(flow->getSrcApni(), flow->getDstApni(), EnrollmentStateTableEntry::CON_CONNECTPENDING));
@@ -643,8 +643,8 @@ void Enrollment::signalizeStartOperationResponse(OperationObj* obj) {
 }
 
 void Enrollment::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = NULL;
-    if (config != NULL && config->hasChildren() && config->getFirstChildWithTag(ELEM_PREENROL))
+    cXMLElement* mainTag = nullptr;
+    if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(ELEM_PREENROL))
         mainTag = config->getFirstChildWithTag(ELEM_PREENROL);
     else {
         EV << "configData parameter not initialized!" << endl;

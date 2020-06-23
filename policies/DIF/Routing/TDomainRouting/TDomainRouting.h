@@ -41,7 +41,7 @@ protected:
 
 public:
     virtual void addDomain(const string & domId, const string &_addr, T infinite, ModuleAlgs alg) {
-        if(modules[domId] == NULL) {
+        if(modules[domId] == nullptr) {
             switch(alg) {
                 case DV : modules[domId] = new DV_Module<T>(this, myAddress, _addr, infinite); break;
                 case LS : modules[domId] = new LS_Module<T>(this, myAddress, _addr, infinite); break;
@@ -51,7 +51,7 @@ public:
     }
     virtual void removeDomain(const string & domId) {
 
-        if(modules[domId] != NULL) {
+        if(modules[domId] != nullptr) {
             delete modules[domId];
         }
         modules.erase(domId);
@@ -60,7 +60,7 @@ public:
     //Process a Routing Update, return true => inform FWDG of the update
     virtual bool processUpdate(IntRoutingUpdate * update) {
         if(Update * u = dynamic_cast<Update*>(update)) {
-            if(modules[u->domId] != NULL) {
+            if(modules[u->domId] != nullptr) {
                 return modules[u->domId]->processUpdate(u->u);
             }
         }
@@ -109,12 +109,12 @@ public:
 
     //Flow inserted/removed
     virtual void insertFlow(const Address &addr, const string &dst, const string& domId, const T &metric) {
-        if(modules[domId] != NULL) {
+        if(modules[domId] != nullptr) {
             modules[domId]->addFlow(addr, dst, metric);
         }
     }
     virtual void removeFlow(const Address &addr, const string &dst, const string& domId) {
-        if(modules[domId] != NULL) {
+        if(modules[domId] != nullptr) {
             modules[domId]->removeFlow(addr, dst);
         }
     }
@@ -137,7 +137,7 @@ public:
 
     virtual void handleMessage(cMessage *msg){
         if(AutoMsg * m = dynamic_cast<AutoMsg*>(msg)) {
-            if(modules[m->domId] != NULL) {
+            if(modules[m->domId] != nullptr) {
                 modules[m->domId]->sendUpdate();
             }
         }

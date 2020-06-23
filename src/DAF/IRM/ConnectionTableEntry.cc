@@ -25,17 +25,17 @@
 ConnectionTableEntry::ConnectionTableEntry()
     :  //FlowObject(NULL)
        apni(APNamingInfo()), conStatus(CON_ERROR),
-       northGateIn(NULL), northGateOut(NULL),
-       southGateIn(NULL), southGateOut(NULL),
-       FlowAlloc(NULL)
+       northGateIn(nullptr), northGateOut(nullptr),
+       southGateIn(nullptr), southGateOut(nullptr),
+       FlowAlloc(nullptr)
 {
 }
 
 ConnectionTableEntry::ConnectionTableEntry(Flow* flow)
     :  conStatus(CON_FLOWPENDING),
-       northGateIn(NULL), northGateOut(NULL),
-       southGateIn(NULL), southGateOut(NULL),
-       FlowAlloc(NULL)
+       northGateIn(nullptr), northGateOut(nullptr),
+       southGateIn(nullptr), southGateOut(nullptr),
+       FlowAlloc(nullptr)
 {
     apni = flow->getSrcApni();
 }
@@ -43,11 +43,11 @@ ConnectionTableEntry::ConnectionTableEntry(Flow* flow)
 ConnectionTableEntry::~ConnectionTableEntry() {
     //this->FlowObject = NULL;
     this->conStatus = CON_ERROR;
-    this->northGateIn = NULL;
-    this->northGateOut = NULL;
-    this->southGateIn = NULL;
-    this->southGateOut = NULL;
-    this->FlowAlloc = NULL;
+    this->northGateIn = nullptr;
+    this->northGateOut = nullptr;
+    this->southGateIn = nullptr;
+    this->southGateOut = nullptr;
+    this->FlowAlloc = nullptr;
 }
 
 std::string ConnectionTableEntry::str() const {

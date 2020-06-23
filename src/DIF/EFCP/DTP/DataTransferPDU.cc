@@ -34,11 +34,11 @@ Register_Class(DataTransferPDU);
 
 DataTransferPDU::DataTransferPDU(const char *name, int kind): DataTransferPDU_Base(name,kind)
 {
-  userDataField_var = NULL;
+  userDataField_var = nullptr;
 
 }
 void DataTransferPDU::copy(const DataTransferPDU& other){
-  if(other.userDataField_var != NULL){
+  if(other.userDataField_var != nullptr){
 
 //    this->userDataField_var = other.userDataField_var->dup();
 //    take(userDataField_var);

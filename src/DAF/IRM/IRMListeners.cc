@@ -28,7 +28,7 @@ IRMListeners::IRMListeners(IRM* nirm) {
 }
 
 IRMListeners::~IRMListeners() {
-    irm = NULL;
+    irm = nullptr;
 }
 
 void LisIRMAllocReq::receiveSignal(cComponent* src, simsignal_t id, cObject* obj, cObject *detail) {
