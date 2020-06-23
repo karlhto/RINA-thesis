@@ -29,21 +29,34 @@
  */
 
 #include "DIF/RA/RA.h"
+
+#include "DIF/RA/NM1FlowTable.h"
+#include "Common/Flow.h"
 #include "DIF/Enrollment/Enrollment.h"
 #include "DIF/Enrollment/EnrollmentStateTable.h"
 
+#include "Common/Utils.h"
+#include "Common/ExternConsts.h"
+#include "Common/RINASignals.h"
+#include "DAF/DA/DA.h"
+#include "DIF/FA/FABase.h"
+#include "DIF/RMT/RMT.h"
+#include "DIF/RMT/RMTPort.h"
+
+#include "DIF/RA/NM1FlowTable.h"
+#include "DIF/RA/QueueAlloc/QueueAllocBase.h"
+#include "Common/CongestionDescriptor.h"
+
+/* Forwarding and routing stuff... */
+#include "DIF/RA/PDUFG/IntPDUFG.h"
+
+
 Define_Module(RA);
-
-// QoS loader parameters
-const char* PAR_QOSDATA              = "qoscubesData";
-const char* ELEM_QOSCUBE             = "QoSCube";
-const char* PAR_QOSREQ               = "qosReqData";
-const char* ELEM_QOSREQ              = "QoSReq";
-const char* ATTR_ID                  = "id";
-
 
 void RA::initialize(int stage)
 {
+    RABase::initialize(stage);
+
     if (stage == 1)
     {
         // determine and set RMT mode of operation
@@ -77,7 +90,11 @@ void RA::initialize(int stage)
     processName  = os.str();
 
     initSignalsAndListeners();
-    initQoSCubes();
+
+    // add a static QoS cube for management
+    QoSCubes.push_back(QoSCube::MANAGEMENT);
+    // add a QoS requirements object
+    mgmtReqs = QoSReq::MANAGEMENT;
 
     WATCH_LIST(this->QoSCubes);
 }
@@ -292,63 +309,6 @@ void RA::setRMTMode()
     { // this is an IPC process that uses PDU forwarding
         rmt->enableRelay();
     }
-}
-
-/**
- * Initializes QoS cubes from given XML configuration directive.
- */
-void RA::initQoSCubes()
-{
-    cXMLElement* qosXml = nullptr;
-    if (par(PAR_QOSDATA).xmlValue() != nullptr
-            && par(PAR_QOSDATA).xmlValue()->hasChildren())
-        qosXml = par(PAR_QOSDATA).xmlValue();
-    else
-        error("qoscubesData parameter not initialized!");
-
-    // load cubes from XML
-    cXMLElementList cubes = qosXml->getChildrenByTagName(ELEM_QOSCUBE);
-    for (auto const m : cubes)
-    {
-        if (!m->getAttribute(ATTR_ID))
-        {
-            EV << "Error parsing QoSCube. Its ID is missing!" << endl;
-            continue;
-        }
-
-        cXMLElementList attrs = m->getChildren();
-        QoSCube cube = QoSCube(attrs);
-        cube.setQosId(m->getAttribute(ATTR_ID));
-
-        //Integrity check!!!
-        if (cube.isDefined())
-        {
-            QoSCubes.push_back(cube);
-        }
-        else
-        {
-            EV << "QoSCube with ID " << cube.getQosId()
-                    << " contains DO-NOT-CARE parameter. It is not fully defined,"
-                    << " thus it is not loaded into RA's QoS-cube set!"
-                    << endl;
-        }
-    }
-
-    if (!QoSCubes.size())
-    {
-        std::ostringstream os;
-        os << this->getFullPath()
-                << " does not have any QoSCube in its set. "
-                << "It cannot work without at least one valid QoS cube!"
-                << endl;
-        error(os.str().c_str());
-    }
-
-    // add a static QoS cube for management
-    QoSCubes.push_back(QoSCube::MANAGEMENT);
-
-    // add a QoS requirements object
-    mgmtReqs = QoSReq::MANAGEMENT;
 }
 
 /**

@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "DIF/FA/NewFlowRequest/NewFlowRequestBase.h"
+#include "Common/Utils.h"
 
 Define_Module(NewFlowRequestBase);
 

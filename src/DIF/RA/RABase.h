@@ -23,12 +23,20 @@
 #ifndef RABASE_H_
 #define RABASE_H_
 
-//Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
+
 #include "Common/QoSCube.h"
-#include "DIF/RA/NM1FlowTable.h"
-#include "Common/Flow.h"
+
+//Consts
+extern const char* PAR_QOSDATA;
+extern const char* ELEM_QOSCUBE;
+extern const char* PAR_QOSREQ;
+extern const char* ELEM_QOSREQ;
+extern const char* ATTR_ID;
+
+class Flow;
+class NM1FlowTable;
+class NM1FlowTableItem;
 
 typedef std::list<QoSCube> QoSCubeSet;
 typedef QoSCubeSet::const_iterator QCubeCItem;
@@ -67,9 +75,12 @@ class RABase : public cSimpleModule
     const QoSCube* getQoSCubeById(std::string qosId) const;
 
   protected:
+    virtual void initQoSCubes();
+
     //SimpleModule overloads
-    virtual void initialize(int stage) = 0;
-    virtual void handleMessage(cMessage *msg) = 0;
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const override { return 1; };
+    virtual void handleMessage(cMessage *msg) override;
 };
 
 //Free function

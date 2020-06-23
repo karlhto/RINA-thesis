@@ -31,32 +31,18 @@
 #define __RINA_RA_H_
 
 #include <omnetpp.h>
-#include "Common/Utils.h"
-#include "Common/ExternConsts.h"
-#include "Common/RINASignals.h"
-#include "DAF/DA/DA.h"
-#include "DIF/FA/FABase.h"
-#include "DIF/RMT/RMT.h"
-#include "DIF/RMT/RMTPort.h"
 
 #include "DIF/RA/RABase.h"
 #include "DIF/RA/RAListeners.h"
-#include "DIF/RA/NM1FlowTable.h"
-#include "DIF/RA/QueueAlloc/QueueAllocBase.h"
-#include "Common/CongestionDescriptor.h"
+#include "Common/QoSReq.h"
 
-/* Forwarding and routing stuff... */
-#include "DIF/RA/PDUFG/IntPDUFG.h"
-
-
-
-//Consts
-extern const char* PAR_QOSDATA;
-extern const char* ELEM_QOSCUBE;
-extern const char* PAR_QOSREQ;
-extern const char* ELEM_QOSREQ;
-extern const char* ATTR_ID;
-
+class DA;
+class FABase;
+class IntPDUFG;
+class RMT;
+class RMTModuleAllocator;
+class RMTPort;
+class QueueAllocBase;
 class Enrollment;
 class EnrollmentStateTable;
 
@@ -81,9 +67,9 @@ class RA : public RABase
     virtual void postNM1FlowAllocation(NM1FlowTableItem* ftItem);
 
   protected:
-    virtual void initialize(int stage);
-    int numInitStages() const { return 2; };
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const override { return 2; };
+    virtual void handleMessage(cMessage *msg) override;
 
   private:
     DA* difAllocator;
@@ -106,7 +92,6 @@ class RA : public RABase
     std::map<std::string, std::list<Flow*>*> pendingFlows;
     QoSReq mgmtReqs;
 
-    void initQoSCubes();
     QoSReq* initQoSReqById(const char* id);
     void initSignalsAndListeners();
     void initFlowAlloc();
