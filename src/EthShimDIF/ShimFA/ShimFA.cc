@@ -42,7 +42,9 @@ ShimFA::ShimFA() : FABase::FABase(), resolving(false), qos(QoSCube())
     qos.setQosId("QoSCube_Unreliable");
 }
 
-ShimFA::~ShimFA() {}
+ShimFA::~ShimFA()
+{
+}
 
 void ShimFA::initialize(int stage)
 {
@@ -104,13 +106,13 @@ void ShimFA::initQoS()
 void ShimFA::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage() && opp_strcmp(msg->getName(), TIM_FAPENDFLOWS) == 0) {
-
     }
     // self message is the only valid message here
     delete msg;
 }
 
-bool ShimFA::createUpperFlow(const APN &dstApn) {
+bool ShimFA::createUpperFlow(const APN &dstApn)
+{
     Enter_Method("createUpperFlow(%s)", dstApn.c_str());
 
     EV << "Received request to forward allocation request to N+1, with source address " << dstApn
@@ -146,7 +148,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     if (nft != nullptr) {
         ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
         flow->setSrcPortId(fai->getLocalPortId());
-        //fai->receiveAllocateRequest(flow);
+        // fai->receiveAllocateRequest(flow);
         return true;
     }
 
@@ -179,7 +181,7 @@ bool ShimFA::receiveDeallocateRequest(Flow *flow)
     Enter_Method("receiveDeallocateRequest()");
     EV << "Received deallocation request for flow with destination APN " << endl;
 
-    //fai->receiveDeallocateRequest();
+    // fai->receiveDeallocateRequest();
 
     // Check state of FAI
     // remove bindings
@@ -191,7 +193,8 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
 {
     Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
     EV << "Completed address resolution for " << dstApn << endl;
-    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
+    auto nft =
+        nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
     if (nft == nullptr) {
         EV << "No such pending flow found" << endl;
         return;
@@ -210,7 +213,8 @@ void ShimFA::failedAddressResolution(const APN &dstApn)
 {
     Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
     resolving = false;
-    auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
+    auto nft =
+        nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
     ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
     fai->receiveDeallocateRequest();
     // something something FAI stop createresponsenegative
@@ -231,8 +235,7 @@ ShimFAI *ShimFA::createFAI(Flow *flow)
     module->scheduleStart(simTime());
     module->callInitialize();
 
-    ShimFAI *fai =
-        check_and_cast<ShimFAI *>(module);
+    ShimFAI *fai = check_and_cast<ShimFAI *>(module);
     fai->postInitialize(this, flow, shim);
 
     // Make created module listen to allocation responses from upper IPCP
@@ -245,17 +248,33 @@ ShimFAI *ShimFA::createFAI(Flow *flow)
 // Not sure what to do with this function as of yet. This is called by upper
 // layer, but not checked. It's possible at least a subset of the flow
 // allocation policies should be implemented
-bool ShimFA::invokeNewFlowRequestPolicy(Flow *) { return true; }
+bool ShimFA::invokeNewFlowRequestPolicy(Flow *)
+{
+    return true;
+}
 
-bool ShimFA::setOriginalAddresses(Flow *) { return false; }
+bool ShimFA::setOriginalAddresses(Flow *)
+{
+    return false;
+}
 
-bool ShimFA::setNeighborAddresses(Flow *) { return false; }
+bool ShimFA::setNeighborAddresses(Flow *)
+{
+    return false;
+}
 
-bool ShimFA::allocatePort(Flow *) { return false; }
+bool ShimFA::allocatePort(Flow *)
+{
+    return false;
+}
 
-void ShimFA::createBindings(int) {}
+void ShimFA::createBindings(int)
+{
+}
 
-void ShimFA::deleteBindings() {}
+void ShimFA::deleteBindings()
+{
+}
 
 void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
@@ -300,4 +319,7 @@ bool ShimFA::receiveCreateFlowRequestFromRibd(Flow *)
     throw cRuntimeError("ShimFA should not need to communicate with RIBd");
 }
 
-void ShimFA::deinstantiateFai(Flow *) { throw cRuntimeError("ShimFA should not utilise FAI"); }
+void ShimFA::deinstantiateFai(Flow *)
+{
+    throw cRuntimeError("ShimFA should not utilise FAI");
+}

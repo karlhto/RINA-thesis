@@ -83,6 +83,8 @@ class EthShim : public cSimpleModule, public cListener
     virtual void handleMessage(cMessage *msg) override;
 
     /// cListener overrides, for Arp signals
-    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
+    virtual void receiveSignal(cComponent *source,
+                               simsignal_t signalID,
+                               cObject *obj,
                                cObject *details) override;
 };

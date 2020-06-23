@@ -33,10 +33,14 @@
 
 Define_Module(EthShim);
 
-EthShim::EthShim() : resolving(false) {}
+EthShim::EthShim() : resolving(false)
+{
+}
 
 // TODO delete messages in queue
-EthShim::~EthShim() {}
+EthShim::~EthShim()
+{
+}
 
 void EthShim::initialize(int stage)
 {
@@ -80,7 +84,8 @@ void EthShim::handleMessage(cMessage *msg)
     }
 }
 
-bool EthShim::addPort(const APN &dstApn, const int &portId) {
+bool EthShim::addPort(const APN &dstApn, const int &portId)
+{
     std::ostringstream gateName;
     gateName << GATE_NORTHIO_ << portId;
     const std::string &tmp = gateName.str();
@@ -104,7 +109,8 @@ bool EthShim::addPort(const APN &dstApn, const int &portId) {
     return true;
 }
 
-void EthShim::handleSDU(SDUData *sdu, cGate *gate) {
+void EthShim::handleSDU(SDUData *sdu, cGate *gate)
+{
     EV_INFO << "Doing stuff" << endl;
     const APN &dstApn = gateMap[gate];
     inet::MACAddress mac = arp->resolveAddress(dstApn);
@@ -135,7 +141,7 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
     const APN srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
         EV_WARN << "ARP Resolved wrong address, " << endl;
-        delete sdu; // just place in a queue with discard timer?
+        delete sdu;  // just place in a queue with discard timer?
         return;
     }
 
@@ -156,7 +162,8 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
     send(sdu, gate->getOtherHalf());
 }
 
-void EthShim::sendWaitingSDUs(const APN &srcApn) {
+void EthShim::sendWaitingSDUs(const APN &srcApn)
+{
     cGate *gate = nullptr;
     for (const auto &elem : gateMap)
         if (elem.second == srcApn)

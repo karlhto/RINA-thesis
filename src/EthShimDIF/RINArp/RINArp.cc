@@ -33,10 +33,11 @@ const simsignal_t RINArp::initiatedRINArpResolutionSignal =
     registerSignal("initiatedRINArpResolution");
 const simsignal_t RINArp::completedRINArpResolutionSignal =
     registerSignal("completedRINArpResolution");
-const simsignal_t RINArp::failedRINArpResolutionSignal =
-    registerSignal("failedRINArpResolution");
+const simsignal_t RINArp::failedRINArpResolutionSignal = registerSignal("failedRINArpResolution");
 
-RINArp::RINArp() {}
+RINArp::RINArp()
+{
+}
 
 RINArp::~RINArp()
 {
@@ -164,7 +165,8 @@ const inet::MACAddress RINArp::resolveAddress(const APN &apn)
     return inet::MACAddress::UNSPECIFIED_ADDRESS;
 }
 
-APN RINArp::getAddressFor(const inet::MACAddress &mac) const {
+APN RINArp::getAddressFor(const inet::MACAddress &mac) const
+{
     Enter_Method_Silent();
 
     if (mac.isUnspecified())

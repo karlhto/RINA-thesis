@@ -1,18 +1,23 @@
 #include "EthShimDIF/ShimFA/ShimFAI.h"
 
 #include "Common/RINASignals.h"
+#include "DIF/FA/FANotifierBase.h"
+#include "DIF/FA/NFlowTable.h"
 #include "EthShimDIF/EthShim/EthShim.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
-#include "DIF/FA/NFlowTable.h"
-#include "DIF/FA/FANotifierBase.h"
 
 Define_Module(ShimFAI);
 
-const simsignal_t ShimFAI::ribdCreateFlowResponsePositive = registerSignal(SIG_RIBD_CreateFlowResponsePositive);
+const simsignal_t ShimFAI::ribdCreateFlowResponsePositive =
+    registerSignal(SIG_RIBD_CreateFlowResponsePositive);
 
-ShimFAI::ShimFAI() : localPortId(VAL_UNDEF_PORTID) {}
+ShimFAI::ShimFAI() : localPortId(VAL_UNDEF_PORTID)
+{
+}
 
-ShimFAI::~ShimFAI() {}
+ShimFAI::~ShimFAI()
+{
+}
 
 void ShimFAI::initialize()
 {
@@ -27,9 +32,15 @@ void ShimFAI::postInitialize(ShimFA *fa, Flow *flow, EthShim *shim)
     this->shim = shim;
 }
 
-void ShimFAI::handleMessage(cMessage *msg) { delete msg; }
+void ShimFAI::handleMessage(cMessage *msg)
+{
+    delete msg;
+}
 
-int ShimFAI::getLocalPortId() const { return localPortId; }
+int ShimFAI::getLocalPortId() const
+{
+    return localPortId;
+}
 
 // this entire module is redundant. will remove
 bool ShimFAI::receiveAllocateRequest()
@@ -44,7 +55,8 @@ bool ShimFAI::receiveAllocateRequest()
     return res;
 }
 
-bool ShimFAI::receiveCreateRequest() {
+bool ShimFAI::receiveCreateRequest()
+{
     Enter_Method("receiveCreateRequest()");
     bool res = shim->addPort(flow->getDstApni().getApn(), localPortId);
     if (res) {
@@ -55,7 +67,10 @@ bool ShimFAI::receiveCreateRequest() {
     return res;
 }
 
-bool ShimFAI::receiveCreateResponseNegative() { return false; }
+bool ShimFAI::receiveCreateResponseNegative()
+{
+    return false;
+}
 
 bool ShimFAI::receiveAllocateResponsePositive()
 {
@@ -74,7 +89,9 @@ bool ShimFAI::receiveAllocateResponsePositive()
     return true;
 }
 
-void ShimFAI::receiveAllocateResponseNegative() {}
+void ShimFAI::receiveAllocateResponseNegative()
+{
+}
 
 
 void ShimFAI::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
@@ -92,18 +109,32 @@ void ShimFAI::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObje
     (void)src;
 }
 
-std::string ShimFAI::str() const {
+std::string ShimFAI::str() const
+{
     std::stringstream os;
-    os << "FAI>" << endl
-       << "\tlocal  Port-ID: " << this->localPortId << endl;
+    os << "FAI>" << endl << "\tlocal  Port-ID: " << this->localPortId << endl;
     return os.str();
 }
 
 // Irrelevant functions
-bool ShimFAI::receiveCreateResponsePositive(Flow *) { return false; }
-bool ShimFAI::receiveDeallocateRequest() { return false; }
-void ShimFAI::receiveDeleteRequest(Flow *) {}
-void ShimFAI::receiveDeleteResponse() {}
+bool ShimFAI::receiveCreateResponsePositive(Flow *)
+{
+    return false;
+}
+bool ShimFAI::receiveDeallocateRequest()
+{
+    return false;
+}
+void ShimFAI::receiveDeleteRequest(Flow *)
+{
+}
+void ShimFAI::receiveDeleteResponse()
+{
+}
 
-void ShimFAI::receiveCreateFlowResponsePositiveFromNminusOne() {}
-void ShimFAI::receiveCreateFlowResponseNegativeFromNminusOne() {}
+void ShimFAI::receiveCreateFlowResponsePositiveFromNminusOne()
+{
+}
+void ShimFAI::receiveCreateFlowResponseNegativeFromNminusOne()
+{
+}

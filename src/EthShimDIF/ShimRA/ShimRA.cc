@@ -2,9 +2,13 @@
 
 Define_Module(ShimRA);
 
-ShimRA::ShimRA() {}
+ShimRA::ShimRA()
+{
+}
 
-ShimRA::~ShimRA() {}
+ShimRA::~ShimRA()
+{
+}
 
 void ShimRA::initialize(int stage)
 {
@@ -32,12 +36,12 @@ void ShimRA::createNFlow(Flow *flow)
     (void)flow;
 }
 
-void ShimRA::postNFlowAllocation(Flow* flow)
+void ShimRA::postNFlowAllocation(Flow *flow)
 {
     (void)flow;
 }
 
-void ShimRA::postNM1FlowAllocation(NM1FlowTableItem* ftItem)
+void ShimRA::postNM1FlowAllocation(NM1FlowTableItem *ftItem)
 {
     (void)ftItem;
 }
@@ -47,38 +51,38 @@ void ShimRA::removeNM1Flow(Flow *flow)
     (void)flow;
 }
 
-void ShimRA::removeNM1FlowBindings(NM1FlowTableItem* ftItem)
+void ShimRA::removeNM1FlowBindings(NM1FlowTableItem *ftItem)
 {
     (void)ftItem;
 }
 
-bool ShimRA::bindNFlowToNM1Flow(Flow* flow)
+bool ShimRA::bindNFlowToNM1Flow(Flow *flow)
 {
     (void)flow;
     return false;
 }
 
-void ShimRA::blockNM1PortOutput(NM1FlowTableItem* ftItem)
+void ShimRA::blockNM1PortOutput(NM1FlowTableItem *ftItem)
 {
     (void)ftItem;
 }
 
-void ShimRA::unblockNM1PortOutput(NM1FlowTableItem* ftItem)
+void ShimRA::unblockNM1PortOutput(NM1FlowTableItem *ftItem)
 {
     (void)ftItem;
 }
 
-NM1FlowTable* ShimRA::getFlowTable()
+NM1FlowTable *ShimRA::getFlowTable()
 {
     return nullptr;
 }
 
-void ShimRA::signalizeSlowdownRequestToRIBd(cPacket* pdu)
+void ShimRA::signalizeSlowdownRequestToRIBd(cPacket *pdu)
 {
     (void)pdu;
 }
 
-void ShimRA::signalizeSlowdownRequestToEFCP(cObject* pdu)
+void ShimRA::signalizeSlowdownRequestToEFCP(cObject *pdu)
 {
     (void)pdu;
 }

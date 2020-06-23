@@ -24,8 +24,8 @@
 
 #include <omnetpp.h>
 
-#include "DIF/FA/FABase.h"
 #include "Common/QoSCube.h"
+#include "DIF/FA/FABase.h"
 #include "inet/common/InitStages.h"
 
 class ShimFAI;
@@ -50,7 +50,7 @@ class ShimFA : public FABase, public cListener
     // Only one flow necessary
     APN registeredApplication;  ///< apName of "registered" application
 
-    QoSCube qos; ///< Unreliable stuff
+    QoSCube qos;  ///< Unreliable stuff
   public:
     ShimFA();
     virtual ~ShimFA();
@@ -92,6 +92,8 @@ class ShimFA : public FABase, public cListener
     virtual void handleMessage(cMessage *msg) override;
 
     /// cListener overrides
-    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
+    virtual void receiveSignal(cComponent *source,
+                               simsignal_t signalID,
+                               cObject *obj,
                                cObject *details) override;
 };
