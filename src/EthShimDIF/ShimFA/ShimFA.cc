@@ -163,7 +163,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
 
     const inet::MACAddress macAddr = arp->resolveAddress(apName);
 
-    // TODO implement some form of QoS checking
+    // TODO implement some form of QoS checking - should be done in a shim RA
     // validateQosRequirements(flow);
 
     if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS)
