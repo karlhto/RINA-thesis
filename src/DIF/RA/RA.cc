@@ -678,8 +678,6 @@ bool RA::bindNFlowToNM1Flow(Flow* flow)
 {
     Enter_Method("bindNFlowToNM1Flow()");
 
-    // Hey, what's the point of QoSReq if you're going to force a QoS onto an
-    // N-1-flow regardless?
     EV << "Received a request to bind an (N)-flow (dst "
        << flow->getDstApni().getApn().getName() << ", QoS-id "
        << flow->getConId().getQoSId() << ") to an (N-1)-flow." << endl;
