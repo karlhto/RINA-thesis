@@ -8,11 +8,13 @@ IndentWidth: 4
 TabWidth: 4
 IndentCaseLabels: false
 BreakBeforeBraces: Linux
-AllowShortIfStatementsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
 AlwaysBreakAfterReturnType: None
 AccessModifierOffset: -2
-BinPackParameters: true
+BinPackParameters: false
+BreakStringLiterals: true
 DerivePointerAlignment: false
 PointerAlignment: Right
 ColumnLimit: 100
