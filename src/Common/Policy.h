@@ -36,7 +36,7 @@ class Policy {
 public:
     Policy();
     virtual ~Policy();
-    virtual void run(cObject *object){ throw cRuntimeError("Don't use directly this class!");};
+    virtual void run(cObject * /*object*/){ throw cRuntimeError("Don't use directly this class!");};
 };
 
 #endif /* POLICY_H_ */
