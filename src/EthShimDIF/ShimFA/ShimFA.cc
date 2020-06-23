@@ -146,7 +146,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     const auto &apName = flow->getDstApni().getApn();
     auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, apName, qos.getQosId());
     if (nft != nullptr) {
-        ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
+        auto *fai = static_cast<ShimFAI *>(nft->getFai());
         flow->setSrcPortId(fai->getLocalPortId());
         // fai->receiveAllocateRequest(flow);
         return true;
@@ -205,7 +205,7 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
     resolving = false;
     Flow *flow = nft->getFlow();
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
-    ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
+    auto *fai = static_cast<ShimFAI *>(nft->getFai());
     fai->receiveAllocateRequest();
 }
 
@@ -215,7 +215,7 @@ void ShimFA::failedAddressResolution(const APN &dstApn)
     resolving = false;
     auto nft =
         nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
-    ShimFAI *fai = static_cast<ShimFAI *>(nft->getFai());
+    auto *fai = static_cast<ShimFAI *>(nft->getFai());
     fai->receiveDeallocateRequest();
     // something something FAI stop createresponsenegative
 }
@@ -235,7 +235,7 @@ ShimFAI *ShimFA::createFAI(Flow *flow)
     module->scheduleStart(simTime());
     module->callInitialize();
 
-    ShimFAI *fai = check_and_cast<ShimFAI *>(module);
+    auto *fai = check_and_cast<ShimFAI *>(module);
     fai->postInitialize(this, flow, shim);
 
     // Make created module listen to allocation responses from upper IPCP
@@ -281,7 +281,7 @@ void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *ob
     if (!resolving)
         return;
 
-    RINArp::ArpNotification *notification = check_and_cast<RINArp::ArpNotification *>(obj);
+    auto *notification = check_and_cast<RINArp::ArpNotification *>(obj);
     if (signalID == RINArp::completedRINArpResolutionSignal)
         completedAddressResolution(notification->apName);
     else if (signalID == RINArp::failedRINArpResolutionSignal)

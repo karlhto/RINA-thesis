@@ -53,26 +53,26 @@ class ShimFA : public FABase, public cListener
     QoSCube qos;  ///< Unreliable stuff
   public:
     ShimFA();
-    virtual ~ShimFA();
+    ~ShimFA() override;
 
     /** @brief Attempts to initialise new flow */
-    virtual bool receiveAllocateRequest(Flow *flow);
-    virtual bool receiveDeallocateRequest(Flow *flow);
+    bool receiveAllocateRequest(Flow *flow) override;
+    bool receiveDeallocateRequest(Flow *flow) override;
     virtual void completedAddressResolution(const APN &apn);
     virtual void failedAddressResolution(const APN &apn);
-    virtual void deinstantiateFai(Flow *flow);
+    void deinstantiateFai(Flow *flow) override;
     virtual bool createUpperFlow(const APN &apn);
 
     /// These are all unused in shim layer, but still implemented
-    virtual bool receiveMgmtAllocateRequest(Flow *mgmtflow);
-    virtual bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst);
-    virtual bool receiveMgmtAllocateFinish(APNIPair *apnip);
-    virtual void receiveNM1FlowCreated(Flow *flow);
-    virtual bool receiveCreateFlowRequestFromRibd(Flow *flow);
-    virtual bool invokeNewFlowRequestPolicy(Flow *flow);
+    bool receiveMgmtAllocateRequest(Flow *mgmtflow) override;
+    bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) override;
+    bool receiveMgmtAllocateFinish(APNIPair *apnip) override;
+    void receiveNM1FlowCreated(Flow *flow) override;
+    bool receiveCreateFlowRequestFromRibd(Flow *flow) override;
+    bool invokeNewFlowRequestPolicy(Flow *flow) override;
 
-    virtual bool setOriginalAddresses(Flow *flow);
-    virtual bool setNeighborAddresses(Flow *flow);
+    bool setOriginalAddresses(Flow *flow) override;
+    bool setNeighborAddresses(Flow *flow) override;
 
   protected:
     /** @brief Initialises the QoS cube with parameters from ethernet interface */
@@ -87,12 +87,12 @@ class ShimFA : public FABase, public cListener
     ShimFAI *createFAI(Flow *flow);
 
     /// SimpleModule overrides
-    virtual void initialize(int stage) override;
-    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
-    virtual void handleMessage(cMessage *msg) override;
+    void initialize(int stage) override;
+    int numInitStages() const override { return inet::NUM_INIT_STAGES; }
+    void handleMessage(cMessage *msg) override;
 
     /// cListener overrides
-    virtual void receiveSignal(cComponent *source,
+    void receiveSignal(cComponent *source,
                                simsignal_t signalID,
                                cObject *obj,
                                cObject *details) override;

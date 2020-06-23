@@ -73,7 +73,7 @@ bool RINArp::addStaticEntry(const inet::MACAddress &mac, const APN &apn)
     if (!thisHost.first.isUnspecified())
         return false;
 
-    ArpCacheEntry *entry = new ArpCacheEntry();
+    auto *entry = new ArpCacheEntry();
     entry->macAddress = mac;
     entry->timer = nullptr;
     entry->lastUpdate = simTime();
@@ -145,7 +145,7 @@ const inet::MACAddress RINArp::resolveAddress(const APN &apn)
 
     EV << "Asked to resolve destination address " << apn << endl;
 
-    ArpCache::const_iterator it = arpCache.find(apn);
+    auto it = arpCache.find(apn);
     if (it == arpCache.end()) {
         // No ARP cache entry found, need to send ARP request
         auto *entry = new ArpCacheEntry();
@@ -206,7 +206,7 @@ void RINArp::sendArpRequest(const APN &dstApn)
     ASSERT(!srcApn.isUnspecified());
 
     int apnLen = std::max(srcApn.length(), dstApn.length());
-    RINArpPacket *arp = new RINArpPacket("arpREQ");
+    auto *arp = new RINArpPacket("arpREQ");
     arp->setByteLength(ARP_BASE_LEN + apnLen * 2);
     arp->setApnLength(apnLen);
     arp->setOpcode(ARP_REQUEST);
@@ -290,7 +290,7 @@ void RINArp::processArpPacket(RINArpPacket *arp)
 
 void RINArp::sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress, int etherType)
 {
-    inet::Ieee802Ctrl *controlInfo = new inet::Ieee802Ctrl();
+    auto *controlInfo = new inet::Ieee802Ctrl();
     controlInfo->setDest(macAddress);
     controlInfo->setEtherType(etherType);
     msg->setControlInfo(controlInfo);
@@ -301,7 +301,7 @@ void RINArp::sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress, 
 
 void RINArp::requestTimeout(cMessage *selfmsg)
 {
-    ArpCacheEntry *entry = (ArpCacheEntry *)selfmsg->getContextPointer();
+    auto *entry = (ArpCacheEntry *)selfmsg->getContextPointer();
     entry->numRetries++;
     if (entry->numRetries < retryCount) {
         const APN &dstApn = entry->myIter->first;

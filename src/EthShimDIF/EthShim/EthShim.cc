@@ -79,7 +79,7 @@ void EthShim::handleMessage(cMessage *msg)
     } else {
         cGate *gate = msg->getArrivalGate();
         EV_INFO << "Received PDU from upper layer." << endl;
-        SDUData *sdu = check_and_cast<SDUData *>(msg);
+        auto *sdu = check_and_cast<SDUData *>(msg);
         handleSDU(sdu, gate);
     }
 }
@@ -125,7 +125,7 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate)
     // TODO additionally need hashing function for DIF name so it fits into
     //      12 bits (which is size of VLAN tag)
 
-    inet::Ieee802Ctrl *controlInfo = new inet::Ieee802Ctrl();
+    auto *controlInfo = new inet::Ieee802Ctrl();
     controlInfo->setDest(mac);
     controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
     sdu->setControlInfo(controlInfo);
@@ -136,7 +136,7 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 {
     EV_INFO << "Passing SDU to correct gate" << endl;
 
-    inet::Ieee802Ctrl *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->getControlInfo());
+    auto *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->getControlInfo());
     const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
     const APN srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
@@ -227,7 +227,7 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
 
     auto &vec = outQueue[entry->apName];
     for (SDUData *sdu : vec) {
-        inet::Ieee802Ctrl *controlInfo = new inet::Ieee802Ctrl();
+        auto *controlInfo = new inet::Ieee802Ctrl();
         controlInfo->setDest(entry->macAddress);
         controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
         sdu->setControlInfo(controlInfo);

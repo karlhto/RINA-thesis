@@ -28,32 +28,32 @@ class ShimFAI : public FAIBase, public cListener
   public:
     // Public functions
     ShimFAI();
-    virtual ~ShimFAI();
+    ~ShimFAI() override;
 
-    virtual std::string str() const;
+    std::string str() const override;
 
     // Need the rest of them
-    virtual bool receiveAllocateRequest();
-    virtual bool receiveAllocateResponsePositive();
-    virtual void receiveAllocateResponseNegative();
-    virtual bool receiveCreateRequest();
-    virtual bool receiveCreateResponsePositive(Flow *flow);
-    virtual bool receiveCreateResponseNegative();
-    virtual bool receiveDeallocateRequest();
-    virtual void receiveDeleteRequest(Flow *flow);
-    virtual void receiveDeleteResponse();
+    bool receiveAllocateRequest() override;
+    bool receiveAllocateResponsePositive() override;
+    void receiveAllocateResponseNegative() override;
+    bool receiveCreateRequest() override;
+    bool receiveCreateResponsePositive(Flow *flow) override;
+    bool receiveCreateResponseNegative() override;
+    bool receiveDeallocateRequest() override;
+    void receiveDeleteRequest(Flow *flow) override;
+    void receiveDeleteResponse() override;
 
-    virtual void receiveCreateFlowResponsePositiveFromNminusOne();
-    virtual void receiveCreateFlowResponseNegativeFromNminusOne();
+    void receiveCreateFlowResponsePositiveFromNminusOne() override;
+    void receiveCreateFlowResponseNegativeFromNminusOne() override;
 
     void postInitialize(ShimFA *fa, Flow *flow, EthShim *shim);
     int getLocalPortId() const;
 
   protected:
     // cSimpleModule overrides
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    void initialize() override;
+    void handleMessage(cMessage *msg) override;
 
     // cListener override
-    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) override;
 };

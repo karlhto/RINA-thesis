@@ -93,7 +93,7 @@ class RINArp : public cSimpleModule
 
   public:
     RINArp();
-    virtual ~RINArp();
+    ~RINArp() override;
 
     /** @brief Attempts to resolve an application name, may send ARP_REQ packet */
     virtual const inet::MACAddress resolveAddress(const APN &apn);
@@ -136,8 +136,8 @@ class RINArp : public cSimpleModule
     /// cSimpleModule overrides
 
     /** @brief Initialises parameters and out gate */
-    virtual void initialize() override;
+    void initialize() override;
 
     /** @brief Handles selfmessages and messages from ethernet shim module */
-    virtual void handleMessage(cMessage *msg);
+    void handleMessage(cMessage *msg) override;
 };

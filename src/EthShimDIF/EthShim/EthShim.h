@@ -55,7 +55,7 @@ class EthShim : public cSimpleModule, public cListener
 
   public:
     EthShim();
-    virtual ~EthShim();
+    ~EthShim() override;
 
     /** @brief Registers Application Naming Information with Arp */
     virtual void registerApplication(const APN &apni) const;
@@ -78,12 +78,12 @@ class EthShim : public cSimpleModule, public cListener
     void arpResolutionFailed(RINArp::ArpNotification *entry);
 
     /// cSimpleModule overrides
-    virtual void initialize(int stage) override;
-    virtual int numInitStages() const { return inet::NUM_INIT_STAGES; }
-    virtual void handleMessage(cMessage *msg) override;
+    void initialize(int stage) override;
+    int numInitStages() const override { return inet::NUM_INIT_STAGES; }
+    void handleMessage(cMessage *msg) override;
 
     /// cListener overrides, for Arp signals
-    virtual void receiveSignal(cComponent *source,
+    void receiveSignal(cComponent *source,
                                simsignal_t signalID,
                                cObject *obj,
                                cObject *details) override;
