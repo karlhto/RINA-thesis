@@ -618,7 +618,7 @@ void RA::postNM1FlowAllocation(NM1FlowTableItem* ftItem)
     port->setFlow(flow);
 
     // if not already enrolled, attempt to enroll
-    if (!enrollmentStateTable->isEnrolled(fa->getMyAddress().getApn()))
+    if (flow->isManagementFlow())
         enrollment->startCACE(APNIPair(flow->getSrcApni(), flow->getDstApni()));
 }
 
