@@ -27,10 +27,12 @@ import rina.src.EthShimDIF.ShimRA.ShimResourceAllocator;
 import rina.src.EthShimDIF.EthShim.EthShim;
 import rina.src.EthShimDIF.RINArp.RINArp;
 
+import inet.linklayer.contract.IWiredNic;
+
 module IPCProcessShim
 {
     parameters:
-        @display("bgb=402,307;i=misc/square,#008000,50;i2=status/connect");
+        @display("bgb=402,300;i=misc/square,#008000,50;i2=status/connect");
         string ipcAddress;
         string difName;
         string apName = default(ipcAddress + "_" + difName);
@@ -39,8 +41,7 @@ module IPCProcessShim
 
     gates:
         inout northIo;
-        input ifIn;
-        output ifOut;
+        inout phys;
     submodules:
         shim: EthShim {
             parameters:
@@ -62,9 +63,15 @@ module IPCProcessShim
                 @display("p=55,127");
         }
 
+        eth: <default("EthernetInterface")> like IWiredNic {
+            parameters:
+                @display("p=201,240,row,60;q=txQueue");
+        }
+
     connections allowunconnected:
         arp.netwOut --> shim.arpIn;
         arp.netwIn <-- shim.arpOut;
-        shim.ifOut --> { @display("m=s"); } --> ifOut;
-        shim.ifIn <-- { @display("m=s"); } <-- ifIn;
+        shim.ifOut --> eth.upperLayerIn;
+        shim.ifIn <-- eth.upperLayerOut;
+        eth.phys <--> { @display("m=s"); } <--> phys;
 }

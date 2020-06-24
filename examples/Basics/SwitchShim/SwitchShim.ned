@@ -22,7 +22,7 @@
 
 package rina.examples.Basics.SwitchShim;
 
-import rina.src.CS.Host1APShim;
+import rina.src.CS.EthShim.Host1APShim;
 
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.EtherSwitch;

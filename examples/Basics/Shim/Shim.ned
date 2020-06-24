@@ -23,7 +23,7 @@
 package rina.examples.Basics.Shim;
 
 import ned.DatarateChannel;
-import rina.src.CS.Host1APShim;
+import rina.src.CS.EthShim.Host1APShim;
 
 
 network Shim
