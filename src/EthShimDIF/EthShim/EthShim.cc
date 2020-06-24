@@ -37,10 +37,8 @@ EthShim::EthShim() : resolving(false)
 {
 }
 
-// TODO delete messages in queue
-EthShim::~EthShim()
-{
-}
+// TODO (karlhto): delete messages in queue
+EthShim::~EthShim() = default;
 
 void EthShim::initialize(int stage)
 {
@@ -121,8 +119,8 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate)
         return;
     }
 
-    // TODO need DIF name here as VLAN ID, too
-    // TODO additionally need hashing function for DIF name so it fits into
+    // TODO (karlhto): need DIF name here as VLAN ID, too
+    // TODO (karlhto): additionally need hashing function for DIF name so it fits into
     //      12 bits (which is size of VLAN tag)
 
     auto *controlInfo = new inet::Ieee802Ctrl();
@@ -222,13 +220,14 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cO
 
 void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
 {
-    Enter_Method("arpResolutionCompleted(%s -> %s)", entry->apName.getName().c_str(),
-                 entry->macAddress.str().c_str());
+    const APN &apn = entry->getApName();
+    const inet::MACAddress &mac = entry->getMacAddress();
+    Enter_Method("arpResolutionCompleted(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
 
-    auto &vec = outQueue[entry->apName];
+    auto &vec = outQueue[apn];
     for (SDUData *sdu : vec) {
         auto *controlInfo = new inet::Ieee802Ctrl();
-        controlInfo->setDest(entry->macAddress);
+        controlInfo->setDest(mac);
         controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
         sdu->setControlInfo(controlInfo);
         sendPacketToNIC(sdu);

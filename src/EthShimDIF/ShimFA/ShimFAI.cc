@@ -15,9 +15,7 @@ ShimFAI::ShimFAI() : localPortId(VAL_UNDEF_PORTID)
 {
 }
 
-ShimFAI::~ShimFAI()
-{
-}
+ShimFAI::~ShimFAI() = default;
 
 void ShimFAI::initialize()
 {
@@ -42,7 +40,6 @@ int ShimFAI::getLocalPortId() const
     return localPortId;
 }
 
-// this entire module is redundant. will remove
 bool ShimFAI::receiveAllocateRequest()
 {
     Enter_Method("receiveAllocateRequest()");

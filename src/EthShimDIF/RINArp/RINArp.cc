@@ -205,7 +205,7 @@ void RINArp::sendArpRequest(const APN &dstApn)
     ASSERT(!srcMac.isUnspecified());
     ASSERT(!srcApn.isUnspecified());
 
-    int apnLen = std::max(srcApn.length(), dstApn.length());
+    const int apnLen = std::max(srcApn.length(), dstApn.length());
     auto *arp = new RINArpPacket("arpREQ");
     arp->setByteLength(ARP_BASE_LEN + apnLen * 2);
     arp->setApnLength(apnLen);

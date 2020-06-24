@@ -30,7 +30,7 @@ import rina.src.EthShimDIF.RINArp.RINArp;
 module IPCProcessShim
 {
     parameters:
-        @display("bgb=402,307;i=misc/square,#008000,50");
+        @display("bgb=402,307;i=misc/square,#008000,50;i2=status/connect");
         string ipcAddress;
         string difName;
         string apName = default(ipcAddress + "_" + difName);

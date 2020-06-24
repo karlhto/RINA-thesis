@@ -40,7 +40,7 @@ class RINArp;
  */
 class ShimFA : public FABase, public cListener
 {
-  protected:
+  private:
     cModule *shimIpcProcess;
     cModule *connectedApplication;
     RINArp *arp;
@@ -58,10 +58,10 @@ class ShimFA : public FABase, public cListener
     /** @brief Attempts to initialise new flow */
     bool receiveAllocateRequest(Flow *flow) override;
     bool receiveDeallocateRequest(Flow *flow) override;
-    virtual void completedAddressResolution(const APN &apn);
-    virtual void failedAddressResolution(const APN &apn);
+    void completedAddressResolution(const APN &apn);
+    void failedAddressResolution(const APN &apn);
     void deinstantiateFai(Flow *flow) override;
-    virtual bool createUpperFlow(const APN &apn);
+    bool createUpperFlow(const APN &apn);
 
     /// These are all unused in shim layer, but still implemented
     bool receiveMgmtAllocateRequest(Flow *mgmtflow) override;
@@ -76,13 +76,13 @@ class ShimFA : public FABase, public cListener
 
   protected:
     /** @brief Initialises the QoS cube with parameters from ethernet interface */
-    virtual void initQoS();
+    void initQoS();
 
-    virtual void setRegisteredApName();
+    void setRegisteredApName();
 
-    virtual bool allocatePort(Flow *flow);
-    virtual void createBindings(int portID);
-    virtual void deleteBindings();
+    bool allocatePort(Flow *flow);
+    void createBindings(int portID);
+    void deleteBindings();
 
     ShimFAI *createFAI(Flow *flow);
 
@@ -93,7 +93,7 @@ class ShimFA : public FABase, public cListener
 
     /// cListener overrides
     void receiveSignal(cComponent *source,
-                               simsignal_t signalID,
-                               cObject *obj,
-                               cObject *details) override;
+                       simsignal_t signalID,
+                       cObject *obj,
+                       cObject *details) override;
 };

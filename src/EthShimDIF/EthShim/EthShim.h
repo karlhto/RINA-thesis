@@ -29,10 +29,9 @@
 #include "inet/linklayer/common/MACAddress.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
 
-class SDUData;
-class ShimFA;
 class RINArpPacket;
-
+class ShimFA;
+class SDUData;
 
 class EthShim : public cSimpleModule, public cListener
 {
@@ -58,13 +57,13 @@ class EthShim : public cSimpleModule, public cListener
     ~EthShim() override;
 
     /** @brief Registers Application Naming Information with Arp */
-    virtual void registerApplication(const APN &apni) const;
+    void registerApplication(const APN &apni) const;
 
     /** @brief Adds mapping and creates bindings for a flow */
-    virtual bool addPort(const APN &dstApn, const int &portId);
+    bool addPort(const APN &dstApn, const int &portId);
 
     /** @brief Sends waiting SDUs in queue */
-    virtual void sendWaitingSDUs(const APN &srcApn);
+    void sendWaitingSDUs(const APN &srcApn);
 
   protected:
     void handleSDU(SDUData *sdu, cGate *gate);
@@ -84,7 +83,7 @@ class EthShim : public cSimpleModule, public cListener
 
     /// cListener overrides, for Arp signals
     void receiveSignal(cComponent *source,
-                               simsignal_t signalID,
-                               cObject *obj,
-                               cObject *details) override;
+                       simsignal_t signalID,
+                       cObject *obj,
+                       cObject *details) override;
 };

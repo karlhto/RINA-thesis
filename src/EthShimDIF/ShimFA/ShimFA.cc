@@ -37,19 +37,22 @@ Define_Module(ShimFA);
 /*
  * Initialisation functionality
  */
-ShimFA::ShimFA() : FABase::FABase(), resolving(false), qos(QoSCube())
+ShimFA::ShimFA()
+    : FABase::FABase(),
+      shimIpcProcess(nullptr),
+      connectedApplication(nullptr),
+      arp(nullptr),
+      shim(nullptr),
+      resolving(false),
+      qos(QoSCube())
 {
     qos.setQosId("QoSCube_Unreliable");
 }
 
-ShimFA::~ShimFA()
-{
-}
+ShimFA::~ShimFA() = default;
 
 void ShimFA::initialize(int stage)
 {
-    cSimpleModule::initialize(stage);
-
     if (stage == inet::INITSTAGE_LOCAL) {
         shimIpcProcess = getModuleByPath("^.^");
         if (shimIpcProcess == nullptr)
@@ -81,7 +84,7 @@ void ShimFA::initialize(int stage)
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER_2) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
-        // TODO look for alternative function
+        // TODO (karlhto): look for alternative function
         setRegisteredApName();
 
         // FIXME: Should probably add an API call to formally register application
@@ -220,10 +223,10 @@ void ShimFA::failedAddressResolution(const APN &dstApn)
     // something something FAI stop createresponsenegative
 }
 
-ShimFAI *ShimFA::createFAI(Flow *flow)
+auto ShimFA::createFAI(Flow *flow) -> ShimFAI *
 {
     cModuleType *type = cModuleType::get("rina.src.EthShimDIF.ShimFA.ShimFAI");
-    int portId = intrand(MAX_PORTID, RANDOM_NUMBER_GENERATOR);
+    unsigned int portId = intrand(MAX_PORTID, RANDOM_NUMBER_GENERATOR);
 
     std::ostringstream ostr;
     ostr << "fai_" << portId;
@@ -283,9 +286,9 @@ void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *ob
 
     auto *notification = check_and_cast<RINArp::ArpNotification *>(obj);
     if (signalID == RINArp::completedRINArpResolutionSignal)
-        completedAddressResolution(notification->apName);
+        completedAddressResolution(notification->getApName());
     else if (signalID == RINArp::failedRINArpResolutionSignal)
-        failedAddressResolution(notification->apName);
+        failedAddressResolution(notification->getApName());
     else
         throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
 
