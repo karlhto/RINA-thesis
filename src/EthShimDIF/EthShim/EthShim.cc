@@ -51,6 +51,19 @@ void EthShim::initialize(int stage)
 
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
+
+        std::string difName = ipcProcess->par("difName").stringValue();
+        try {
+            std::string::size_type rest;
+            unsigned int vlanID = std::stoul(difName, &rest, 10);
+            if (rest < difName.length()) {
+                throw std::invalid_argument("");
+            }
+            if (vlanID >= 4096) {
+            }
+        } catch (std::invalid_argument) {
+            throw cRuntimeError("DIF name not valid: %s", difName.c_str());
+        }
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
         auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
