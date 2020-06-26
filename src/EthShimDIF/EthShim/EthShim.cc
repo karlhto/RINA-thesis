@@ -67,8 +67,8 @@ void EthShim::initialize(int stage)
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
         auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
-        // FIXME please use something that doesn't suck
-        ie = ift->getInterface(0);
+        cModule *eth = ipcProcess->getModuleByPath(".eth");
+        ie = ift->getInterfaceByInterfaceModule(eth);
         if (ie == nullptr)
             throw cRuntimeError("Interface entry is required for shim module to work");
     }
@@ -78,7 +78,7 @@ void EthShim::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("arpIn")) {
         EV_INFO << "Received Arp packet." << endl;
-        sendPacketToNIC(PK(msg));
+        sendPacketToNIC(msg);
     } else if (msg->arrivedOn("ifIn")) {
         EV_INFO << "Received " << msg << " from network." << endl;
         if (auto arpPacket = dynamic_cast<RINArpPacket *>(msg))
@@ -202,10 +202,10 @@ void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
     send(arpPacket, "arpOut");
 }
 
-void EthShim::sendPacketToNIC(cPacket *packet)
+void EthShim::sendPacketToNIC(cMessage *msg)
 {
-    EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
-    send(packet, "ifOut");
+    EV_INFO << "Sending " << msg << " to ethernet interface." << endl;
+    send(msg, "ifOut");
 }
 
 void EthShim::registerApplication(const APN &apni) const

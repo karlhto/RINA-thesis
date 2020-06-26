@@ -35,9 +35,7 @@ const simsignal_t RINArp::completedRINArpResolutionSignal =
     registerSignal("completedRINArpResolution");
 const simsignal_t RINArp::failedRINArpResolutionSignal = registerSignal("failedRINArpResolution");
 
-RINArp::RINArp()
-{
-}
+RINArp::RINArp() = default;
 
 RINArp::~RINArp()
 {
@@ -213,7 +211,7 @@ void RINArp::sendArpRequest(const APN &dstApn)
     arp->setSrcMacAddress(srcMac);
     arp->setSrcApName(srcApn);
     arp->setDstApName(dstApn);
-    sendPacketToNIC(arp, inet::MACAddress::BROADCAST_ADDRESS, inet::ETHERTYPE_ARP);
+    sendPacketToNIC(arp, inet::MACAddress::BROADCAST_ADDRESS);
 }
 
 void RINArp::processArpPacket(RINArpPacket *arp)
@@ -226,6 +224,8 @@ void RINArp::processArpPacket(RINArpPacket *arp)
     ASSERT(!srcMac.isUnspecified());
     ASSERT(!srcApn.isUnspecified());
     ASSERT(!dstApn.isUnspecified());
+
+    EV_TRACE << arp << " has source MAC " << srcMac << " and APN " << srcApn << endl;
 
     bool mergeFlag = false;
     auto it = arpCache.find(srcApn);
@@ -252,8 +252,12 @@ void RINArp::processArpPacket(RINArpPacket *arp)
             updateArpCache(entry, srcMac);
         }
 
+        EV_TRACE << arp << " was for us! ";
+
         switch (arp->getOpcode()) {
         case ARP_REQUEST: {
+            EV_TRACE << "Sending ARP reply with MAC destination: " << srcMac
+                     << ", source: " << thisHost.second->macAddress << endl;
             // Protocol address length will remain the same. We need to
             // swap the addresses, however.
             arp->setName("arpREPLY");
@@ -263,7 +267,7 @@ void RINArp::processArpPacket(RINArpPacket *arp)
             arp->setSrcApName(dstApn);
             arp->setOpcode(ARP_REPLY);
             delete arp->removeControlInfo();
-            sendPacketToNIC(arp, srcMac, inet::ETHERTYPE_ARP);
+            sendPacketToNIC(arp, srcMac);
 
             break;
         }
@@ -288,14 +292,14 @@ void RINArp::processArpPacket(RINArpPacket *arp)
     }
 }
 
-void RINArp::sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress, int etherType)
+void RINArp::sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress)
 {
     auto *controlInfo = new inet::Ieee802Ctrl();
     controlInfo->setDest(macAddress);
-    controlInfo->setEtherType(etherType);
+    controlInfo->setEtherType(inet::ETHERTYPE_ARP);
     msg->setControlInfo(controlInfo);
 
-    EV_INFO << "Sending " << msg << " to ethernet shim";
+    EV_INFO << "Sending " << msg << " to ethernet shim." << endl;
     send(msg, netwOutGate);
 }
 

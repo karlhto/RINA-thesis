@@ -129,7 +129,7 @@ class RINArp : public cSimpleModule
     bool addressRecognized(const APN &apn);
 
     /** @brief Sends packet to network (likely passing it to NIC */
-    void sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress, int etherType);
+    void sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress);
 
     /** @brief Sends an ARP request addressed to specified APN */
     void sendArpRequest(const APN &apn);

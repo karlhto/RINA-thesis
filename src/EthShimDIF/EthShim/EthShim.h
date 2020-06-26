@@ -69,7 +69,7 @@ class EthShim : public cSimpleModule, public cListener
     void handleSDU(SDUData *sdu, cGate *gate);
     void handleIncomingSDU(SDUData *sdu);
     void handleIncomingArpPacket(RINArpPacket *arpPacket);
-    void sendPacketToNIC(cPacket *packet);
+    void sendPacketToNIC(cMessage *msg);
 
     void insertSDU(SDUData *sdu, const APN &srcApn, queueMap &queue);
 
