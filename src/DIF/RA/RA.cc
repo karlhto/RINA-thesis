@@ -84,10 +84,7 @@ void RA::initialize(int stage)
     qAllocPolicy = getRINAModule<QueueAllocBase*>(this, 1, {MOD_POL_QUEUEALLOC});
 
     // initialize attributes
-    std::ostringstream os;
-    os << thisIPC->par(PAR_IPCADDR).stringValue() << "_"
-       << thisIPC->par(PAR_DIFNAME).stringValue();
-    processName  = os.str();
+    processName  = thisIPC->par("apName").stringValue();
 
     initSignalsAndListeners();
 
@@ -237,7 +234,7 @@ void RA::initFlowAlloc()
 
             if (!qosReq)
             {
-                throw cRuntimeError("Invalid QoSReqId %s for SimTime=%s, src=\"%s\", dst=\"%s\"",
+                throw cRuntimeError(R"(Invalid QoSReqId %s for SimTime=%s, src="%s", dst="%s")",
                         qosReqID,
                         time.str().c_str(),
                         src,
@@ -265,11 +262,8 @@ void RA::initFlowAlloc()
                 if (until <= time)
                 {
                     throw cRuntimeError(
-                            "Invalid time of deallocation for flow {SimTime=%s, src=\"%s\", dst=\"%s\", qosReq=\"%s\"}",
-                            time.str().c_str(),
-                            src,
-                            dst,
-                            qosReqID);
+                        R"(Invalid time of deallocation for flow {SimTime=%s, src="%s", dst="%s", qosReq="%s"})",
+                        time.str().c_str(), src, dst, qosReqID);
                 }
 
                 if (preDeallocs[until] == nullptr)
@@ -420,7 +414,7 @@ RMTPort* RA::bindNM1FlowToRMT(cModule* bottomIPC, FABase* fab, Flow* flow)
  * @param flowPortID original portId to be expanded
  * @return normalized port-id
  */
-std::string RA::normalizePortID(std::string ipcName, int flowPortID)
+std::string RA::normalizePortID(const std::string &ipcName, int flowPortID)
 {
     std::ostringstream newPortID;
     newPortID << ipcName << '_' << flowPortID;
@@ -779,11 +773,11 @@ NM1FlowTable* RA::getFlowTable()
     return flowTable;
 }
 
-bool RA::hasFlow(std::string addr, std::string qosId) {
+bool RA::hasFlow(const std::string &addr, const std::string &qosId) {
     return rmt->isOnWire() ? true : (flowTable->findFlowByDstApni(addr, qosId) != nullptr);
 }
 
-bool RA::sleepFlow(Flow * flow, simtime_t wakeUp) {
+bool RA::sleepFlow(Flow * flow, const simtime_t &wakeUp) {
     Enter_Method_Silent();
     if(flowTable->lookup(flow) != nullptr) {
         simtime_t now = simTime();

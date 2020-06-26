@@ -69,10 +69,10 @@ class RABase : public cSimpleModule
     virtual NM1FlowTable* getFlowTable() = 0;
     virtual void signalizeSlowdownRequestToRIBd(cPacket* pdu) = 0;
     virtual void signalizeSlowdownRequestToEFCP(cObject* pdu) = 0;
-    virtual bool hasFlow(std::string addr, std::string qosId) = 0;
+    virtual bool hasFlow(const std::string &addr, const std::string &qosId) = 0;
 
     const QoSCubeSet& getQoSCubes() const;
-    const QoSCube* getQoSCubeById(std::string qosId) const;
+    const QoSCube* getQoSCubeById(const std::string &qosId) const;
 
   protected:
     virtual void initQoSCubes();

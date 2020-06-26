@@ -112,7 +112,7 @@ std::ostream& operator <<(std::ostream& os, const QoSCubeSet& cubes) {
     return os;
 }
 
-const QoSCube* RABase::getQoSCubeById(std::string qosId) const
+const QoSCube* RABase::getQoSCubeById(const std::string &qosId) const
 {
     for (auto const& it : QoSCubes)
     {

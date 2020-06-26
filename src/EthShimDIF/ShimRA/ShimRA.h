@@ -46,7 +46,7 @@ class ShimRA : public RABase
     NM1FlowTable *getFlowTable() override;
     void signalizeSlowdownRequestToRIBd(cPacket *pdu) override;
     void signalizeSlowdownRequestToEFCP(cObject *pdu) override;
-    bool hasFlow(std::string addr, std::string qosId) override;
+    bool hasFlow(const std::string &addr, const std::string &qosId) override;
 
   protected:
     /// cSimpleModule overrides

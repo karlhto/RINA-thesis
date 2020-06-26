@@ -2,13 +2,9 @@
 
 Define_Module(ShimRA);
 
-ShimRA::ShimRA()
-{
-}
+ShimRA::ShimRA() = default;
 
-ShimRA::~ShimRA()
-{
-}
+ShimRA::~ShimRA() = default;
 
 void ShimRA::initialize(int stage)
 {
@@ -87,7 +83,7 @@ void ShimRA::signalizeSlowdownRequestToEFCP(cObject *pdu)
     (void)pdu;
 }
 
-bool ShimRA::hasFlow(std::string addr, std::string qosId)
+bool ShimRA::hasFlow(const std::string &addr, const std::string &qosId)
 {
     (void)addr;
     (void)qosId;

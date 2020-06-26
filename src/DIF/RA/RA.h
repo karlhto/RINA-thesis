@@ -58,9 +58,9 @@ class RA : public RABase
     virtual void blockNM1PortOutput(NM1FlowTableItem* ftItem);
     virtual void unblockNM1PortOutput(NM1FlowTableItem* ftItem);
     virtual NM1FlowTable* getFlowTable();
-    virtual bool hasFlow(std::string addr, std::string qosId);
+    virtual bool hasFlow(const std::string &addr, const std::string &qosId);
 
-    virtual bool sleepFlow(Flow * flow, simtime_t wakeUp);
+    virtual bool sleepFlow(Flow * flow, const simtime_t &wakeUp);
 
     // event hook handlers
     virtual void postNFlowAllocation(Flow* flow);
@@ -98,7 +98,7 @@ class RA : public RABase
     void setRMTMode();
     void bindMediumToRMT();
     RMTPort* bindNM1FlowToRMT(cModule* ipc, FABase* fab, Flow* flow);
-    std::string normalizePortID(std::string ipcName, int flowPortID);
+    std::string normalizePortID(const std::string &ipcName, int flowPortID);
 
     LisRACreFlow* lisRACreFlow;
     LisRAAllocResPos* lisRAAllocResPos;
