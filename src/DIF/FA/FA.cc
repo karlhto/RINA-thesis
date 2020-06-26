@@ -120,15 +120,30 @@ bool FA::isMalformedFlow(Flow* flow) {
 void FA::handleMessage(cMessage *msg) {
     if ( msg->isSelfMessage() && !opp_strcmp(msg->getName(), TIM_FAPENDFLOWS) ) {
         while (!pendingFlows.empty()) {
-            NFlowTableEntry* fte = nFlowTable->findEntryByFlow(pendingFlows.front());
-            if (fte && fte->getFai()) {
+            Flow *flow = pendingFlows.front();
+            pendingFlows.pop();
+            NFlowTableEntry* fte = nFlowTable->findEntryByFlow(flow);
+            if (fte == nullptr) {
+                EV_ERROR << "No flow table entry corresponding to pending flow!" << endl;
+                continue;
+            }
+
+            if (fte->getAllocateStatus() == NFlowTableEntry::ALLOC_PEND) {
                 FAIBase* fai = fte->getFai();
-                if (fai) {
+                if (fai != nullptr) {
                     fai->receiveAllocateRequest();
+                } else {
+                    EV_ERROR << "No FAI for flow with pending allocation!" << endl;
+                }
+            } else if (fte->getAllocateStatus() == NFlowTableEntry::FORWARDING) {
+                if (raModule->bindNFlowToNM1Flow(flow)) {
+                    receiveNM1FlowCreated(flow);
+                } else {
+                    EV << "FA waits until N-1 IPC allocates auxilliary N-1 flow" << endl;
                 }
             }
-            pendingFlows.pop_front();
         }
+
         cancelAndDelete(msg);
     }
     else
@@ -256,9 +271,11 @@ bool FA::receiveAllocateRequest(Flow* flow) {
     // FIXME the below statement is incorrect.
     //Successful enrollment implies existence of N-1 mgmt-flow, if not then
     //FA needs to init allocation of N-1 mgmt-flow
-    if (!flow->isDdtFlag() && !enrollmentStateTable->isConnectedTo(flow->getDstNeighbor().getApn())) {
-        EV << "IPCP not enrolled to DIF, thus executing enrollment!" << endl;
-        receiveMgmtAllocateRequest(APNamingInfo(myAddress.getApn()), APNamingInfo(flow->getDstNeighbor().getApn()));
+    if (!flow->isDdtFlag() &&
+        !enrollmentStateTable->isConnectedTo(flow->getDstNeighbor().getApn())) {
+        EV << "IPCP not connected to remote IPC, executing CACE" << endl;
+        receiveMgmtAllocateRequest(APNamingInfo(myAddress.getApn()),
+                                   APNamingInfo(flow->getDstNeighbor().getApn()));
     }
 
     //Is malformed?
@@ -337,8 +354,8 @@ bool FA::receiveMgmtAllocateFinish(APNIPair *apnip) {
     EV << "AllocFinMgmt initiated" << endl;
 
     TFAIPtrs entries = nFlowTable->findEntriesAffectedByMgmt(apnip);
-    for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it)
-        pendingFlows.push_back((*it)->getFlow());
+    for (auto &entry : entries)
+        pendingFlows.push(entry->getFlow());
 
     scheduleAt(simTime(), new cMessage(TIM_FAPENDFLOWS) );
     //TODO: Vesely - Fix unused return value
@@ -348,8 +365,6 @@ bool FA::receiveMgmtAllocateFinish(APNIPair *apnip) {
 bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
     Enter_Method("receiveCreateFlowRequest()");
     EV << this->getFullPath() << " received CreateFlowRequest" << endl;
-
-    bool status;
 
     //Is requested APP local?
     if ( difAllocator->isAppLocal(flow->getSrcApni().getApn()) ){
@@ -365,11 +380,9 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
         nFlowTable->insertNew(flow);
 
         //Change neighbor addresses
-        //if (!flow->isManagementFlowLocalToIPCP()) {
-            setNeighborAddresses(flow);
-            //XXX: Vesely - Dirty! Needs refactoring...
-            flow->setSrcNeighbor(flow->getSrcAddr());
-        //}
+        setNeighborAddresses(flow);
+        //XXX: Vesely - Dirty! Needs refactoring...
+        flow->setSrcNeighbor(flow->getSrcAddr());
 
         EV << "Processing M_CREATE(flow)" << endl;
         //Change allocation status to pending
@@ -389,57 +402,59 @@ bool FA::receiveCreateFlowRequestFromRibd(Flow* flow) {
         flow->getConnectionId().setSrcCepId(fai->getLocalCepId());
 
         //Pass the CreateRequest to newly created FAI
-        status = fai->receiveCreateRequest();
-
+        return fai->receiveCreateRequest();
     }
+
     //...if not then forward CreateRequest Flow to next neighbor
     // TODO split into new function, add secondary function to easily replace
     // this when the time comes
-    else {
-        //App is not local but it should be (based on DA)
-        if (flow->getSrcAddr() == this->getMyAddress()) {
-            EV << "Rejecting flow allocation, APN not present on this system!" << endl;
-            emit(this->createResponseNegativeSignal, flow);
-            return false;
-        }
-        //
-        else {
-            EV << "Forwarding M_CREATE(flow)" << endl;
-
-            //Before that reverse SRC-DST information back
-            flow->swapFlow();
-            //Insert new Flow into FAITable
-            nFlowTable->insertNew(flow);
-            //Change neighbor addresses
-            setNeighborAddresses(flow);
-            //Change status to forward
-            nFlowTable->changeAllocStatus(flow, NFlowTableEntry::FORWARDING);
-
-            //Decrement HopCount
-            flow->setHopCount(flow->getHopCount() - 1);
-            if (!flow->getHopCount()) {
-                //TODO: Vesely - More granular error
-                nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_ERR);
-                //Schedule M_Create_R(Flow)
-                EV << "Hopcount decremented to zero!" << endl;
-                emit(this->createResponseNegativeSignal, flow);
-                return false;
-            }
-
-            // bind this flow to a suitable (N-1)-flow
-            status = raModule->bindNFlowToNM1Flow(flow);
-
-            //EV << "status: " << status << endl;
-            if (status == true) {
-                // flow is already allocated
-                receiveNM1FlowCreated(flow);
-            }
-            //else WAIT until allocation of N-1 flow is completed
-            else {
-                EV << "FA waits until N-1 IPC allocates auxilliary N-1 flow" << endl;
-            }
-        }
+    //App is not local but it should be (based on DA)
+    if (flow->getSrcAddr() == this->getMyAddress()) {
+        EV << "Rejecting flow allocation, APN not present on this system!" << endl;
+        emit(this->createResponseNegativeSignal, flow);
+        return false;
     }
+
+    EV << "Forwarding M_CREATE(flow)" << endl;
+
+    //Before that reverse SRC-DST information back
+    flow->swapFlow();
+    //Insert new Flow into FAITable
+    nFlowTable->insertNew(flow);
+    //Change neighbor addresses
+    setNeighborAddresses(flow);
+    //Change status to forward
+    nFlowTable->changeAllocStatus(flow, NFlowTableEntry::FORWARDING);
+
+    //Decrement HopCount
+    flow->setHopCount(flow->getHopCount() - 1);
+    if (!flow->getHopCount()) {
+        //TODO: Vesely - More granular error
+        nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_ERR);
+        //Schedule M_Create_R(Flow)
+        EV << "Hopcount decremented to zero!" << endl;
+        emit(this->createResponseNegativeSignal, flow);
+        return false;
+    }
+
+    // Need to check if connected to remote application first
+    if (!enrollmentStateTable->isConnectedTo(flow->getDstNeighbor().getApn())) {
+        EV << "IPCP not connected to remote IPC, executing CACE" << endl;
+        return receiveMgmtAllocateRequest(APNamingInfo(myAddress.getApn()),
+                                          APNamingInfo(flow->getDstNeighbor().getApn()));
+    }
+
+    // bind this flow to a suitable (N-1)-flow
+    bool status = raModule->bindNFlowToNM1Flow(flow);
+    if (status == true) {
+        // flow is already allocated
+        receiveNM1FlowCreated(flow);
+    }
+    //else WAIT until allocation of N-1 flow is completed
+    else {
+        EV << "FA waits until N-1 IPC allocates auxilliary N-1 flow" << endl;
+    }
+
     return status;
 }
 
@@ -470,10 +485,7 @@ void FA::receiveNM1FlowCreated(Flow* flow) {
     Enter_Method("receiveNM1FlowCreated()");
     EV << "Continue M_CREATE(flow) forward!" << endl;
 
-    Flow* tmpfl = flow->dup();
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::FORWARDED);
-    setNeighborAddresses(tmpfl);
-
     emit(this->createRequestForwardSignal, flow);
 }
 
@@ -552,6 +564,6 @@ void FA::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *)
 
     // TODO split this into separate functions
     TFAIPtrs entries = nFlowTable->findEntriesByDstNeighborAndFwd(flow->getDstApni().getApn());
-    for (TFTPtrsIter it = entries.begin(); it != entries.end(); ++it)
-        receiveNM1FlowCreated((*it)->getFlow());
+    for (auto &entry : entries)
+        receiveNM1FlowCreated(entry->getFlow());
 }

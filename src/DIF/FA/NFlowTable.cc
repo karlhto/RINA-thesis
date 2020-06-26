@@ -238,14 +238,16 @@ unsigned int NFlowTable::getSize() const
     return NFlowTab.size();
 }
 
-TFAIPtrs NFlowTable::findEntriesAffectedByMgmt(const APNIPair* apnip) {
+TFAIPtrs NFlowTable::findEntriesAffectedByMgmt(const APNIPair *apnip)
+{
     TFAIPtrs list;
-    for(TFTIter it = NFlowTab.begin(); it != NFlowTab.end(); ++it) {
-        NFlowTableEntry tft = *it;
-        if (tft.getCFlow()->getSrcAddr().getApn() == apnip->first.getApn()
-            && tft.getCFlow()->getDstNeighbor().getApn() == apnip->second.getApn()
-            && tft.getAllocateStatus() == NFlowTableEntry::ALLOC_PEND)
-            list.push_back(&(*it));
+    for (auto &tft : NFlowTab) {
+        if (tft.getCFlow()->getDstNeighbor().getApn() == apnip->second.getApn()) {
+            if (tft.getAllocateStatus() == NFlowTableEntry::ALLOC_PEND ||
+                tft.getAllocateStatus() == NFlowTableEntry::FORWARDING) {
+                list.push_back(&tft);
+            }
+        }
     }
     return list;
 }

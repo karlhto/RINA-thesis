@@ -25,6 +25,7 @@
 
 //Standard libraries
 #include <omnetpp.h>
+#include <queue>
 //RINASim libraries
 #include "Common/Address.h"
 
@@ -41,7 +42,7 @@ class FABase : public cSimpleModule {
     FABase();
     virtual ~FABase();
 
-    std::list<Flow*> pendingFlows;
+    std::queue<Flow*> pendingFlows;
 
     virtual bool receiveAllocateRequest(Flow* flow) = 0;
     virtual bool receiveMgmtAllocateRequest(Flow* mgmtflow) = 0;

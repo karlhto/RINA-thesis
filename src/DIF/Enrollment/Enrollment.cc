@@ -156,7 +156,7 @@ void Enrollment::startCACE(const APNIPair &apnip) {
     APNamingInfo src(apnip.first);
     APNamingInfo dst(apnip.second);
 
-    // Check if we are already enrolled or in the process of enrolling
+    // Check if we are already connected or in the process of connecting
     auto existingEntry = StateTable->findEntryByDstAPN(dst.getApn());
     if (existingEntry != nullptr) {
         auto status = existingEntry->getCACEConStatus();
