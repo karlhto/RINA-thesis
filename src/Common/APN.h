@@ -153,4 +153,14 @@ inline bool operator<=(const APN& lhs, const APN& rhs) { return lhs.getName() <=
 inline bool operator>(const APN& lhs, const APN& rhs) { return lhs.getName() > rhs.getName(); }
 inline bool operator>=(const APN& lhs, const APN& rhs) { return lhs.getName() >= rhs.getName(); }
 
+/**
+ * @brief Specialisation of hash for APN, used for unordered_map
+ */
+template <> struct std::hash<APN>
+{
+    size_t operator()(const APN &apn) const {
+        return std::hash<std::string>()(apn.getName());
+    }
+};
+
 #endif /* APN_H_ */
