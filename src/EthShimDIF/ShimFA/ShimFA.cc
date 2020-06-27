@@ -78,10 +78,6 @@ void ShimFA::initialize(int stage)
         if (!connectedApplication->hasPar("apName"))
             throw cRuntimeError(
                 "Shim IPC process not connected to overlying IPC/Application Process");
-
-        // Sets up listening for this module
-        arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
-        arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER_2) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
         // TODO (karlhto): look for alternative function

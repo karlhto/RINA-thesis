@@ -23,6 +23,8 @@
 #pragma once
 
 #include <omnetpp.h>
+#include <memory>
+#include <queue>
 
 #include "Common/APN.h"
 #include "EthShimDIF/RINArp/RINArp.h"
@@ -35,16 +37,24 @@ class SDUData;
 
 class EthShim : public cSimpleModule, public cListener
 {
-  protected:
-    typedef std::vector<SDUData *> sduQueue;
-    typedef std::map<APN, sduQueue> queueMap;
-    typedef std::map<APN, sduQueue>::iterator queueMapIt;
-    std::map<cGate *, APN> gateMap;
-    std::map<cGate *, APN>::iterator gateMapIt;
-    queueMap inQueue, outQueue;
-    queueMapIt inQueueIt, outQueueIt;
+  private:
+    enum ConnState {
+        PENDING,
+        ALLOCATED
+    };
 
-    bool resolving;
+    struct ShimEntry;
+    using FlowMap = std::map<APN, std::unique_ptr<ShimEntry>>;
+
+    struct ShimEntry {
+        ConnState state;
+        std::queue<SDUData *> outQueue;
+        std::queue<SDUData *> inQueue;
+        cGate *gate;
+        FlowMap::iterator myIter;
+    };
+
+    FlowMap flows;
 
     // Pointers to important modules
     cModule *ipcProcess;
@@ -65,13 +75,17 @@ class EthShim : public cSimpleModule, public cListener
     /** @brief Sends waiting SDUs in queue */
     void sendWaitingSDUs(const APN &srcApn);
 
+    /** @brief Attempt to resolve specified address using ARP */
+    bool createEntry(const APN &dstApn);
+
   protected:
     void handleSDU(SDUData *sdu, cGate *gate);
     void handleIncomingSDU(SDUData *sdu);
     void handleIncomingArpPacket(RINArpPacket *arpPacket);
     void sendPacketToNIC(cMessage *msg);
 
-    void insertSDU(SDUData *sdu, const APN &srcApn, queueMap &queue);
+    void insertOutgoingSDU(const APN &dstApn, SDUData *sdu);
+    void insertIncomingSDU(const APN &srcApn, SDUData *sdu);
 
     void arpResolutionCompleted(RINArp::ArpNotification *entry);
     void arpResolutionFailed(RINArp::ArpNotification *entry);

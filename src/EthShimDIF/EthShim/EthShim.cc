@@ -33,9 +33,7 @@
 
 Define_Module(EthShim);
 
-EthShim::EthShim() : resolving(false)
-{
-}
+EthShim::EthShim() : flows() {}
 
 // TODO (karlhto): delete messages in queue
 EthShim::~EthShim() = default;
@@ -52,6 +50,9 @@ void EthShim::initialize(int stage)
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 
+        // FIXME INET 3.6.7 does not support VLANs, so this is intended for use when support for
+        //       INET >4.1 is implemented. This will probably require proper serialisation of
+        //       everything though
         std::string difName = ipcProcess->par("difName").stringValue();
         try {
             std::string::size_type rest;
@@ -59,6 +60,8 @@ void EthShim::initialize(int stage)
             if (rest < difName.length()) {
                 throw std::invalid_argument("");
             }
+
+            // TODO (karlhto): use some constant for this (hopefully already supplied)
             if (vlanID >= 4096) {
             }
         } catch (std::invalid_argument) {
@@ -97,6 +100,9 @@ void EthShim::handleMessage(cMessage *msg)
 
 bool EthShim::addPort(const APN &dstApn, const int &portId)
 {
+    auto &entry = flows[dstApn];
+    ASSERT(entry != nullptr);
+
     std::ostringstream gateName;
     gateName << GATE_NORTHIO_ << portId;
     const std::string &tmp = gateName.str();
@@ -116,7 +122,32 @@ bool EthShim::addPort(const APN &dstApn, const int &portId)
     if (!shimOut->isConnected() || !shimIn->isConnected())
         return false;
 
-    gateMap[shimIn] = dstApn;
+    entry->gate = shimIn;
+    return true;
+}
+
+
+// TODO (karlhto): Add ENUM for more granularity?
+bool EthShim::createEntry(const APN &dstApn)
+{
+    auto &entry = flows[dstApn];
+    if (entry != nullptr) {
+        EV_ERROR << "ShimEntry already exists, something has probably gone wrong" << endl;
+        return false;
+    }
+
+    entry = std::make_unique<ShimEntry>();
+    entry->state = ConnState::PENDING;
+
+    //
+    auto &mac = arp->resolveAddress(dstApn);
+
+    if (!mac.isUnspecified()) {
+        auto *msg = new cMessage("Fuck");
+        scheduleAt(simTime(), msg);
+        // TODO schedule message or something
+    }
+
     return true;
 }
 
@@ -127,14 +158,9 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate)
     inet::MACAddress mac = arp->resolveAddress(dstApn);
 
     if (mac.isUnspecified()) {
-        insertSDU(sdu, dstApn, outQueue);
-        resolving = true;
+        insertOutgoingSDU(dstApn, sdu);
         return;
     }
-
-    // TODO (karlhto): need DIF name here as VLAN ID, too
-    // TODO (karlhto): additionally need hashing function for DIF name so it fits into
-    //      12 bits (which is size of VLAN tag)
 
     auto *controlInfo = new inet::Ieee802Ctrl();
     controlInfo->setDest(mac);
@@ -149,25 +175,30 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 
     auto *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->getControlInfo());
     const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
-    const APN srcApn = arp->getAddressFor(srcMac);
+    const APN &srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
-        EV_WARN << "ARP Resolved wrong address, " << endl;
-        delete sdu;  // just place in a queue with discard timer?
+        EV_WARN << "ARP does not have a valid entry for source MAC " << srcApn << endl;
+        // TODO (karlhto): Consider whether having some queue for this is better
+        delete sdu;
         return;
     }
 
-    EV_INFO << "SDU was from destination application " << srcApn << endl;
-
-    cGate *gate = nullptr;
-    for (const auto &elem : gateMap)
-        if (elem.second == srcApn)
-            gate = elem.first;
-
-    if (gate == nullptr) {
-        insertSDU(sdu, srcApn, inQueue);
+    auto &entry = flows[srcApn];
+    if (entry == nullptr) {
+        entry = std::make_unique<ShimEntry>();
+        entry->state = ConnState::PENDING;
+        insertIncomingSDU(srcApn, sdu);
         shimFA->createUpperFlow(srcApn);
         return;
     }
+
+    if (entry->state == ConnState::PENDING) {
+        insertIncomingSDU(srcApn, sdu);
+        return;
+    }
+
+    auto &gate = entry->gate;
+    ASSERT(gate != nullptr);
 
     // send to output gate
     send(sdu, gate->getOtherHalf());
@@ -175,25 +206,36 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 
 void EthShim::sendWaitingSDUs(const APN &srcApn)
 {
-    cGate *gate = nullptr;
-    for (const auto &elem : gateMap)
-        if (elem.second == srcApn)
-            gate = elem.first;
+    auto &entry = flows[srcApn];
+    ASSERT(entry != nullptr);
 
+    cGate *gate = entry->gate;
+    // TODO (karlhto): Possibly better with assert here
     if (gate == nullptr) {
         EV_ERROR << "Called to send SDUs from " << srcApn << ", but no gate present" << endl;
         return;
     }
 
-    auto &vec = inQueue[srcApn];
-    for (SDUData *sdu : vec)
+    auto &queue = entry->inQueue;
+    while (!queue.empty()) {
+        auto &sdu = queue.front();
         send(sdu, gate->getOtherHalf());
+        queue.pop();
+    }
 }
 
-void EthShim::insertSDU(SDUData *sdu, const APN &apn, queueMap &queue)
+void EthShim::insertOutgoingSDU(const APN &apn, SDUData *sdu)
 {
-    auto &vec = queue[apn];
-    vec.push_back(sdu);
+    auto &entry = flows[apn];
+    ASSERT(entry != nullptr);
+    entry->outQueue.push(sdu);
+}
+
+void EthShim::insertIncomingSDU(const APN &apn, SDUData *sdu)
+{
+    auto &entry = flows[apn];
+    ASSERT(entry != nullptr);
+    entry->inQueue.push(sdu);
 }
 
 void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
@@ -220,9 +262,6 @@ void EthShim::registerApplication(const APN &apni) const
 
 void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cObject *)
 {
-    if (!resolving)
-        return;
-
     if (signalID == RINArp::completedRINArpResolutionSignal)
         arpResolutionCompleted(check_and_cast<RINArp::ArpNotification *>(obj));
     else if (signalID == RINArp::failedRINArpResolutionSignal)
@@ -231,25 +270,38 @@ void EthShim::receiveSignal(cComponent *, simsignal_t signalID, cObject *obj, cO
         throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
 }
 
-void EthShim::arpResolutionCompleted(RINArp::ArpNotification *entry)
+void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
 {
-    const APN &apn = entry->getApName();
-    const inet::MACAddress &mac = entry->getMacAddress();
+    const APN &apn = notification->getApName();
+    const inet::MACAddress &mac = notification->getMacAddress();
+    auto &entry = flows[apn];
+    if (entry == nullptr) {
+        // Do nothing
+        return;
+    }
+
     Enter_Method("arpResolutionCompleted(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
 
-    auto &vec = outQueue[apn];
-    for (SDUData *sdu : vec) {
+    if (entry->state == ConnState::PENDING) {
+        shimFA->completedAddressResolution(apn);
+        entry->state = ConnState::ALLOCATED;
+    }
+
+    auto &queue = entry->outQueue;
+    while (!queue.empty()) {
+        auto &sdu = queue.front();
         auto *controlInfo = new inet::Ieee802Ctrl();
         controlInfo->setDest(mac);
+        // TODO (karlhto): Check possibility for using 0xD1F0 as ethertype
         controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
         sdu->setControlInfo(controlInfo);
         sendPacketToNIC(sdu);
+        queue.pop();
     }
-    resolving = false;
 }
 
 void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
 {
     (void)entry;
-    // discard all sdu entries for given APN, or retain?
+    // discard all SDU entries, deallocate flow?
 }

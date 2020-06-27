@@ -54,14 +54,11 @@ bool ShimFAI::receiveAllocateRequest()
 
 bool ShimFAI::receiveCreateRequest()
 {
+    // TODO (karlhto): Check table state
     Enter_Method("receiveCreateRequest()");
-    bool res = shim->addPort(flow->getDstApni().getApn(), localPortId);
-    if (res) {
-        EV << "Successfully added bindings, notifying N+1" << endl;
-        emit(allocateRequestSignal, flow);
-    }
+    emit(allocateRequestSignal, flow);
 
-    return res;
+    return true;
 }
 
 bool ShimFAI::receiveCreateResponseNegative()
@@ -77,6 +74,14 @@ bool ShimFAI::receiveAllocateResponsePositive()
     NFlowTableEntry *nfte = nft->findEntryByFlow(flow);
     if (nfte == nullptr) {
         EV_ERROR << "No table entry for this flow found!" << endl;
+        return false;
+    }
+
+    auto &dstApn = flow->getDstApni().getApn();
+    bool res = shim->addPort(dstApn, localPortId);
+    if (!res) {
+        // TODO (karlhto): deallocate flows here
+        EV_ERROR << "Failed to create gates!" << endl;
         return false;
     }
 
