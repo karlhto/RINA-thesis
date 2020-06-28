@@ -22,38 +22,35 @@
 
 #include "Common/APN.h"
 
-const APN APN::UNSPECIFIED_APN = APN("");
+const APN APN::UNSPECIFIED_APN = APN();
 
-APN::APN()
+APN::APN(const std::string &name) : name(name)
 {
-    this->name = "";
 }
 
-APN::APN(std::string nam)
-{
-    this->setName(nam);
-}
-
-APN::~APN()
-{
-    this->name = "";
-}
-
-const std::string& APN::getName() const
+const std::string &APN::getName() const
 {
     return name;
 }
 
-void APN::setName(const std::string& name)
+void APN::setName(const std::string &name)
 {
     this->name = name;
 }
 
 std::string APN::str() const
 {
-    std::ostringstream os;
-    os << this->getName();
-    return os.str();
+    return name;
+}
+
+const char *APN::c_str() const
+{
+    return name.c_str();
+}
+
+std::string::size_type APN::length() const
+{
+    return name.length();
 }
 
 bool APN::isUnspecified() const
@@ -61,16 +58,14 @@ bool APN::isUnspecified() const
     return name.empty();
 }
 
-//Free function
-std::ostream& operator<< (std::ostream& os, const APN& apn)
+std::ostream &operator<<(std::ostream &os, const APN &apn)
 {
     return os << apn.str();
 }
 
-std::ostream& operator <<(std::ostream& os, const APNList& apns)
+std::ostream &operator<<(std::ostream &os, const APNList &apns)
 {
-    for (ApnCItem it = apns.begin(); it != apns.end(); ++it) {
-        os << *it << " ";
-    }
+    for (const auto &apn : apns)
+        os << apn << " ";
     return os;
 }

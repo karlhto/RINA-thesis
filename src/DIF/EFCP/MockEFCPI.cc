@@ -31,59 +31,32 @@ void MockEFCPI::initialize()
     southI = this->gateHalf("southIo", cGate::INPUT);
     southO = this->gateHalf("southIo", cGate::OUTPUT);
 
-    connID = new ConnectionId();
-    connID->setSrcCepId(0);
-    connID->setDstCepId(0);
-    connID->setQoSId(VAL_MGMTQOSID);
+    connID.setSrcCepId(0);
+    connID.setDstCepId(0);
+    connID.setQoSId(VAL_MGMTQOSID);
 
-    srcApn = APN(getModuleByPath(".^.^")->par("apName"));
+    srcApn.setName(getModuleByPath(".^.^")->par("apName").stringValue());
     srcAddress = Address(srcApn);
-
-
-
 }
 
 void MockEFCPI::handleMessage(cMessage *msg)
 {
+    if (msg->arrivedOn(northI->getId())) {
+        CDAPMessage *cdap = (CDAPMessage *)msg;
+        ManagementPDU *pdu = new ManagementPDU();
 
-  if (msg->arrivedOn(northI->getId()))
-  {
+        pdu->setConnId(connID);
+        pdu->setSrcAddr(srcAddress);
+        pdu->setDstAddr(cdap->getDstAddr());
+        pdu->setSrcApn(srcApn);
+        pdu->setDstApn(cdap->getDstAddr().getApn());
+        pdu->setSeqNum(0);
+        pdu->encapsulate(cdap);
 
-    CDAPMessage* cdap = (CDAPMessage*)msg;
-    ManagementPDU* pdu = new ManagementPDU();
-
-    pdu->setConnId(*(connID->dup()));
-
-    pdu->setSrcAddr(srcAddress);
-    pdu->setDstAddr(cdap->getDstAddr());
-    pdu->setSrcApn(srcApn);
-    pdu->setDstApn(cdap->getDstAddr().getApn());
-
-    pdu->setSeqNum(0);
-
-    pdu->encapsulate(cdap);
-
-
-
-    send(pdu, southO);
-
-
-  }
-  else if (msg->arrivedOn(southI->getId()))
-  {
-
-    cPacket* packet = (cPacket*)msg;
-    send(packet->decapsulate(), northO);
-    delete packet;
-
-  }
-
-}
-
-MockEFCPI::~MockEFCPI()
-{
-  delete connID;
-
-
-
+        send(pdu, southO);
+    } else if (msg->arrivedOn(southI->getId())) {
+        cPacket *packet = (cPacket *)msg;
+        send(packet->decapsulate(), northO);
+        delete packet;
+    }
 }

@@ -33,15 +33,9 @@
 
 class MockEFCPI : public cSimpleModule
 {
-  protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-
-
-
-
   private:
-    virtual ~MockEFCPI();
+    void initialize() override;
+    void handleMessage(cMessage *msg) override;
 
     /* To RIBd */
     cGate* northI;
@@ -51,8 +45,7 @@ class MockEFCPI : public cSimpleModule
     cGate* southI;
     cGate* southO;
 
-    ConnectionId* connID;
-
+    ConnectionId connID;
     APN srcApn;
     Address srcAddress;
 };

@@ -24,59 +24,78 @@
 #define APN_H_
 
 #include <omnetpp.h>
-#include <string>
-#include <sstream>
 
 /**
  * @brief Application Process Name class
  *
  * @authors Vladimir Vesely (ivesely@fit.vutbr.cz)
- * @date Last refactorized and documented on 2020-05-28
+ * @date Last refactorized and documented on 2020-06-28
  */
-class APN : public std::string
+class APN
 {
   public:
     /**
      * @brief Constructor creating unspecified APN
      */
-    APN();
+    APN() = default;
+
+    /**
+     * @brief Copy constructor (trivial is implicitly defined)
+     * @param apn APN to copy from
+     */
+    APN(const APN &apn) = default;
 
     /**
      * @brief Constructor creating APN of given name
-     * @param nam Represents APN string name
+     * @param name Represents APN string name
      */
-    APN(std::string nam);
+    APN(const std::string &name);
 
     /**
-     * @brief Destructor assigning empty string to name
+     * @brief Destructor
      */
-    virtual ~APN();
+    ~APN() = default;
+
+    /**
+     * @brief Retrieves the length of name
+     * @return Length of name
+     */
+    [[nodiscard]] std::string::size_type length() const;
 
     /**
      * @brief Info text output suitable for << string streams and  WATCH
      * @return APN string name
      */
-    std::string str() const;
+    [[nodiscard]] std::string str() const;
+
+    /**
+     * @brief Retrieves name represented as a cstring
+     * @return APN name as cstring
+     */
+    [[nodiscard]] const char *c_str() const;
 
     /**
      * @brief Gets APN string name representation
      * @return APN string
      */
-    const std::string& getName() const;
+    [[nodiscard]] const std::string &getName() const;
 
     /**
      * @brief Sets APN string representation to a new value
      * @param name New APN string
      */
-    void setName(const std::string& name);
+    void setName(const std::string &name);
 
     /**
      * @brief Checks if name is unspecified
      * @return True if name is empty, otherwise returns false
      */
-    bool isUnspecified() const;
+    [[nodiscard]] bool isUnspecified() const;
 
-    static const APN UNSPECIFIED_APN; ///< just an empty APN
+    /**
+     * @brief Static entry for
+     */
+    static const APN UNSPECIFIED_APN;
 
   protected:
     /**
@@ -84,7 +103,6 @@ class APN : public std::string
      * APN is basically wrapper around string
      */
     std::string name;
-
 };
 
 /**
@@ -92,7 +110,6 @@ class APN : public std::string
  * @typedef APNList
  */
 typedef std::list<APN> APNList;
-
 
 /**
  * @brief APNList constant iterator
@@ -106,7 +123,8 @@ typedef APNList::const_iterator ApnCItem;
  */
 typedef APNList::iterator ApnItem;
 
-//Free functions
+
+// Free functions
 
 /**
  * @brief << operator overload that calls APN.str() method
@@ -114,7 +132,7 @@ typedef APNList::iterator ApnItem;
  * @param apn APN class that is being converted to string
  * @return Infotext representing APN
  */
-std::ostream& operator<< (std::ostream& os, const APN& apn);
+std::ostream &operator<<(std::ostream &os, const APN &apn);
 
 /**
  * @brief << operator overload that feeds ostream with infotext of all contained APNs.
@@ -122,14 +140,13 @@ std::ostream& operator<< (std::ostream& os, const APN& apn);
  * @param apns APNList class that is being converted to string
  * @return Infotext representing APNList
  */
-std::ostream& operator<< (std::ostream& os, const APNList& apns);
+std::ostream &operator<<(std::ostream &os, const APNList &apns);
 
 /**
  * @brief Equal operator overloading
- * @param other APN for comparison
  * @return True if APNs string names are equal, otherwise returns false.
  */
-inline bool operator==(const APN& lhs, const APN& rhs)
+inline bool operator==(const APN &lhs, const APN &rhs)
 {
     return lhs.getName() == rhs.getName();
 }
@@ -139,7 +156,7 @@ inline bool operator==(const APN& lhs, const APN& rhs)
  * @param other APN for comparison
  * @return True if APNs string names are not equal, otherwise returns false.
  */
-inline bool operator!=(const APN& lhs, const APN& rhs)
+inline bool operator!=(const APN &lhs, const APN &rhs)
 {
     return lhs.getName() != rhs.getName();
 }
@@ -148,19 +165,29 @@ inline bool operator!=(const APN& lhs, const APN& rhs)
  * @brief Compares two APNs
  * @param other APN for comparison
  */
-inline bool operator<(const APN& lhs, const APN& rhs) { return lhs.getName() < rhs.getName(); }
-inline bool operator<=(const APN& lhs, const APN& rhs) { return lhs.getName() <= rhs.getName(); }
-inline bool operator>(const APN& lhs, const APN& rhs) { return lhs.getName() > rhs.getName(); }
-inline bool operator>=(const APN& lhs, const APN& rhs) { return lhs.getName() >= rhs.getName(); }
+inline bool operator<(const APN &lhs, const APN &rhs)
+{
+    return lhs.getName() < rhs.getName();
+}
+inline bool operator<=(const APN &lhs, const APN &rhs)
+{
+    return lhs.getName() <= rhs.getName();
+}
+inline bool operator>(const APN &lhs, const APN &rhs)
+{
+    return lhs.getName() > rhs.getName();
+}
+inline bool operator>=(const APN &lhs, const APN &rhs)
+{
+    return lhs.getName() >= rhs.getName();
+}
 
 /**
  * @brief Specialisation of hash for APN, used for unordered_map
  */
-template <> struct std::hash<APN>
-{
-    size_t operator()(const APN &apn) const {
-        return std::hash<std::string>()(apn.getName());
-    }
+template <>
+struct std::hash<APN> {
+    size_t operator()(const APN &apn) const { return std::hash<std::string>()(apn.str()); }
 };
 
 #endif /* APN_H_ */
