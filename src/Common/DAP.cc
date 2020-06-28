@@ -22,36 +22,30 @@
 
 #include "Common/DAP.h"
 
-DAP::DAP() : name("")
+DAP::DAP(const std::string &name) : name(name)
 {
 }
 
-DAP::DAP(std::string nam) : name(nam)
+bool DAP::operator==(const DAP &other) const
 {
-}
-
-
-DAP::~DAP()
-{
-    name = "";
-}
-
-bool DAP::operator ==(const DAP& other) const {
     return !name.compare(other.getName());
 }
 
-std::string DAP::str() const {
+std::string DAP::str() const
+{
     std::ostringstream os;
     os << this->getName();
     return os.str();
 }
 
-const std::string& DAP::getName() const {
+const std::string &DAP::getName() const
+{
     return name;
 }
 
 
-void DAP::setName(const std::string& name) {
+void DAP::setName(const std::string &name)
+{
     this->name = name;
 }
 
@@ -60,6 +54,7 @@ bool DAP::isUnspecified() const
     return name.empty();
 }
 
-std::ostream& operator <<(std::ostream& os, const DAP& dap) {
+std::ostream &operator<<(std::ostream &os, const DAP &dap)
+{
     return os << dap.str();
 }

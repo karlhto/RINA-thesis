@@ -46,27 +46,36 @@ class APNamingInfo
     /**
      * @brief Constructor of blank APNI
      */
-    APNamingInfo();
+    APNamingInfo() = default;
 
     /**
      * @brief Constructor of APNI with only APN initialized
-     * @param napn New APN
+     * @param name Name of APN
      */
-    APNamingInfo(APN napn);
+    APNamingInfo(const std::string &name);
+
+    /**
+     * @brief Constructor of APNI with only APN initialized
+     * @param apn New APN
+     */
+    APNamingInfo(const APN &apn);
 
     /**
      * @brief Construcor of fully initialized APNI
-     * @param napn New APN
-     * @param napinstance New AP instance identifier
-     * @param naename New AE identifier
-     * @param naeinstance New AE instance identifier
+     * @param apn New APN
+     * @param apinstance New AP instance identifier
+     * @param aename New AE identifier
+     * @param aeinstance New AE instance identifier
      */
-    APNamingInfo(APN napn, std::string napinstance, std::string naename, std::string naeinstance);
+    APNamingInfo(const APN &apn,
+                 const std::string &apinstance,
+                 const std::string &aename,
+                 const std::string &aeinstance);
 
     /**
-     * @brief Destructor assigning uninitialized values to APNI.
+     * @brief Destructor
      */
-    virtual ~APNamingInfo();
+    ~APNamingInfo() = default;
 
     /**
      * @brief Equal operator overload
@@ -74,26 +83,23 @@ class APNamingInfo
      * @return Returns true if all APN, AP-instance id, AE name and AE-instance id
      *         are equl. Otherwise returns false.
      */
-    bool operator== (const APNamingInfo& other) const
+    bool operator==(const APNamingInfo &other) const
     {
-        return (apn == other.apn &&
-                !apinstance.compare(other.apinstance) &&
-                !aename.compare(other.aename) && !aeinstance.compare(other.aeinstance) );
+        return (apn == other.apn && apinstance == other.apinstance &&
+                aename == other.aename && aeinstance == other.aeinstance);
     }
 
     /**
      * @brief Text output suitable for << string streams and WATCH
      * @return APNI string representation
      */
-    virtual std::string str() const;
+    [[nodiscard]] std::string str() const;
 
     /**
      * @brief Getter of AE-instance attribute
      * @return AE-instance id value
      */
-    const std::string& getAeinstance() const {
-        return aeinstance;
-    }
+    [[nodiscard]] const std::string &getAeinstance() const { return aeinstance; }
 
     /**
      * @brief Setter of AE-instance attribute
@@ -107,41 +113,31 @@ class APNamingInfo
      * @brief Getter of AE name
      * @return AE name value
      */
-    const std::string& getAename() const {
-        return aename;
-    }
+    [[nodiscard]] const std::string &getAename() const { return aename; }
 
     /**
      * @brief Setter of AE name attribute
      * @param aename A new AE name value
      */
-    void setAename(const std::string& aename) {
-        this->aename = aename;
-    }
+    void setAename(const std::string &aename) { this->aename = aename; }
 
     /**
      * @brief Getter of AP-instance id
      * @return AP-instance id value
      */
-    const std::string& getApinstance() const {
-        return apinstance;
-    }
+    [[nodiscard]] const std::string &getApinstance() const { return apinstance; }
 
     /**
      * @brief Setter of AP-instance id
      * @param apinstance A new AP-instance id value
      */
-    void setApinstance(const std::string& apinstance) {
-        this->apinstance = apinstance;
-    }
+    void setApinstance(const std::string &apinstance) { this->apinstance = apinstance; }
 
     /**
      * @brief Getter of APN
      * @return APN
      */
-    const APN& getApn() const {
-        return apn;
-    }
+    [[nodiscard]] const APN &getApn() const { return apn; }
 
     /**
      * @brief Setter of APN
@@ -191,15 +187,14 @@ class APNIPair : public cObject
 {
   public:
     APNIPair();
-    APNIPair(APNamingInfo src, APNamingInfo dst);
-    APNIPair(const char* src, const char* dst);
-    virtual ~APNIPair();
+    APNIPair(const APNamingInfo &src, const APNamingInfo &dst);
+    APNIPair(const std::string &src, const std::string &dst);
+    ~APNIPair() override = default;
 
-    virtual std::string str() const override;
+    [[nodiscard]] std::string str() const override;
 
     APNamingInfo first;
     APNamingInfo second;
-
 };
 
 std::ostream& operator<< (std::ostream& os, const APNIPair& apnip);

@@ -23,10 +23,11 @@
 #ifndef ADDRESS_H_
 #define ADDRESS_H_
 
-//Standard libraries
-#include <string>
+// Standard libraries
 #include <sstream>
-//RINASim libraries
+#include <string>
+
+// RINASim libraries
 #include "Common/APN.h"
 #include "Common/DAP.h"
 
@@ -37,15 +38,15 @@
  * and concatenation of previous two that should be used as unique APN.
  *
  * @authors Vladimir Vesely (ivesely@fit.vutbr.cz)
- * @date Last refactorized and documented on 2014-10-29
+ * @date Last refactorized and documented on 2020-06-28
  */
-class Address {
+class Address
+{
   public:
-    static const Address UNSPECIFIED_ADDRESS;
     /**
      * @brief Constructor of blank Address
      */
-    Address();
+    Address() = default;
 
     /**
      * @brief Address constructor from unique APN
@@ -53,19 +54,19 @@ class Address {
      */
     Address(std::string composite);
 
-    Address(APN apname);
+    Address(const APN &apname);
 
     /**
      * @brief Address constructor from both IPC address and DIF name
      * @param ipcaddr IPC Process address unambiguos inside a given DIF
      * @param difnam DIF name that this IPC Process is a member
      */
-    Address(const char* ipcaddr, const char* difnam);
+    Address(const char *ipcaddr, const char *difnam);
 
     /**
      * @brief Destructor assigning default values
      */
-    virtual ~Address();
+    ~Address() = default;
 
     /**
      * Equal operator overload
@@ -73,7 +74,7 @@ class Address {
      * @return Returns true if IPC address, DIF name and AP Name
      *         are equal between this and other Address
      */
-    bool operator== (const Address& other) const;
+    bool operator==(const Address &other) const;
 
     /**
      * LesTan operator overload
@@ -81,50 +82,55 @@ class Address {
      * @return Returns true if IPC address, DIF name and AP Name
      *         is smaller in this and other Address
      */
-    bool operator< (const Address& other) const;
+    bool operator<(const Address &other) const;
 
     /**
      * @brief Info text output suitable for << string streams and  WATCH
      * @return Address string representation
      */
-    std::string str() const;
+    [[nodiscard]] std::string str() const;
 
     /**
      * @brief Checks whether a given Address is unspecified which means that it has
      * empty attributes
      * @return True if it is unspecified, else returns false
      */
-    bool isUnspecified() const;
+    [[nodiscard]] bool isUnspecified() const;
 
     /**
      * @brief Getter of unique APN which is initialized during object construction
      * @return Returns APN in form of @<ipcaddress@>_@<difname@>
      */
-    const APN& getApn() const;
+    [[nodiscard]] const APN &getApn() const;
 
     /**
      * @brief Getter of common DIF name
      * @return DIF name as string
      */
-    const DAP& getDifName() const;
+    [[nodiscard]] const DAP &getDifName() const;
 
     /**
      * @brief Setter of common DIF name
      * @param difName A new DIF name value
      */
-    void setDifName(const DAP& difName);
+    void setDifName(const DAP &difName);
 
     /**
      * @brief Getter of IPC Process address which should be unambiguous within DIF
      * @return IPC Process address
      */
-    const APN& getIpcAddress() const;
+    [[nodiscard]] const APN &getIpcAddress() const;
 
     /**
      * @brief Setter of IPC Process address which should be unambiguous within DIF
      * @param ipcAddress A new IPC Process address value
      */
-    void setIpcAddress(const APN& ipcAddress);
+    void setIpcAddress(const APN &ipcAddress);
+
+    /**
+     * @brief Static definition of an undefined address (implicitly constructed)
+     */
+    static const Address UNSPECIFIED_ADDRESS;
 
   protected:
     /**
@@ -147,14 +153,14 @@ typedef std::list<Address> Addresses;
 typedef Addresses::const_iterator AddrCItem;
 typedef Addresses::iterator AddrItem;
 
-//Free function
+// Free function
 /**
  * @brief << operator overload that calls Address.str() method
  * @param os Resulting ostream
  * @param addr Address class that is being converted to string
  * @return Infotext representing Address
  */
-std::ostream& operator<< (std::ostream& os, const Address& addr);
+std::ostream &operator<<(std::ostream &os, const Address &addr);
 
 /**
  * @brief << operator overload that calls Address.str() method for each and every list member
@@ -162,6 +168,6 @@ std::ostream& operator<< (std::ostream& os, const Address& addr);
  * @param dims List of Addresses
  * @return Infotext representing Address
  */
-std::ostream& operator<< (std::ostream& os, const Addresses& dims);
+std::ostream &operator<<(std::ostream &os, const Addresses &dims);
 
 #endif /* ADDRESS_H_ */

@@ -22,36 +22,26 @@
 
 #include "Common/APNamingInfo.h"
 
-APNamingInfo::APNamingInfo() :
-    apn(APN()), apinstance(""),
-    aename(""), aeinstance("")
+APNamingInfo::APNamingInfo(const std::string &name) : apn(name)
 {
 }
 
-APNamingInfo::APNamingInfo(APN napn) : apinstance(""), aename(""), aeinstance("")
-{
-    this->apn = napn;
-}
-
-APNamingInfo::APNamingInfo(APN napn, std::string napinstance,
-        std::string naename, std::string naeinstance) :
-        apn(napn), apinstance(napinstance),
-        aename(naename), aeinstance(naeinstance)
+APNamingInfo::APNamingInfo(const APN &apn) : apn(apn)
 {
 }
 
-APNamingInfo::~APNamingInfo()
+APNamingInfo::APNamingInfo(const APN &apn,
+                           const std::string &apinstance,
+                           const std::string &aename,
+                           const std::string &aeinstance)
+    : apn(apn), apinstance(apinstance), aename(aename), aeinstance(aeinstance)
 {
-    this->apn = APN();
-    this->apinstance = "";
-    this->aename = "";
-    this->aeinstance = "";
 }
 
 std::string APNamingInfo::str() const
 {
     std::ostringstream os;
-    os << "AP: "<< apn;
+    os << "AP: " << apn;
     if (!apinstance.empty())
         os << " (" << apinstance << ")";
     if (!aename.empty())
@@ -61,40 +51,33 @@ std::string APNamingInfo::str() const
     return os.str();
 }
 
-//Free function
-std::ostream& operator<< (std::ostream& os, const APNamingInfo& apni)
+// Free function
+std::ostream &operator<<(std::ostream &os, const APNamingInfo &apni)
 {
     return os << apni.str();
 }
 
 Register_Class(APNIPair);
 
-APNIPair::APNIPair(APNamingInfo src, APNamingInfo dst) {
-    first = src;
-    second = dst;
-}
+APNIPair::APNIPair() = default;
 
-APNIPair::APNIPair() {
-    first = APNamingInfo();
-    second = APNamingInfo();
-}
-
-APNIPair::APNIPair(const char* src, const char* dst) :
-        APNIPair(APNamingInfo(APN( std::string(src) ) ), APNamingInfo(APN( std::string(dst) ) ))
+APNIPair::APNIPair(const APNamingInfo &src, const APNamingInfo &dst) : first(src), second(dst)
 {
 }
 
-APNIPair::~APNIPair() {
-    first = APNamingInfo();
-    second = APNamingInfo();
+APNIPair::APNIPair(const std::string &src, const std::string &dst)
+    : APNIPair(APNamingInfo(src), APNamingInfo(dst))
+{
 }
 
-std::ostream& operator <<(std::ostream& os, const APNIPair& apnip) {
+std::ostream &operator<<(std::ostream &os, const APNIPair &apnip)
+{
     return os << apnip.str();
 }
 
-std::string APNIPair::str() const {
+std::string APNIPair::str() const
+{
     std::ostringstream os;
-    os << "SRC> "<< first << "\tDST> " << second;
+    os << "SRC> " << first << "\tDST> " << second;
     return os.str();
 }

@@ -22,63 +22,69 @@
 
 #ifndef DAP_H_
 #define DAP_H_
-//Standard libraries
-#include <string>
+// Standard libraries
 #include <sstream>
+#include <string>
 
 /**
  * @brief Distributed Application Process name a.k.a. DAP class
  * @authors Vladimir Vesely (ivesely@fit.vutbr.cz)
  * @date Last refactorized and documented on 2020-05-28
  */
-class DAP {
+class DAP
+{
   public:
     /**
-     * @brief Constructor creating unspecified DAP
+     * @brief Default constructor, name set to empty string
      */
-    DAP();
+    DAP() = default;
+
+    /**
+     * @brief Copy constructor
+     */
+    DAP(const DAP &dap) = default;
 
     /**
      * @brief Constructor creating DAP of given name
-     * @param nam Represents DAP string name
+     * @param name Represents DAP string name
      */
-    DAP(std::string nam);
+    DAP(const std::string &name);
 
     /**
-     * @brief Destructor assigning empty string to name
+     * @brief Destructor
      */
-    virtual ~DAP();
+    ~DAP() = default;
 
     /**
      * @brief Equal operator overloading
      * @param other DAP for comparison
      * @return True if DAPs string names are equal, otherwise returns false.
      */
-    bool operator== (const DAP& other) const;
+    bool operator==(const DAP &other) const;
 
     /**
      * @brief Info text output suitable for << string streams and WATCH
      * @return DAP string name
      */
-    std::string str() const;
+    [[nodiscard]] std::string str() const;
 
     /**
      * @brief Gets DAP string name representation
      * @return DAP string
      */
-    const std::string& getName() const;
+    [[nodiscard]] const std::string &getName() const;
 
     /**
      * @brief Sets DAP string representation to a new value
      * @param name A new DAP string value
      */
-    void setName(const std::string& name);
+    void setName(const std::string &name);
 
     /**
      * @brief Checks if name is unspecified
      * @return True if name is empty, otherwise returns false
      */
-    bool isUnspecified() const;
+    [[nodiscard]] bool isUnspecified() const;
 
   protected:
     /**
@@ -88,14 +94,12 @@ class DAP {
     std::string name;
 };
 
-//Free function
 /**
  * << operator overload that feeds ostream DAP string representation.
  * @param os Resulting ostream
  * @param dap APNList class that is being converted to string
  * @return Infotext representing DAP
  */
-std::ostream& operator<< (std::ostream& os, const DAP& dap);
-
+std::ostream &operator<<(std::ostream &os, const DAP &dap);
 
 #endif /* DAP_H_ */

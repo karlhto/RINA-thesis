@@ -22,11 +22,7 @@
 
 #include "Common/Address.h"
 
-const Address Address::UNSPECIFIED_ADDRESS("");
-
-Address::Address() : ipcAddress(APN()), difName(""), apname(APN())
-{
-}
+const Address Address::UNSPECIFIED_ADDRESS = Address();
 
 Address::Address(std::string composite)
 {
@@ -51,52 +47,45 @@ Address::Address(std::string composite)
     if (tokens.size() == 1) {
         apname = APN(composite);
     }
-
-
 }
 
-Address::Address(const char* ipcaddr, const char* difnam) :
-        ipcAddress(APN(ipcaddr)), difName(DAP(difnam))
+Address::Address(const APN &apname) : Address(apname.getName())
 {
-        std::ostringstream os;
-        os << ipcaddr << "_" << difnam;
-        apname = APN(os.str().c_str());
 }
 
-Address::~Address()
+Address::Address(const char *ipcaddr, const char *difnam)
+    : ipcAddress(ipcaddr), difName(difnam)
 {
-    ipcAddress = APN();
-    difName = DAP();
-    apname = APN();
+    std::ostringstream os;
+    os << ipcaddr << "_" << difnam;
+    apname = APN(os.str());
 }
 
-const DAP& Address::getDifName() const
+const DAP &Address::getDifName() const
 {
     return difName;
 }
 
-void Address::setDifName(const DAP& difName)
+void Address::setDifName(const DAP &difName)
 {
     this->difName = difName;
 }
 
-const APN& Address::getIpcAddress() const
+const APN &Address::getIpcAddress() const
 {
     return ipcAddress;
 }
 
-bool Address::operator ==(const Address& other) const
+bool Address::operator==(const Address &other) const
 {
-    return ipcAddress == other.ipcAddress
-            && difName == other.difName
-            && apname == other.apname;
+    return ipcAddress == other.ipcAddress && difName == other.difName && apname == other.apname;
 }
 
-bool Address::operator <(const Address& other) const
+bool Address::operator<(const Address &other) const
 {
-    if(!(ipcAddress == other.ipcAddress)){
+    if (!(ipcAddress == other.ipcAddress)) {
         return ipcAddress.getName() < other.ipcAddress.getName();
-    } else if(!(difName == other.difName)){
+    } else if (!(difName == other.difName)) {
         return difName.getName() < other.difName.getName();
     } else {
         return apname.getName() < other.apname.getName();
@@ -116,28 +105,25 @@ bool Address::isUnspecified() const
     return ipcAddress.isUnspecified() && difName.isUnspecified();
 }
 
-const APN& Address::getApn() const
+const APN &Address::getApn() const
 {
     return apname;
 }
 
-void Address::setIpcAddress(const APN& ipcAddress)
+void Address::setIpcAddress(const APN &ipcAddress)
 {
     this->ipcAddress = ipcAddress;
 }
 
-std::ostream& operator <<(std::ostream& os, const Address& addr)
+std::ostream &operator<<(std::ostream &os, const Address &addr)
 {
     return os << addr.str();
 }
 
-std::ostream& operator <<(std::ostream& os, const Addresses& dims)
+std::ostream &operator<<(std::ostream &os, const Addresses &dims)
 {
-    for (AddrCItem it = dims.begin(); it != dims.end(); ++it)
-        os << it->str() << endl;
+    for (const auto &dim : dims)
+        os << dim.str() << endl;
     return os;
 }
 
-Address::Address(APN apname) : Address(apname.getName())
-{
-}
