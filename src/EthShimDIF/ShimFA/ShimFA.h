@@ -38,14 +38,13 @@ class RINArp;
  * Different from normal IPC Process Flow Allocator in the way that no flow allocator instances are
  * actually allocated, only the first registered flow is.
  */
-class ShimFA : public FABase, public cListener
+class ShimFA : public FABase
 {
   private:
     cModule *shimIpcProcess;
     cModule *connectedApplication;
     RINArp *arp;
     EthShim *shim;
-    bool resolving;
 
     // Only one flow necessary
     APN registeredApplication;  ///< apName of "registered" application
@@ -63,7 +62,7 @@ class ShimFA : public FABase, public cListener
     void deinstantiateFai(Flow *flow) override;
     bool createUpperFlow(const APN &apn);
 
-    /// These are all unused in shim layer, but still implemented
+    /// These are all unused in shim layer, but still implemented as required by FABase
     bool receiveMgmtAllocateRequest(Flow *mgmtflow) override;
     bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) override;
     bool receiveMgmtAllocateFinish(APNIPair *apnip) override;
@@ -90,10 +89,4 @@ class ShimFA : public FABase, public cListener
     void initialize(int stage) override;
     int numInitStages() const override { return inet::NUM_INIT_STAGES; }
     void handleMessage(cMessage *msg) override;
-
-    /// cListener overrides
-    void receiveSignal(cComponent *source,
-                       simsignal_t signalID,
-                       cObject *obj,
-                       cObject *details) override;
 };

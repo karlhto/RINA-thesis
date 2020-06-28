@@ -123,6 +123,9 @@ bool EthShim::addPort(const APN &dstApn, const int &portId)
         return false;
 
     entry->gate = shimIn;
+    if (entry->state == PENDING)
+        entry->state = ALLOCATED;
+
     return true;
 }
 
@@ -137,28 +140,37 @@ bool EthShim::createEntry(const APN &dstApn)
     }
 
     entry = std::make_unique<ShimEntry>();
-    entry->state = ConnState::PENDING;
+    entry->state = PENDING;
 
-    //
     auto &mac = arp->resolveAddress(dstApn);
+    if (!mac.isUnspecified())
+        return true;
 
-    if (!mac.isUnspecified()) {
-        auto *msg = new cMessage("Fuck");
-        scheduleAt(simTime(), msg);
-        // TODO schedule message or something
-    }
-
-    return true;
+    // This is not very idiomatic: false here is still a good thing
+    return false;
 }
 
 void EthShim::handleSDU(SDUData *sdu, cGate *gate)
 {
     EV_INFO << "Doing stuff" << endl;
-    const APN &dstApn = gateMap[gate];
-    inet::MACAddress mac = arp->resolveAddress(dstApn);
+
+    // TODO (karlhto): split into separate function so we can use references instead
+    const APN *dstApn = nullptr;
+    for (auto &shimEntry : flows) {
+        if (shimEntry.second->gate == gate) {
+            dstApn = &shimEntry.first;
+        }
+    }
+
+    if (dstApn == nullptr) {
+        EV_ERROR << "Gate " << gate->getName() << " does not belong to any shim entry" << endl;
+        return;
+    }
+
+    inet::MACAddress mac = arp->resolveAddress(*dstApn);
 
     if (mac.isUnspecified()) {
-        insertOutgoingSDU(dstApn, sdu);
+        insertOutgoingSDU(*dstApn, sdu);
         return;
     }
 
@@ -186,13 +198,13 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
     auto &entry = flows[srcApn];
     if (entry == nullptr) {
         entry = std::make_unique<ShimEntry>();
-        entry->state = ConnState::PENDING;
+        entry->state = PENDING;
         insertIncomingSDU(srcApn, sdu);
         shimFA->createUpperFlow(srcApn);
         return;
     }
 
-    if (entry->state == ConnState::PENDING) {
+    if (entry->state == PENDING) {
         insertIncomingSDU(srcApn, sdu);
         return;
     }
@@ -282,11 +294,12 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
 
     Enter_Method("arpResolutionCompleted(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
 
-    if (entry->state == ConnState::PENDING) {
+    if (entry->state == PENDING) {
         shimFA->completedAddressResolution(apn);
-        entry->state = ConnState::ALLOCATED;
+        return;
     }
 
+    // TODO (karlhto): Consider more states
     auto &queue = entry->outQueue;
     while (!queue.empty()) {
         auto &sdu = queue.front();

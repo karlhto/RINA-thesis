@@ -43,7 +43,6 @@ ShimFA::ShimFA()
       connectedApplication(nullptr),
       arp(nullptr),
       shim(nullptr),
-      resolving(false),
       qos(QoSCube())
 {
     qos.setQosId("QoSCube_Unreliable");
@@ -162,15 +161,13 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     nFlowTable->setFaiToFlow(fai, flow);
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
 
-    const inet::MACAddress macAddr = arp->resolveAddress(apName);
-
     // TODO implement some form of QoS checking - should be done in a shim RA
     // validateQosRequirements(flow);
 
-    if (macAddr != inet::MACAddress::UNSPECIFIED_ADDRESS)
+    bool resolved = shim->createEntry(apName);
+    if (resolved)
         return fai->receiveAllocateRequest();
 
-    resolving = true;
     return true;
 }
 
@@ -201,7 +198,6 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
         EV << "Flow already exists, continue sending" << endl;
     }
 
-    resolving = false;
     Flow *flow = nft->getFlow();
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
     auto *fai = static_cast<ShimFAI *>(nft->getFai());
@@ -211,7 +207,6 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
 void ShimFA::failedAddressResolution(const APN &dstApn)
 {
     Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
-    resolving = false;
     auto nft =
         nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
     auto *fai = static_cast<ShimFAI *>(nft->getFai());
@@ -273,23 +268,6 @@ void ShimFA::createBindings(int)
 
 void ShimFA::deleteBindings()
 {
-}
-
-void ShimFA::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
-{
-    if (!resolving)
-        return;
-
-    auto *notification = check_and_cast<RINArp::ArpNotification *>(obj);
-    if (signalID == RINArp::completedRINArpResolutionSignal)
-        completedAddressResolution(notification->getApName());
-    else if (signalID == RINArp::failedRINArpResolutionSignal)
-        failedAddressResolution(notification->getApName());
-    else
-        throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
-
-    (void)source;
-    (void)details;
 }
 
 /* Mandatory function implementations */
