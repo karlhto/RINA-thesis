@@ -31,6 +31,20 @@
 
 #include "DIF/Enrollment/Enrollment.h"
 
+#include "Common/Address.h"
+#include "Common/ExternConsts.h"
+#include "Common/Flow.h"
+#include "Common/RINASignals.h"
+#include "Common/Utils.h"
+#include "DAF/CDAP/CDAPMessage_m.h"
+#include "DAF/IRM/ConnectionTable.h"
+#include "DIF/Enrollment/EnrollmentListeners.h"
+#include "DIF/Enrollment/EnrollmentObj.h"
+#include "DIF/Enrollment/EnrollmentStateTable.h"
+#include "DIF/Enrollment/OperationObj.h"
+#include "DIF/FA/FABase.h"
+#include "DIF/RIB/RIBd.h"
+
 Define_Module(Enrollment);
 
 const char* PAR_AUTH_TYPE       = "authType";
@@ -53,14 +67,14 @@ const char* ELEM_CONNECT      = "Connect";
 const char* ELEM_RELEASE      = "Release";
 const char* ATTR_TIME         = "t";
 
-Enrollment::Enrollment() :
-        StateTable(nullptr), RibDaemon(nullptr)
-{
-}
+Enrollment::~Enrollment() {
+    for (auto &elem : preConnects)
+        if (elem.second != nullptr)
+            delete elem.second;
 
-Enrollment::~Enrollment(){
-    StateTable = nullptr;
-    RibDaemon = nullptr;
+    for (auto &elem : preReleases)
+        if (elem.second != nullptr)
+            delete elem.second;
 }
 
 void Enrollment::initialize()
@@ -74,16 +88,16 @@ void Enrollment::initialize()
     //Perform self-enrollment
     bool isSelfEnrol = par(PAR_ISSELFENROL).boolValue();
     if (isSelfEnrol) {
-        StateTable->insert(EnrollmentStateTableEntry(
-                APNamingInfo(FlowAlloc->getMyAddress().getApn()),
-                APNamingInfo(FlowAlloc->getMyAddress().getApn()),
+        stateTable->insert(EnrollmentStateTableEntry(
+                APNamingInfo(flowAlloc->getMyAddress().getApn()),
+                APNamingInfo(flowAlloc->getMyAddress().getApn()),
                 EnrollmentStateTableEntry::CON_ESTABLISHED,
                 EnrollmentStateTableEntry::ENROLL_ENROLLED));
         updateEnrollmentDisplay(ENICON_ENROLLED);
     }
     else {
         //TODO: Work more on checking of N-1 flow existence
-        if (StateTable->isEnrolled(FlowAlloc->getMyAddress().getApn()))
+        if (stateTable->isEnrolled(flowAlloc->getMyAddress().getApn()))
             { updateEnrollmentDisplay(ENICON_FLOWMIS); }
         else
             { updateEnrollmentDisplay(ENICON_NOTENROLLED); }
@@ -96,14 +110,15 @@ void Enrollment::initialize()
 
     maxConRetries = this->par(PAR_CON_RETRIES);
 
-    WATCH_MAP(PreenrollConnects);
-    WATCH_MAP(PreenrollReleases);
+
+    WATCH_MAP(preConnects);
+    WATCH_MAP(preReleases);
 }
 
 void Enrollment::initPointers(){
-    StateTable = getRINAModule<EnrollmentStateTable*>(this, 1, {MOD_ENROLLMENTTABLE});
-    RibDaemon = getRINAModule<RIBd*>(this, 2, {MOD_RIBDAEMON, MOD_RIBD});
-    FlowAlloc = getRINAModule<FABase*>(this, 2, {MOD_FLOWALLOC, MOD_FA});
+    stateTable = getRINAModule<EnrollmentStateTable*>(this, 1, {MOD_ENROLLMENTTABLE});
+    ribDaemon = getRINAModule<RIBd*>(this, 2, {MOD_RIBDAEMON, MOD_RIBD});
+    flowAlloc = getRINAModule<FABase*>(this, 2, {MOD_FLOWALLOC, MOD_FA});
 }
 
 void Enrollment::initSignalsAndListeners() {
@@ -157,7 +172,7 @@ void Enrollment::startCACE(const APNIPair &apnip) {
     APNamingInfo dst(apnip.second);
 
     // Check if we are already connected or in the process of connecting
-    auto existingEntry = StateTable->findEntryByDstAPN(dst.getApn());
+    auto existingEntry = stateTable->findEntryByDstAPN(dst.getApn());
     if (existingEntry != nullptr) {
         auto status = existingEntry->getCACEConStatus();
         if (status != EnrollmentStateTableEntry::CON_NIL &&
@@ -168,7 +183,7 @@ void Enrollment::startCACE(const APNIPair &apnip) {
     }
 
     auto entry = EnrollmentStateTableEntry(src, dst, EnrollmentStateTableEntry::CON_AUTHENTICATING);
-    StateTable->insert(entry);
+    stateTable->insert(entry);
 
     CDAP_M_Connect* msg = new CDAP_M_Connect(MSG_CONREQ);
 
@@ -194,17 +209,17 @@ void Enrollment::startCACE(const APNIPair &apnip) {
 
 void Enrollment::insertStateTableEntry(Flow* flow){
     //insert only first flow created (management flow)
-    if(StateTable->findEntryByDstAPN(APN(flow->getDstAddr().getApn().getName().c_str())) != nullptr) {
+    if(stateTable->findEntryByDstAPN(APN(flow->getDstAddr().getApn().getName().c_str())) != nullptr) {
         return;
     }
-    StateTable->insert(EnrollmentStateTableEntry(flow->getSrcApni(), flow->getDstApni(), EnrollmentStateTableEntry::CON_CONNECTPENDING));
+    stateTable->insert(EnrollmentStateTableEntry(flow->getSrcApni(), flow->getDstApni(), EnrollmentStateTableEntry::CON_CONNECTPENDING));
 }
 
 void Enrollment::receivePositiveConnectResponse(CDAPMessage* msg) {
     Enter_Method("receivePositiveConnectResponse()");
 
     CDAP_M_Connect_R* cmsg = check_and_cast<CDAP_M_Connect_R*>(msg);
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
 
     //check appropriate state
     if (entry->getCACEConStatus() != EnrollmentStateTableEntry::CON_AUTHENTICATING) {
@@ -221,7 +236,7 @@ void Enrollment::receiveNegativeConnectResponse(CDAPMessage* msg) {
     Enter_Method("receiveNegativeConnectResponse()");
 
     CDAP_M_Connect_R* cmsg = check_and_cast<CDAP_M_Connect_R*>(msg);
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
 
     //check appropriate state
     if (entry->getCACEConStatus() != EnrollmentStateTableEntry::CON_AUTHENTICATING) {
@@ -249,9 +264,9 @@ void Enrollment::receiveConnectRequest(CDAPMessage* msg) {
 
     auto ent = EnrollmentStateTableEntry(
              cmsg->getDst(), cmsg->getSrc(), EnrollmentStateTableEntry::CON_CONNECTPENDING);
-    StateTable->insert(ent);
+    stateTable->insert(ent);
 
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
 
     if (!entry) {
         EV << "Enrollment status not found for "
@@ -283,7 +298,7 @@ void Enrollment::startEnrollment(EnrollmentStateTableEntry* entry) {
 
     auto enrollObj = new EnrollmentObj(Address(entry->getLocal().getApn()), Address(entry->getRemote().getApn()));
 
-    enrollObj->setAddress(APN(RibDaemon->getMyAddress().getIpcAddress().getName()));
+    enrollObj->setAddress(APN(ribDaemon->getMyAddress().getIpcAddress().getName()));
 
     //TODO: add other necessary information
 
@@ -306,7 +321,7 @@ void Enrollment::receiveStartEnrollmentResponse(CDAPMessage* msg) {
     }
 
     EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_START_RESPONSE_ENROLLMENT) {
@@ -315,9 +330,9 @@ void Enrollment::receiveStartEnrollmentResponse(CDAPMessage* msg) {
     }
 
     //assign new, received address
-    Address newAddr = RibDaemon->getMyAddress();
+    Address newAddr = ribDaemon->getMyAddress();
     newAddr.setIpcAddress(APN(enrollRec->getAddress().getName().c_str()));
-    RibDaemon->setMyAddress(newAddr);
+    ribDaemon->setMyAddress(newAddr);
 
     //TODO: assign other received values
 
@@ -340,7 +355,7 @@ void Enrollment::receiveStopEnrollmentRequest(CDAPMessage* msg) {
     }
 
     EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_STOP_ENROLLMENT) {
@@ -369,7 +384,7 @@ void Enrollment::processStopEnrollmentResponse(EnrollmentStateTableEntry* entry)
         entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_ENROLLED);
         updateEnrollmentDisplay(ENICON_ENROLLED);
         APNIPair* apnip = new APNIPair(entry->getLocal(), entry->getRemote());
-        FlowAlloc->receiveMgmtAllocateFinish(apnip);
+        flowAlloc->receiveMgmtAllocateFinish(apnip);
     }
     else {
         entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_WAIT_START_OPERATION);
@@ -379,7 +394,8 @@ void Enrollment::processStopEnrollmentResponse(EnrollmentStateTableEntry* entry)
 
 void Enrollment::receiveStartOperationRequest(CDAPMessage* msg) {
     Enter_Method("receiveStartOperationRequest()");
-
+    delete msg;
+    EV_ERROR << __func__ << " is not implemented" << endl;
 }
 
 /* enrollment member */
@@ -396,7 +412,7 @@ void Enrollment::receiveStartEnrollmentRequest(CDAPMessage* msg) {
     }
 
     EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_START_ENROLLMENT) {
@@ -432,7 +448,7 @@ void Enrollment::receiveStopEnrollmentResponse(CDAPMessage* msg) {
     }
 
     EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = StateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_STOP_RESPONSE_ENROLLMENT) {
@@ -451,7 +467,8 @@ void Enrollment::receiveStopEnrollmentResponse(CDAPMessage* msg) {
 
 void Enrollment::receiveStartOperationResponse(CDAPMessage* msg) {
     Enter_Method("receiveStartOperationResponse()");
-
+    delete msg;
+    EV_ERROR << __func__ << " is not implemented" << endl;
 }
 
 void Enrollment::processStopEnrollmentImmediate(EnrollmentStateTableEntry* entry) {
@@ -642,56 +659,71 @@ void Enrollment::signalizeStartOperationResponse(OperationObj* obj) {
     emit(sigEnrollmentStartOperRes, obj);
 }
 
-void Enrollment::parseConfig(cXMLElement* config) {
-    cXMLElement* mainTag = nullptr;
-    if (config != nullptr && config->hasChildren() && config->getFirstChildWithTag(ELEM_PREENROL))
-        mainTag = config->getFirstChildWithTag(ELEM_PREENROL);
-    else {
-        EV << "configData parameter not initialized!" << endl;
+void Enrollment::parseConfig(cXMLElement *config)
+{
+    if (config == nullptr || !config->hasChildren()) {
+        EV_INFO << "configData parameter not initialized!" << endl;
         return;
     }
 
-    cXMLElementList enrll = mainTag->getChildrenByTagName(ELEM_SIMTIME);
-    for (cXMLElementList::const_iterator it = enrll.begin(); it != enrll.end(); ++it) {
-        cXMLElement* m = *it;
+    const auto &mainTag = config->getFirstChildWithTag(ELEM_PREENROL);
+    if (mainTag == nullptr) {
+        EV_INFO << "Configuration has no preenrollment tags" << endl;
+        return;
+    }
 
-        if (!m->getAttribute(ATTR_TIME)) {
-            EV << "\nSimTime tag is missing time attribute!" << endl;
+    const auto &enrll = mainTag->getChildrenByTagName(ELEM_SIMTIME);
+    for (const auto &m : enrll) {
+        const auto &timeAttr = m->getAttribute(ATTR_TIME);
+        if (timeAttr == nullptr) {
+            EV_WARN << "SimTime tag is missing time attribute!" << endl;
             continue;
         }
 
-        simtime_t cas = atof(m->getAttribute(ATTR_TIME));
-
-        if (m->getFirstChildWithTag(ELEM_CONNECT)) {
-            PreenrollConnects[cas] = new APNIPairs();
-            cMessage* cmsg = new cMessage(MSG_ENRLCON);
-            scheduleAt(cas, cmsg);
+        simtime_t cas;
+        try {
+            std::string::size_type idx;
+            cas = std::stod(timeAttr, &idx);
+            if (idx < strlen(timeAttr)) {
+                throw std::invalid_argument("");
+            }
+        } catch (std::invalid_argument &e) {
+            throw cRuntimeError("Invalid time value in tag %s: %s", m->getName(), timeAttr);
         }
 
-        if (m->getFirstChildWithTag(ELEM_RELEASE)) {
-            PreenrollReleases[cas] = new APNIPairs();
-            cMessage* cmsg = new cMessage(MSG_ENRLREL);
+        const auto &connections = m->getChildrenByTagName(ELEM_CONNECT);
+        if (!connections.empty()) {
+            preConnects[cas] = new NameQueue;
+            cMessage *cmsg = new cMessage(MSG_ENRLCON);
             scheduleAt(cas, cmsg);
+            for (const auto &conn : connections) {
+                const char *src = conn->getAttribute(ATTR_SRC);
+                const char *dst = conn->getAttribute(ATTR_DST);
+                if (src == nullptr || dst == nullptr) {
+                    EV_WARN << "Error parsing preenrollment connection tag, needs "
+                            << "both source and destination addresses" << endl;
+                    continue;
+                }
+
+                preConnects[cas]->push(APNIPair(src, dst));
+            }
         }
 
-        cXMLElementList coms = m->getChildren();
-        for (cXMLElementList::const_iterator jt = coms.begin(); jt != coms.end(); ++jt) {
-            cXMLElement* n = *jt;
+        const auto &releases = m->getChildrenByTagName(ELEM_RELEASE);
+        if (!releases.empty()) {
+            preReleases[cas] = new NameQueue;
+            cMessage *cmsg = new cMessage(MSG_ENRLREL);
+            scheduleAt(cas, cmsg);
+            for (const auto &rel : releases) {
+                const char *src = rel->getAttribute(ATTR_SRC);
+                const char *dst = rel->getAttribute(ATTR_DST);
+                if (src == nullptr || dst == nullptr) {
+                    EV_WARN << "Error parsing preenrollment release tag, needs "
+                            << "both source and destination addresses" << endl;
+                    continue;
+                }
 
-            if ( !( strcmp(n->getTagName(), ELEM_CONNECT) xor strcmp(n->getTagName(), ELEM_RELEASE) )
-                    && !(n->getAttribute(ATTR_SRC))
-                    && !(n->getAttribute(ATTR_DST))
-               ) {
-                EV << "\nError when parsing Connect/Release record" << endl;
-                continue;
-            }
-
-            if ( !strcmp(n->getTagName(), ELEM_CONNECT) ) {
-                PreenrollConnects[cas]->push_back( APNIPair(n->getAttribute(ATTR_SRC), n->getAttribute(ATTR_DST)) );
-                //EV << "!!!!!!!!!!!!!" << PreenrollConnects[cas]->size() << endl;
-            }
-            else if ( !strcmp(n->getTagName(), ELEM_RELEASE) ) {
-                PreenrollReleases[cas]->push_back( APNIPair(n->getAttribute(ATTR_SRC), n->getAttribute(ATTR_DST)) );
+                preReleases[cas]->push(APNIPair(src, dst));
             }
         }
     }
@@ -714,30 +746,36 @@ void Enrollment::updateEnrollmentDisplay(Enrollment::IconEnrolStatus status) {
 void Enrollment::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage()) {
-        if ( !opp_strcmp(msg->getName(), MSG_ENRLCON) ) {
-            APNIPairs* apnip = PreenrollConnects[simTime()];
-            EV << "Preallocation at time " << simTime() << " has " << apnip->size() << " elements" << endl;
-            while (!apnip->empty())
-            {
-                APNIPair pair = apnip->front();
-                auto entry = StateTable->findEntryByDstAPN(pair.second.getApn());
+        simtime_t now = simTime();
+        if (!opp_strcmp(msg->getName(), MSG_ENRLCON)) {
+            auto &apniPairs = preConnects[now];
+            EV << "Preallocation at time " << simTime() << " has " << apniPairs->size()
+               << " elements" << endl;
+            while (!apniPairs->empty()) {
+                APNIPair pair = apniPairs->front();
+                auto entry = stateTable->findEntryByDstAPN(pair.second.getApn());
                 if (!entry) {
-                    FlowAlloc->receiveMgmtAllocateRequest(pair.first, pair.second);
+                    flowAlloc->receiveMgmtAllocateRequest(pair.first, pair.second);
                 }
-                apnip->pop_front();
+                apniPairs->pop();
             }
-        }
-        else if ( !opp_strcmp(msg->getName(), MSG_ENRLREL) ) {
-            APNIPairs* apnip = PreenrollReleases[simTime()];
-            while (!apnip->empty())
-            {
-                APNIPair pair = apnip->front();
-                auto entry = StateTable->findEntryByDstAPN(pair.second.getApn());
-                if (entry && entry->getEnrollmentStatus() == EnrollmentStateTableEntry::ENROLL_ENROLLED ) {
-                    //FIXME: Vesely->Jerabek: Here goes release part of Enrollment
+
+            delete apniPairs;
+            preConnects.erase(now);
+        } else if (!opp_strcmp(msg->getName(), MSG_ENRLREL)) {
+            auto &apniPairs = preReleases[simTime()];
+            while (!apniPairs->empty()) {
+                APNIPair pair = apniPairs->front();
+                auto entry = stateTable->findEntryByDstAPN(pair.second.getApn());
+                if (entry &&
+                    entry->getEnrollmentStatus() == EnrollmentStateTableEntry::ENROLL_ENROLLED) {
+                    // FIXME: Vesely->Jerabek: Here goes release part of Enrollment
                 }
-                apnip->pop_front();
+                apniPairs->pop();
             }
+
+            delete apniPairs;
+            preReleases.erase(now);
         }
         delete msg;
     }

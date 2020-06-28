@@ -32,19 +32,8 @@
 #define __RINA_ENROLLMENT_H_
 
 #include <omnetpp.h>
-#include "Common/Utils.h"
-#include "Common/RINASignals.h"
-#include "Common/Flow.h"
-#include "DAF/CDAP/CDAPMessage_m.h"
-#include "DAF/IRM/ConnectionTable.h"
-#include "Common/ExternConsts.h"
-#include "DIF/Enrollment/EnrollmentListeners.h"
-#include "DIF/Enrollment/EnrollmentStateTable.h"
-#include "Common/Address.h"
-#include "DIF/RIB/RIBd.h"
-#include "DIF/Enrollment/EnrollmentObj.h"
-#include "DIF/Enrollment/OperationObj.h"
-#include "DIF/FA/FABase.h"
+#include <memory>
+#include <queue>
 
 extern const char* MSG_CONREQ;
 extern const char* MSG_CONREQRETRY;
@@ -65,16 +54,92 @@ class LisEnrollmentConResPosi;
 class LisEnrollmentConResNega;
 class LisEnrollmentConReq;
 
-typedef std::list<APNIPair> APNIPairs;
-typedef std::map<simtime_t, APNIPairs*> EnrollCommands;
+class APNIPair;
+class FABase;
+class EnrollmentStateTable;
+class EnrollmentStateTableEntry;
+class RIBd;
+class CDAPMessage;
+class Flow;
+class EnrollmentObj;
+class OperationObj;
+class CDAP_M_Connect;
 
 class Enrollment : public cSimpleModule
 {
+  private:
+    using NameQueue = std::queue<APNIPair>;
+    using EnrollmentCommands = std::map<simtime_t, NameQueue *>;
+
+    EnrollmentCommands preConnects;
+    EnrollmentCommands preReleases;
+
+    int authType;
+    std::string authName;
+    std::string authPassword;
+    std::string authOther;
+    int maxConRetries;
+    int numOfConnects;
+
+    FABase* flowAlloc;
+    EnrollmentStateTable* stateTable;
+    RIBd* ribDaemon;
+
+    simsignal_t sigEnrollmentCACESendData;
+    simsignal_t sigEnrollmentSendData;
+    simsignal_t sigEnrollmentStartEnrollReq;
+    simsignal_t sigEnrollmentStartEnrollRes;
+    simsignal_t sigEnrollmentStopEnrollReq;
+    simsignal_t sigEnrollmentStopEnrollRes;
+    simsignal_t sigEnrollmentStartOperReq;
+    simsignal_t sigEnrollmentStartOperRes;
+
+    // TODO (someone): Please kill these with fire
+    LisEnrollmentAllResPosi* lisEnrollmentAllResPosi;
+    LisEnrollmentGetFlowFromFaiCreResPosi* lisEnrollmentGetFlowFromFaiCreResPosi;
+    LisEnrollmentStartEnrollReq* lisEnrollmentStartEnrollReq;
+    LisEnrollmentStartEnrollRes* lisEnrollmentStartEnrollRes;
+    LisEnrollmentStopEnrollReq* lisEnrollmentStopEnrollReq;
+    LisEnrollmentStopEnrollRes* lisEnrollmentStopEnrollRes;
+    LisEnrollmentStopOperationReq* lisEnrollmentStartOperationReq;
+    LisEnrollmentStartOperationRes* lisEnrollmentStartOperationRes;
+    LisEnrollmentConResPosi* lisEnrollmentConResPosi;
+    LisEnrollmentConResNega* lisEnrollmentConResNega;
+    LisEnrollmentConReq* lisEnrollmentConReq;
+
   public:
     enum IconEnrolStatus {ENICON_ENROLLED, ENICON_FLOWMIS, ENICON_NOTENROLLED};
 
-    Enrollment();
-    virtual ~Enrollment();
+  private:
+    void initPointers();
+    void initSignalsAndListeners();
+
+    void updateEnrollmentDisplay(Enrollment::IconEnrolStatus status);
+
+    void parseConfig(cXMLElement* config);
+
+    void authenticate(EnrollmentStateTableEntry* entry, CDAP_M_Connect* msg);
+    void processConResPosi(EnrollmentStateTableEntry* entry, CDAPMessage* cmsg);
+    void processConResNega(EnrollmentStateTableEntry* entry, CDAPMessage* cmsg);
+    void processNewConReq(EnrollmentStateTableEntry* entry);
+    void processStopEnrollmentImmediate(EnrollmentStateTableEntry* entry);
+    void processStopEnrollmentResponse(EnrollmentStateTableEntry* entry);
+
+    void signalizeCACESendData(CDAPMessage* cmsg);
+    void signalizeStartEnrollmentRequest(EnrollmentObj* obj);
+    void signalizeStartEnrollmentResponse(EnrollmentObj* obj);
+    void signalizeStopEnrollmentRequest(EnrollmentObj* obj);
+    void signalizeStopEnrollmentResponse(EnrollmentObj* obj);
+    void signalizeStartOperationRequest(OperationObj* obj);
+    void signalizeStartOperationResponse(OperationObj* obj);
+
+    // cSimpleModule overrides
+    void handleMessage(cMessage *msg) override;
+    void initialize() override;
+
+  public:
+    Enrollment() = default;
+    ~Enrollment() override;
     void startCACE(const APNIPair &apnip);
     void startEnrollment(EnrollmentStateTableEntry* entry);
     void insertStateTableEntry(Flow* flow);
@@ -88,69 +153,6 @@ class Enrollment : public cSimpleModule
     void receiveStopEnrollmentResponse(CDAPMessage* msg);
     void receiveStartOperationRequest(CDAPMessage* msg);
     void receiveStartOperationResponse(CDAPMessage* msg);
-
-  protected:
-    void initPointers();
-    void initSignalsAndListeners();
-    virtual void initialize();
-
-    void updateEnrollmentDisplay(Enrollment::IconEnrolStatus status);
-
-    void parseConfig(cXMLElement* config);
-
-    void authenticate(EnrollmentStateTableEntry* entry, CDAP_M_Connect* msg);
-    void processConResPosi(EnrollmentStateTableEntry* entry, CDAPMessage* cmsg);
-    void processConResNega(EnrollmentStateTableEntry* entry, CDAPMessage* cmsg);
-    void processNewConReq(EnrollmentStateTableEntry* entry);
-    void processStopEnrollmentImmediate(EnrollmentStateTableEntry* entry);
-    void processStopEnrollmentResponse(EnrollmentStateTableEntry* entry);
-
-    FABase* FlowAlloc;
-
-    EnrollCommands PreenrollConnects;
-    EnrollCommands PreenrollReleases;
-
-    int authType;
-    std::string authName;
-    std::string authPassword;
-    std::string authOther;
-    int maxConRetries;
-    int numOfConnects;
-
-    simsignal_t sigEnrollmentCACESendData;
-    simsignal_t sigEnrollmentSendData;
-    simsignal_t sigEnrollmentStartEnrollReq;
-    simsignal_t sigEnrollmentStartEnrollRes;
-    simsignal_t sigEnrollmentStopEnrollReq;
-    simsignal_t sigEnrollmentStopEnrollRes;
-    simsignal_t sigEnrollmentStartOperReq;
-    simsignal_t sigEnrollmentStartOperRes;
-
-    LisEnrollmentAllResPosi* lisEnrollmentAllResPosi;
-    LisEnrollmentGetFlowFromFaiCreResPosi* lisEnrollmentGetFlowFromFaiCreResPosi;
-
-    LisEnrollmentStartEnrollReq* lisEnrollmentStartEnrollReq;
-    LisEnrollmentStartEnrollRes* lisEnrollmentStartEnrollRes;
-    LisEnrollmentStopEnrollReq* lisEnrollmentStopEnrollReq;
-    LisEnrollmentStopEnrollRes* lisEnrollmentStopEnrollRes;
-    LisEnrollmentStopOperationReq* lisEnrollmentStartOperationReq;
-    LisEnrollmentStartOperationRes* lisEnrollmentStartOperationRes;
-    LisEnrollmentConResPosi* lisEnrollmentConResPosi;
-    LisEnrollmentConResNega* lisEnrollmentConResNega;
-    LisEnrollmentConReq* lisEnrollmentConReq;
-
-    EnrollmentStateTable* StateTable;
-    RIBd* RibDaemon;
-
-    void signalizeCACESendData(CDAPMessage* cmsg);
-    void signalizeStartEnrollmentRequest(EnrollmentObj* obj);
-    void signalizeStartEnrollmentResponse(EnrollmentObj* obj);
-    void signalizeStopEnrollmentRequest(EnrollmentObj* obj);
-    void signalizeStopEnrollmentResponse(EnrollmentObj* obj);
-    void signalizeStartOperationRequest(OperationObj* obj);
-    void signalizeStartOperationResponse(OperationObj* obj);
-
-    virtual void handleMessage(cMessage *msg);
 };
 
 #endif

@@ -31,12 +31,10 @@
 
 #include "DIF/Enrollment/EnrollmentListeners.h"
 
-EnrollmentListeners::EnrollmentListeners(Enrollment* nenrollment): enrollment(nenrollment) {
-}
+#include "Common/Flow.h"
+#include "DAF/CDAP/CDAPMessage_m.h"
+#include "DIF/Enrollment/Enrollment.h"
 
-EnrollmentListeners::~EnrollmentListeners() {
-    enrollment = nullptr;
-}
 
 void LisEnrollmentGetFlowFromFaiCreResPosi::receiveSignal(cComponent* src, simsignal_t id,
         cObject* obj, cObject* detail) {

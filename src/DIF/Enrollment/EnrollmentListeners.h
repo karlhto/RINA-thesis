@@ -33,16 +33,15 @@
 #ifndef ENROLLMENTLISTENERS_H_
 #define ENROLLMENTLISTENERS_H_
 
-#include "DIF/Enrollment/Enrollment.h"
+#include <omnetpp.h>
 
 class Enrollment;
+class CDAPMessage;
 class EnrollmentListeners : public cListener {
   public:
-    EnrollmentListeners(Enrollment* nenrollment);
-    virtual ~EnrollmentListeners();
-    virtual void receiveSignal(cComponent *src, simsignal_t id,  cObject *obj, cObject *detail) {
-               EV << "Signal to Enrollment initiated by " << src->getFullPath() << endl;
-        }
+    EnrollmentListeners(Enrollment* enrollment) : enrollment(enrollment) {}
+    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) = 0;
+
   protected:
     Enrollment* enrollment;
 };
