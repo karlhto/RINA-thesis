@@ -40,7 +40,6 @@ class NFlowTableEntry {
 
     NFlowTableEntry();
     NFlowTableEntry(Flow* nflow);
-    virtual ~NFlowTableEntry();
 
     bool operator== (const NFlowTableEntry& other) const;
 

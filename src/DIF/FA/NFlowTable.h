@@ -44,6 +44,7 @@ class APNIPair;
 class NFlowTable : public cSimpleModule
 {
   public:
+    ~NFlowTable() override;
     virtual std::string str() const;
     void insertNew(Flow* flow);
     void insert(const NFlowTableEntry& entry);

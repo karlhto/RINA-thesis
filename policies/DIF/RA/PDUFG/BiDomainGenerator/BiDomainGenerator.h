@@ -46,7 +46,6 @@ typedef std::map<std::string, PortsSet> NTable;
 typedef PortsSet::iterator PortsSetIt;
 typedef NTable::iterator NTableIt;
 
-
 class BiDomainGenerator: public IntPDUFG {
 public:
     // A new flow has been inserted/or removed

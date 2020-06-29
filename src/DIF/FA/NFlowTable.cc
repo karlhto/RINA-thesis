@@ -31,6 +31,11 @@ const char *SIG_STAT_FT_SIZE = "FT_FlowTableSize";
 
 Define_Module(NFlowTable);
 
+NFlowTable::~NFlowTable() {
+    for (auto &elem : NFlowTab)
+        delete elem.getFlow();
+}
+
 void NFlowTable::initialize()
 {
     // Inits
@@ -145,7 +150,7 @@ void NFlowTable::removeByFlow(Flow *flow)
 NFlowTableEntry *NFlowTable::findEntryByFlow(const Flow *flow)
 {
     for (auto &tft : NFlowTab) {
-        if (*(tft.getCFlow()) == *flow)
+        if (tft.getCFlow() == flow)
             return &tft;
     }
     return nullptr;

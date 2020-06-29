@@ -38,10 +38,26 @@
  * and concatenation of previous two that should be used as unique APN.
  *
  * @authors Vladimir Vesely (ivesely@fit.vutbr.cz)
- * @date Last refactorized and documented on 2020-06-28
+ * @date Last refactorized and documented on 2020-06-29
  */
 class Address
 {
+  private:
+    /**
+     * @brief IPC Process address represented by APN
+     */
+    APN ipcAddress;
+
+    /**
+     * @brief Commong DIF name represented by DAP
+     */
+    DAP difName;
+
+    /**
+     * @brief Concatenation of IPC Process address and DIF name represented as APN
+     */
+    APN apname;
+
   public:
     /**
      * @brief Constructor of blank Address
@@ -54,6 +70,10 @@ class Address
      */
     Address(std::string composite);
 
+    /**
+     * @brief Address constructor from unique APN
+     * @param apname Expected is an APN with syntax @<ipcaddress@>_@<difname@>
+     */
     Address(const APN &apname);
 
     /**
@@ -67,22 +87,6 @@ class Address
      * @brief Destructor assigning default values
      */
     ~Address() = default;
-
-    /**
-     * Equal operator overload
-     * @param other Address for comparison
-     * @return Returns true if IPC address, DIF name and AP Name
-     *         are equal between this and other Address
-     */
-    bool operator==(const Address &other) const;
-
-    /**
-     * LesTan operator overload
-     * @param other Address for comparison
-     * @return Returns true if IPC address, DIF name and AP Name
-     *         is smaller in this and other Address
-     */
-    bool operator<(const Address &other) const;
 
     /**
      * @brief Info text output suitable for << string streams and  WATCH
@@ -128,25 +132,15 @@ class Address
     void setIpcAddress(const APN &ipcAddress);
 
     /**
-     * @brief Static definition of an undefined address (implicitly constructed)
+     * @brief Static definition of an undefined address
      */
     static const Address UNSPECIFIED_ADDRESS;
 
-  protected:
+  private:
     /**
-     * @brief IPC Process address represented by APN
+     * @brief Updates current AP Name, called every time either difName or ipcAddress is changed
      */
-    APN ipcAddress;
-
-    /**
-     * @brief Commong DIF name represented by DAP
-     */
-    DAP difName;
-
-    /**
-     * @brief Concatenation of IPC Process address and DIF name represented as APN
-     */
-    APN apname;
+    void updateApname();
 };
 
 typedef std::list<Address> Addresses;
@@ -169,5 +163,27 @@ std::ostream &operator<<(std::ostream &os, const Address &addr);
  * @return Infotext representing Address
  */
 std::ostream &operator<<(std::ostream &os, const Addresses &dims);
+
+/**
+ * Equal operator overload
+ * @return Returns true if AP names are equal
+ */
+bool operator==(const Address &lhs, const Address &rhs);
+
+/**
+ * Not equal operator overload
+ * @return Returns true if AP names are not equal
+ */
+bool operator!=(const Address &lhs, const Address &rhs);
+
+/**
+ * Additional comparison functions
+ * @return Returns true if AP names
+ */
+bool operator<(const Address &lhs, const Address &rhs);
+bool operator<=(const Address &lhs, const Address &rhs);
+bool operator>(const Address &lhs, const Address &rhs);
+bool operator>=(const Address &lhs, const Address &rhs);
+
 
 #endif /* ADDRESS_H_ */

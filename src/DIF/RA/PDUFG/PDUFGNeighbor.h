@@ -28,29 +28,45 @@
 #include <omnetpp.h>
 
 #include "Common/Address.h"
-#include "DIF/RMT/RMTPort.h"
+#include "Common/QoSCube.h"
+
+class RMTPort;
 
 // How is considered a neighbor for the PDUFTG module.
 //
 class PDUFGNeighbor
 {
-private:
+  private:
     Address dstAddr;
     QoSCube qos;
-    RMTPort * port;
+    RMTPort *port;
 
-public:
+  public:
     PDUFGNeighbor();
-    PDUFGNeighbor(Address dst, QoSCube& qos, RMTPort * port);
+    PDUFGNeighbor(const Address &dst, const QoSCube &qos, RMTPort *port);
     ~PDUFGNeighbor();
 
-    Address & getDestAddr();
-    RMTPort* getPort();
-    QoSCube& getQoSCube();
+    [[nodiscard]] const Address &getDestAddr() const;
+    [[nodiscard]] RMTPort *getPort() const;
+    [[nodiscard]] const QoSCube &getQoSCube() const;
 
-    void setDestAddr(Address & dstAddr);
-    void setPort(RMTPort* p);
-    void setQosId(QoSCube qosId);
+    void setDestAddr(const Address &dstAddr);
+    void setPort(RMTPort *p);
+    void setQosId(const QoSCube &qosId);
+
+    static const PDUFGNeighbor NO_NEIGHBOR;
 };
+
+/**
+ * @brief Equal operator overloading
+ * @return True if PDUFGNeighbor entries are the same
+ */
+bool operator==(const PDUFGNeighbor &lhs, const PDUFGNeighbor &rhs);
+
+/**
+ * @brief Not equal operator overloading
+ * @return True if the entries of PDUFGNeighbor are not the same
+ */
+bool operator!=(const PDUFGNeighbor &lhs, const PDUFGNeighbor &rhs);
 
 #endif

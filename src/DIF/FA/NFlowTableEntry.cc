@@ -40,14 +40,6 @@ NFlowTableEntry::NFlowTableEntry(Flow* nflow): fai(nullptr), allocStatus(this->U
     this->timeDeleted    = 0;
 }
 
-NFlowTableEntry::~NFlowTableEntry() {
-    this->fai       = nullptr;
-    this->flow      = nullptr;
-    allocStatus     = this->UNKNOWN;
-    timeCreated     = 0;
-    timeDeleted     = 0;
-}
-
 std::string NFlowTableEntry::str() const {
     std::ostringstream os;
     os << "STATUS: " << this->getAllocateStatusString() << endl;

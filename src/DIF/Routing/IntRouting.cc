@@ -22,6 +22,9 @@
 
 #include "DIF/Routing/IntRouting.h"
 
+#include "Common/ExternConsts.h"
+#include "Common/Utils.h"
+
 void IntRouting::finish()
 {
     cModule *catcher = this->getParentModule();

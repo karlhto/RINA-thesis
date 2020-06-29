@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "DIF/RA/PDUFG/BiDomainGenerator/BiDomainGenerator.h"
+#include "DAF/DA/DA.h"
 #include "Common/APN.h"
 #include "Common/Utils.h"
 

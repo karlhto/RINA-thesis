@@ -24,49 +24,59 @@
 
 #include "DIF/RA/PDUFG/PDUFGNeighbor.h"
 
-PDUFGNeighbor::PDUFGNeighbor()
-{
+#include "DIF/RMT/RMTPort.h"
 
+const PDUFGNeighbor PDUFGNeighbor::NO_NEIGHBOR = PDUFGNeighbor();
+
+PDUFGNeighbor::PDUFGNeighbor() = default;
+
+PDUFGNeighbor::PDUFGNeighbor(const Address &addr, const QoSCube &qosId, RMTPort *p)
+    : dstAddr(addr), qos(qosId), port(p)
+{
 }
 
-PDUFGNeighbor::PDUFGNeighbor(Address addr, QoSCube& qosId, RMTPort * p)
-{
-    dstAddr = addr;
-    qos = qosId;
-    port = p;
-}
+PDUFGNeighbor::~PDUFGNeighbor() = default;
 
-PDUFGNeighbor::~PDUFGNeighbor()
-{
-
-}
-
-Address& PDUFGNeighbor::getDestAddr()
+const Address &PDUFGNeighbor::getDestAddr() const
 {
     return dstAddr;
 }
 
-RMTPort * PDUFGNeighbor::getPort()
+RMTPort *PDUFGNeighbor::getPort() const
 {
     return port;
 }
 
-QoSCube& PDUFGNeighbor::getQoSCube()
+const QoSCube &PDUFGNeighbor::getQoSCube() const
 {
     return qos;
 }
 
-void PDUFGNeighbor::setDestAddr(Address & addr)
+void PDUFGNeighbor::setDestAddr(const Address &addr)
 {
     dstAddr = addr;
 }
 
-void PDUFGNeighbor::setPort(RMTPort * p)
+void PDUFGNeighbor::setPort(RMTPort *p)
 {
     port = p;
 }
 
-void PDUFGNeighbor::setQosId(QoSCube qosId)
+void PDUFGNeighbor::setQosId(const QoSCube &qosId)
 {
     qos = qosId;
+}
+
+bool operator==(const PDUFGNeighbor &lhs, const PDUFGNeighbor &rhs)
+{
+    return lhs.getDestAddr() == rhs.getDestAddr() &&
+           lhs.getQoSCube().getQosId() == rhs.getQoSCube().getQosId() &&
+           lhs.getPort() == rhs.getPort();
+}
+
+bool operator!=(const PDUFGNeighbor &lhs, const PDUFGNeighbor &rhs)
+{
+    return lhs.getDestAddr() != rhs.getDestAddr() ||
+           lhs.getQoSCube().getQosId() != rhs.getQoSCube().getQosId() ||
+           lhs.getPort() != rhs.getPort();
 }

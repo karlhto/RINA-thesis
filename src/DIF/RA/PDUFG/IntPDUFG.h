@@ -25,38 +25,40 @@
 
 #include <omnetpp.h>
 
-#include "DIF/RA/PDUFG/PDUFGNeighbor.h"
-#include "DIF/RMT/PDUForwarding/IntPDUForwarding.h"
+#include "Common/Address.h"
 #include "DAF/DA/DA.h"
-#include "Common/QoSCube.h"
+#include "DIF/RA/PDUFG/PDUFGNeighbor.h"
+
+class IntPDUForwarding;
+class RMTPort;
+class QoSCube;
 
 // This is mapped as string --> port because Address do not have <, > operators overloads.
-typedef std::list<PDUFGNeighbor *> NeighborState;
+typedef std::list<PDUFGNeighbor> NeighborState;
 typedef NeighborState::iterator EIter;
 
 
 class IntPDUFG  : public cSimpleModule {
 public:
-
     //Constructor/Destructor
-    IntPDUFG();
-    ~IntPDUFG();
+    IntPDUFG() = default;
+    ~IntPDUFG() override = default;
 
     // Find the next known neighbor to reach the destination.
-    virtual PDUFGNeighbor * getNextNeighbor(const Address &destination, const std::string& qos);
+    virtual const PDUFGNeighbor &getNextNeighbor(const Address &destination, const std::string& qos);
 
     //
     // Flow up/down operations:
     //
 
     // Inserts a new flow through which a neighbor can be reached.
-    void insertFlowInfo(Address addr, QoSCube qos, RMTPort * port);
+    void insertFlowInfo(const Address &addr, const QoSCube &qos, RMTPort * port);
     // Removes an existing flow from the existing ones.
     void removeFlowInfo(RMTPort * port);
 
     // A new flow has been inserted/or removed
-    virtual void insertedFlow(const Address &addr, const QoSCube &qos, RMTPort * port) = 0;
-    virtual void removedFlow(const Address &addr, const QoSCube& qos, RMTPort * port) = 0;
+    virtual void insertedFlow(const Address &addr, const QoSCube &qos, RMTPort *port) = 0;
+    virtual void removedFlow(const Address &addr, const QoSCube &qos, RMTPort *port) = 0;
 
     //Routing has processes a routing update
     virtual void routingUpdated() = 0;
@@ -68,7 +70,7 @@ protected:
     Address ipcAddr;
 
     // Initialize.
-    void initialize();
+    void initialize() override;
 
     // Called after initialize
     virtual void onPolicyInit() = 0;

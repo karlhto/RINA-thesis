@@ -49,6 +49,7 @@
 
 /* Forwarding and routing stuff... */
 #include "DIF/RA/PDUFG/IntPDUFG.h"
+#include "DIF/RA/PDUFG/PDUFGNeighbor.h"
 
 
 Define_Module(RA);
@@ -461,25 +462,16 @@ void RA::createNM1Flow(Flow *flow)
     //Vesely - Commenting unused variable
     //const std::string& qosID = flow->getConId().getQoSId();
 
-    //
-    // A flow already exists from this ipc to the destination one(passing through a neighbor)?
-    //
-    PDUFGNeighbor * e = fwdtg->getNextNeighbor(Address(dstApn.getName()), flow->getConId().getQoSId());
+    // Does a flow already exist to given neighbor?
+    const auto &neighbor = fwdtg->getNextNeighbor(Address(dstApn), flow->getConId().getQoSId());
+    if (neighbor != PDUFGNeighbor::NO_NEIGHBOR) {
+        NM1FlowTableItem *fi = flowTable->findFlowByDstAddr(
+            neighbor.getDestAddr().getApn().getName(), neighbor.getQoSCube().getQosId());
 
-    if(e)
-    {
-        NM1FlowTableItem * fi = flowTable->findFlowByDstAddr(
-                e->getDestAddr().getApn().getName(),
-                e->getQoSCube().getQosId());
-
-        if(fi)
-        {
+        if (fi) {
             return;
         }
     }
-    //
-    // End flow exists check.
-    //
 
     //Ask DA which IPC to use to reach dst App
     const Address* ad = difAllocator->resolveApnToBestAddress(dstApn);
@@ -713,16 +705,14 @@ bool RA::bindNFlowToNM1Flow(Flow* flow)
     APNamingInfo dstAPN = APNamingInfo(APN(dstAddr));
 
     Address addrs = Address(dstAddr);
-    PDUFGNeighbor * te = fwdtg->getNextNeighbor(addrs, qosID);
-
-    if (te)
+    const PDUFGNeighbor &neighbor = fwdtg->getNextNeighbor(addrs, qosID);
+    if (neighbor != PDUFGNeighbor::NO_NEIGHBOR)
     {
-        neighAddr = te->getDestAddr().getApn().getName();
-        qosID = te->getQoSCube().getQosId();
+        neighAddr = neighbor.getDestAddr().getApn().getName();
+        qosID = neighbor.getQoSCube().getQosId();
     }
 
     auto nm1FlowItem = flowTable->findFlowByDstApni(neighAddr, qosID);
-
     if (nm1FlowItem != nullptr)
     { // a flow exists
         if (nm1FlowItem->getConnectionStatus()

@@ -56,9 +56,7 @@ Address::Address(const APN &apname) : Address(apname.getName())
 Address::Address(const char *ipcaddr, const char *difnam)
     : ipcAddress(ipcaddr), difName(difnam)
 {
-    std::ostringstream os;
-    os << ipcaddr << "_" << difnam;
-    apname = APN(os.str());
+    updateApname();
 }
 
 const DAP &Address::getDifName() const
@@ -69,6 +67,7 @@ const DAP &Address::getDifName() const
 void Address::setDifName(const DAP &difName)
 {
     this->difName = difName;
+    updateApname();
 }
 
 const APN &Address::getIpcAddress() const
@@ -76,20 +75,10 @@ const APN &Address::getIpcAddress() const
     return ipcAddress;
 }
 
-bool Address::operator==(const Address &other) const
-{
-    return ipcAddress == other.ipcAddress && difName == other.difName && apname == other.apname;
-}
-
-bool Address::operator<(const Address &other) const
-{
-    if (!(ipcAddress == other.ipcAddress)) {
-        return ipcAddress.getName() < other.ipcAddress.getName();
-    } else if (!(difName == other.difName)) {
-        return difName.getName() < other.difName.getName();
-    } else {
-        return apname.getName() < other.apname.getName();
-    }
+void Address::updateApname() {
+    std::ostringstream os;
+    os << ipcAddress << "_" << difName;
+    apname = APN(os.str());
 }
 
 std::string Address::str() const
@@ -113,6 +102,7 @@ const APN &Address::getApn() const
 void Address::setIpcAddress(const APN &ipcAddress)
 {
     this->ipcAddress = ipcAddress;
+    updateApname();
 }
 
 std::ostream &operator<<(std::ostream &os, const Address &addr)
@@ -127,3 +117,32 @@ std::ostream &operator<<(std::ostream &os, const Addresses &dims)
     return os;
 }
 
+bool operator==(const Address &lhs, const Address &rhs)
+{
+    return lhs.getApn() == rhs.getApn();
+}
+
+bool operator!=(const Address &lhs, const Address &rhs)
+{
+    return lhs.getApn() != rhs.getApn();
+}
+
+bool operator<(const Address &lhs, const Address &rhs)
+{
+    return lhs.getApn() < rhs.getApn();
+}
+
+bool operator<=(const Address &lhs, const Address &rhs)
+{
+    return lhs.getApn() <= rhs.getApn();
+}
+
+bool operator>(const Address &lhs, const Address &rhs)
+{
+    return lhs.getApn() > rhs.getApn();
+}
+
+bool operator>=(const Address &lhs, const Address &rhs)
+{
+    return lhs.getApn() >= rhs.getApn();
+}

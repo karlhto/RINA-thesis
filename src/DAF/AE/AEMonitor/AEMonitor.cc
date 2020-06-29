@@ -84,8 +84,6 @@ void AEMonitor::processMRead(CDAPMessage* msg) {
         //Send message
         sendData(FlowObject, pong);
     }
-    else
-        delete msg;
 }
 
 void AEMonitor::processMWrite(CDAPMessage* msg) {

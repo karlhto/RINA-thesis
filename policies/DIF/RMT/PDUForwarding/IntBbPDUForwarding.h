@@ -25,7 +25,9 @@
 
 #include <omnetpp.h>
 
-class IntPDUForwardingEntry {};
+#include "DIF/RMT/PDUForwarding/IntPDUForwarding.h"
+
+class IntPDUForwardingEntry;
 
 class IntBbPDUForwarding  : public IntPDUForwarding {
 public:

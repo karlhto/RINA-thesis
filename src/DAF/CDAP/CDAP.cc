@@ -54,7 +54,7 @@ void CDAP::initSignalsAndListeners() {
 void CDAP::sendData(CDAPMessage* cmsg) {
     //Change and take ownership
     Enter_Method("SendData()");
-    take(check_and_cast<cOwnedObject*>(cmsg) );
+    take(cmsg);
 
     //Send message
     cGate* out = gateHalf(GATE_SPLITIO, cGate::OUTPUT);
