@@ -37,13 +37,7 @@ Define_Module(ShimFA);
 /*
  * Initialisation functionality
  */
-ShimFA::ShimFA()
-    : FABase::FABase(),
-      shimIpcProcess(nullptr),
-      connectedApplication(nullptr),
-      arp(nullptr),
-      shim(nullptr),
-      qos(QoSCube())
+ShimFA::ShimFA() : FABase::FABase()
 {
     qos.setQosId("QoSCube_Unreliable");
 }

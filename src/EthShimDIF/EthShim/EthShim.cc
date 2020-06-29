@@ -30,6 +30,8 @@
 #include "inet/linklayer/common/Ieee802Ctrl.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
 
+// ETHERTYPE "extension" for RINA
+#define ETHERTYPE_RINA 0xD1F0
 
 Define_Module(EthShim);
 
@@ -102,6 +104,11 @@ bool EthShim::addPort(const APN &dstApn, const int &portId)
 {
     auto &entry = flows[dstApn];
     ASSERT(entry != nullptr);
+    if (entry->state != PENDING) {
+        EV_ERROR << "Bindings for destination APN " << dstApn << " with source port ID " << portId
+                 << " were attempted" << endl;
+        return false;
+    }
 
     std::ostringstream gateName;
     gateName << GATE_NORTHIO_ << portId;
@@ -123,8 +130,7 @@ bool EthShim::addPort(const APN &dstApn, const int &portId)
         return false;
 
     entry->gate = shimIn;
-    if (entry->state == PENDING)
-        entry->state = ALLOCATED;
+    entry->state = ALLOCATED;
 
     return true;
 }
@@ -176,7 +182,7 @@ void EthShim::handleSDU(SDUData *sdu, cGate *gate)
 
     auto *controlInfo = new inet::Ieee802Ctrl();
     controlInfo->setDest(mac);
-    controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
+    controlInfo->setEtherType(ETHERTYPE_RINA);
     sdu->setControlInfo(controlInfo);
     sendPacketToNIC(sdu);
 }
@@ -294,6 +300,9 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
 
     Enter_Method("arpResolutionCompleted(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
 
+    // TODO (karlhto): Add more states: this should only be relevant for initiator pending. While
+    //                 race conditions are unlikely here because of cooperative scheduling,
+    //                 programming for robustness is a good idea.
     if (entry->state == PENDING) {
         shimFA->completedAddressResolution(apn);
         return;
@@ -305,8 +314,7 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
         auto &sdu = queue.front();
         auto *controlInfo = new inet::Ieee802Ctrl();
         controlInfo->setDest(mac);
-        // TODO (karlhto): Check possibility for using 0xD1F0 as ethertype
-        controlInfo->setEtherType(inet::ETHERTYPE_INET_GENERIC);
+        controlInfo->setEtherType(ETHERTYPE_RINA);
         sdu->setControlInfo(controlInfo);
         sendPacketToNIC(sdu);
         queue.pop();
