@@ -15,6 +15,7 @@ rina_root="$( readlink -f "$( dirname $0 )" )"
 rina_lib="${rina_root}/policies/librinasim"
 mode="release"
 gdb=""
+valg=""
 ned=${rina_root}
 
 # process command line arguments
@@ -32,7 +33,7 @@ process_args()
 
     shift
 
-    while getopts "dgGc:x:i:" opt; do
+    while getopts "dgGvc:x:n:" opt; do
       case $opt in
         "d") rina_lib="${rina_lib}_dbg"
              mode="debug" ;;
@@ -40,7 +41,8 @@ process_args()
         "c") rina_conf="$OPTARG" ;;
         "g") gdb="gdb --args" ;;
         "x") opp_xargs="$OPTARG" ;;
-	"i") ned="${ned}:${ned}/$OPTARG" ;;
+	"n") ned="${ned}:${ned}/$OPTARG" ;;
+	"v") valg="valgrind --leak-check=full --track-origins=yes" ;;
         *) ;;
       esac
     done
@@ -64,12 +66,20 @@ check_library()
 run_simulation()
 {
     cd "$1"
-    cmd=opp_run
+    local cmd=opp_run
     if [ $mode = "debug" ]; then
         cmd=${cmd}_dbg
     fi
 
-    $gdb $cmd -u "$2" \
+    local mem
+    if [ -n "$gdb" ]; then
+	mem=$gdb
+    elif [ -n "$valg" ]; then
+	mem=$valg
+    fi
+    echo $mem
+
+    $mem $cmd -u "$2" \
  	      -c "$3" \
  	      -l "$rina_lib" \
  	      $opp_xargs omnetpp.ini
