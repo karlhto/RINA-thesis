@@ -24,6 +24,8 @@
 
 #include "Common/RINASignals.h"
 #include "DIF/FA/FABase.h"
+#include "DIF/RA/RABase.h"
+#include "DIF/RMT/RMT.h"
 #include "DIF/FA/NFlowTable.h"
 #include "DIF/EFCP/EFCP.h"
 #include "DIF/FA/AllocateRetry/AllocateRetryBase.h"
@@ -44,7 +46,18 @@ FAI::FAI()
 {
 }
 
-FAI::~FAI() {}
+FAI::~FAI() {
+    if (lisDelRes != nullptr) {
+        delete lisAllocResNega;
+        delete lisAllocResPosi;
+        delete lisCreResNega;
+        delete lisCreResPosi;
+        delete lisCreResNegaNmO;
+        delete lisCreResPosiNmO;
+        delete lisDelReq;
+        delete lisDelRes;
+    }
+}
 
 void FAI::initialize() {
     localPortId  = par(PAR_LOCALPORTID);

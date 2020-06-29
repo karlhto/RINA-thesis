@@ -44,6 +44,15 @@ RMT::~RMT()
         delete invalidPDUs.front();
         invalidPDUs.pop_front();
     }
+
+    if (lisRMTPortReadyForRead != nullptr) {
+        delete lisRMTQueuePDUPreRcvd;
+        delete lisRMTQueuePDUPostRcvd;
+        delete lisRMTQueuePDUPreSend;
+        delete lisRMTQueuePDUSent;
+        delete lisRMTPortReadyToServe;
+        delete lisRMTPortReadyForRead;
+    }
 }
 
 

@@ -25,15 +25,9 @@
 
 //Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
-#include "DAF/CDAP/CDAPListeners.h"
-#include "Common/RINASignals.h"
-#include "DAF/CDAP/CDAPMessage_m.h"
-#include "Common/ExternConsts.h"
 
-
-class LisCDAPSendData;
-class CDAP : public cSimpleModule
+class CDAPMessage;
+class CDAP : public cSimpleModule, public cListener
 {
   public:
     enum ConnectionState {NIL, CONNECTED, AWAITCLOSE, AWAITCON};
@@ -45,13 +39,12 @@ class CDAP : public cSimpleModule
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) override;
+
     void initSignalsAndListeners();
 
     //Signals
     simsignal_t sigCDAPReceiveData;
-
-    //Listeners
-    LisCDAPSendData* lisCDAPSendData;
 
     //Signaling
     void signalizeReceiveData(CDAPMessage* cmsg);

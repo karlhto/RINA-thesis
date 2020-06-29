@@ -20,16 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "DAF/IRM/IRM.h"
 #include "DAF/IRM/IRMListeners.h"
-
-IRMListeners::IRMListeners(IRM* nirm) {
-    this->irm = nirm;
-}
-
-IRMListeners::~IRMListeners() {
-    irm = nullptr;
-}
+#include "DAF/IRM/IRM.h"
 
 void LisIRMAllocReq::receiveSignal(cComponent* src, simsignal_t id, cObject* obj, cObject *detail) {
     EV << "AllocationRequest initiated by " << src->getFullPath()

@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef __RINA_ENROLLMENTNOTIFIER_H_
 #define __RINA_ENROLLMENTNOTIFIER_H_
@@ -19,15 +19,18 @@
 //Standard libraries
 #include <omnetpp.h>
 //RINASim libraries
-#include "DIF/Enrollment/EnrollmentNotifierBase.h"
 #include "DIF/Enrollment/EnrollmentNotifierListeners.h"
-#include "DIF/RIB/RIBdBase.h"
+#include "DIF/Enrollment/EnrollmentNotifierBase.h"
 
 extern const char* MSG_ENROLLMENT;
+
+class RIBdBase;
 
 class EnrollmentNotifier : public EnrollmentNotifierBase
 {
   public:
+    ~EnrollmentNotifier() override;
+
     virtual void sendStartEnrollmentRequest(EnrollmentObj* obj);
     virtual void sendStartEnrollmentResponse(EnrollmentObj* obj);
     virtual void sendStopEnrollmentRequest(EnrollmentObj* obj);

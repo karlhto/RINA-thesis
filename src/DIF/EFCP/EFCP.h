@@ -35,21 +35,17 @@
  */
 #include <omnetpp.h>
 
-#include "Common/Flow.h"
-#include "DIF/EFCP/EFCPTable/EFCPTable.h"
-#include "Common/ExternConsts.h"
-#include "DIF/EFCP/EFCP_defs.h"
-#include "DIF/RA/RA.h"
-#include "DIF/EFCP/EFCPListeners.h"
-//#include "DIF/EFCP/EFCPInstance.h"
-//#include "DIF/Delimiting/Delimiting.h"
+class Delimiting;
+class DTCP;
+class EFCPInstance;
+class EFCPPolicySet;
+class EFCPTable;
+class Flow;
+class RA;
+class QoSCube;
 
-
-//class EFCPInstance;
-//class EFCPTableEntry;
-//class EFCPTable;
-
-
+class LisEFCPCongestFromRA;
+class LisEFCPQueueInfoFromAE;
 
 class EFCP : public cSimpleModule {
 private:
@@ -92,7 +88,7 @@ private:
     LisEFCPQueueInfoFromAE* lisEFCPQueueInfoFromAE;
 
     Delimiting* createDelimiting(cModule* efcpi, int portId);
-    DTCP* createDTCP(cModule* efcpi, const EFCPPolicySet* efcpPolicySet, const QoSCube* qosCube);
+    DTCP* createDTCP(cModule* efcpi, const EFCPPolicySet &efcpPolicySet, const QoSCube* qosCube);
     cModule* createPolicyModule(const char* prefix, const char* name, const char* policy, cModule* parent, int verticalIndex = 1);
 
 
@@ -111,14 +107,10 @@ protected:
 //    virtual int numInitStages() const {return 4;};
 
 public:
-    EFCP();
-    virtual ~EFCP();
-
+    ~EFCP() override;
 
     EFCPInstance* createEFCPI(const Flow* flow, int cepId, int portId);
     bool deleteEFCPI(Flow *flow);
-
-
 };
 
 #endif /* EFCP_H_ */

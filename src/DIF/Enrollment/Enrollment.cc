@@ -75,6 +75,18 @@ Enrollment::~Enrollment() {
     for (auto &elem : preReleases)
         if (elem.second != nullptr)
             delete elem.second;
+
+    if (lisEnrollmentConReq != nullptr) {
+        delete lisEnrollmentStartEnrollReq;
+        delete lisEnrollmentStartEnrollRes;
+        delete lisEnrollmentStopEnrollReq;
+        delete lisEnrollmentStopEnrollRes;
+        delete lisEnrollmentStartOperationReq;
+        delete lisEnrollmentStartOperationRes;
+        delete lisEnrollmentConResPosi;
+        delete lisEnrollmentConResNega;
+        delete lisEnrollmentConReq;
+    }
 }
 
 void Enrollment::initialize()

@@ -22,6 +22,11 @@
 
 #include "DAF/CDAP/CDAP.h"
 
+//RINASim libraries
+#include "Common/RINASignals.h"
+#include "DAF/CDAP/CDAPMessage_m.h"
+#include "Common/ExternConsts.h"
+
 Define_Module(CDAP);
 
 void CDAP::initialize()
@@ -32,26 +37,18 @@ void CDAP::initialize()
 void CDAP::handleMessage(cMessage* msg)
 {
     //Pass CDAP message to AE or RIBd or Enrollment
-    if (dynamic_cast<CDAPMessage*>(msg)) {
-        CDAPMessage* cmsg = check_and_cast<CDAPMessage*>(msg);
-        signalizeReceiveData(cmsg);
-        //delete cmsg;
-    }
-    //FIXME: Vesely - Proper disposing of object
-    //cancelAndDelete(msg);
+    CDAPMessage* cmsg = check_and_cast<CDAPMessage*>(msg);
+    signalizeReceiveData(cmsg);
 }
 
 void CDAP::initSignalsAndListeners() {
     cModule* catcher = this->getModuleByPath("^.^");
-    //cModule* catcher2 = this->getModuleByPath("^.^.^")->getSubmodule(MOD_ENROLLMENTMODULE)->getSubmodule(MOD_ENROLLMENT);
 
     //Signals emmited by this module
     sigCDAPReceiveData = registerSignal(SIG_CDAP_DateReceive);
 
-    //Listeners registered to process signal
-    lisCDAPSendData = new LisCDAPSendData(this);
-    catcher->subscribe(SIG_AE_DataSend, lisCDAPSendData);
-    catcher->subscribe(SIG_RIBD_DataSend, lisCDAPSendData);
+    catcher->subscribe(SIG_AE_DataSend, this);
+    catcher->subscribe(SIG_RIBD_DataSend, this);
 }
 
 void CDAP::sendData(CDAPMessage* cmsg) {
@@ -66,4 +63,18 @@ void CDAP::sendData(CDAPMessage* cmsg) {
 
 void CDAP::signalizeReceiveData(CDAPMessage* cmsg) {
     emit(sigCDAPReceiveData, cmsg);
+}
+
+void CDAP::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) {
+    EV << "SendData initiated by " << src->getFullPath() << " and processed by "
+       << getFullPath() << endl;
+    CDAPMessage *msg = dynamic_cast<CDAPMessage *>(obj);
+    if (msg)
+        sendData(msg);
+    else
+        EV << "Received not a CDAPMessage!" << endl;
+
+    // Unused
+    (void)id;
+    (void)detail;
 }

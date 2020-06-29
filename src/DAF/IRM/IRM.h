@@ -26,22 +26,21 @@
 //Standard libraries
 #include <omnetpp.h>
 //RINASim libraries
-#include "DAF/IRM/IRMListeners.h"
 #include "DAF/IRM/ConnectionTable.h"
-#include "Common/RINASignals.h"
-#include "DAF/DA/DA.h"
-#include "DIF/FA/FABase.h"
-#include "Common/ExternConsts.h"
-#include "Common/SDUData_m.h"
 
 extern const int VAL_UNDEF_HANDLE;
 extern const char* SIG_STAT_IRM_UP;
 extern const char* SIG_STAT_IRM_DOWN;
 
+class Flow;
+class DA;
+class LisIRMAllocReq;
+class LisIRMDeallocReq;
+
 class IRM : public cSimpleModule   {
   public:
     IRM();
-    virtual ~IRM();
+    ~IRM() override;
 
     bool receiveAllocationRequestFromAe(Flow* flow);
     bool receiveDeallocationRequestFromAe(Flow* flow);

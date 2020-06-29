@@ -3,21 +3,35 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "DIF/Enrollment/EnrollmentNotifier.h"
+#include "DIF/RIB/RIBdBase.h"
 
 const char* MSG_ENROLLMENT      = "Enrollment";
 
 Define_Module(EnrollmentNotifier);
+
+EnrollmentNotifier::~EnrollmentNotifier() {
+    if (lisRIBDStaOperRes != nullptr) {
+        delete lisRIBDRcvCACE;
+        delete lisRIBDRcvEnrollCACE;
+        delete lisRIBDStaEnrolReq;
+        delete lisRIBDStaEnrolRes;
+        delete lisRIBDStoEnrolReq;
+        delete lisRIBDStoEnrolRes;
+        delete lisRIBDStaOperReq;
+        delete lisRIBDStaOperRes;
+    }
+}
 
 void EnrollmentNotifier::initialize()
 {
@@ -71,9 +85,9 @@ void EnrollmentNotifier::initSignalsAndListeners() {
 
 }
 
-void EnrollmentNotifier::handleMessage(cMessage *msg)
-{
-
+void EnrollmentNotifier::handleMessage(cMessage *msg) {
+    EV_ERROR << "This module is not supposed to handle messages" << endl;
+    delete msg;
 }
 
 void EnrollmentNotifier::signalizeMessage(CDAPMessage* msg) {

@@ -3,33 +3,30 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #ifndef ENROLLMENTNOTIFIERLISTENERES_H_
 #define ENROLLMENTNOTIFIERLISTENERES_H_
 
 //Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
-#include "DIF/Enrollment/EnrollmentNotifierBase.h"
+
+class EnrollmentNotifierBase;
 
 class EnrollmentNotifierListeners : public cListener {
   public:
-    EnrollmentNotifierListeners(EnrollmentNotifierBase* nenb);
-    virtual ~EnrollmentNotifierListeners();
-    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) {
-               EV << "Signal to EnrollmentNotifierBase initiated by " << src->getFullPath() << endl;
-    }
+    EnrollmentNotifierListeners(EnrollmentNotifierBase* enb) : enb(enb) {}
   protected:
     EnrollmentNotifierBase* enb;
+    virtual void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) = 0;
 };
 
 class LisRIBDRcvCACE: public EnrollmentNotifierListeners {

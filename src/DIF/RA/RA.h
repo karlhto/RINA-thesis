@@ -49,6 +49,7 @@ class EnrollmentStateTable;
 class RA : public RABase
 {
   public:
+    ~RA() override;
     virtual void createNM1Flow(Flow* flow);
     virtual void createNM1FlowWithoutAllocate(Flow* flow);
     virtual void removeNM1Flow(Flow* flow);

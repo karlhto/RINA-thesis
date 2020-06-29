@@ -30,6 +30,22 @@ const char* VAL_FLREQNEGA       = "Response-  ";
 
 Define_Module(FANotifier);
 
+FANotifier::~FANotifier() {
+    if (lisRIBDAllReqFromFai != nullptr) {
+        delete lisRIBDAllReqFromFai;
+        delete lisRIBDCreReq;
+        delete lisRIBDCreReqByForward;
+        delete lisRIBDCreResNegaFromFa;
+        delete lisRIBDCreResNega;
+        delete lisRIBDCreResPosi;
+        delete lisRIBDCreResPosiForward;
+        delete lisRIBDCreFloPosi;
+        delete lisRIBDCreFloNega;
+        delete lisRIBDDelReq;
+        delete lisRIBDDelRes;
+    }
+}
+
 void FANotifier::initSignalsAndListeners() {
     cModule* catcher2 = this->getModuleByPath("^.^");
     cModule* catcher3 = this->getModuleByPath("^.^.^");

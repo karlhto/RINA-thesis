@@ -23,24 +23,27 @@
 
 #include "DAF/IRM/IRM.h"
 
+#include "DAF/IRM/IRMListeners.h"
+#include "Common/RINASignals.h"
+#include "DAF/DA/DA.h"
+#include "DIF/FA/FABase.h"
+#include "Common/ExternConsts.h"
+#include "Common/SDUData_m.h"
+
 const int VAL_UNDEF_HANDLE = -1;
 const char* SIG_STAT_IRM_UP = "IRM_PassUp";
 const char* SIG_STAT_IRM_DOWN = "IRM_PassDown";
 
 Define_Module(IRM);
 
-IRM::IRM() {
-    statPassUp = 0;
-    statPassDown = 0;
-    statDiscarded = 0;
+IRM::IRM() : statPassUp(0), statPassDown(0), statDiscarded(0) {
 }
 
 IRM::~IRM() {
-    ConTable = nullptr;
-    DifAllocator = nullptr;
-    statPassUp = 0;
-    statPassDown = 0;
-    statDiscarded = 0;
+    if (lisDeallocReq != nullptr) {
+        delete lisAllocReq;
+        delete lisDeallocReq;
+    }
 }
 
 void IRM::initPointers() {

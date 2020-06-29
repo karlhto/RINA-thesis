@@ -53,6 +53,21 @@
 
 Define_Module(RA);
 
+RA::~RA()
+{
+    if (lisRIBCongNotif != nullptr) {
+        delete lisRAAllocResPos;
+        delete lisRACreAllocResPos;
+        delete lisRACreFlow;
+        delete lisRACreResPosi;
+        delete lisRADelFlow;
+        delete lisEFCPStopSending;
+        delete lisEFCPStartSending;
+        delete lisRMTSDReq;
+        delete lisRIBCongNotif;
+    }
+}
+
 void RA::initialize(int stage)
 {
     RABase::initialize(stage);

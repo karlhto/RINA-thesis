@@ -33,26 +33,26 @@
 
 //Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
-#include "Common/Utils.h"
-#include "Common/CDAPProcessingBase.h"
+
 #include "DIF/RIB/RIBdBase.h"
-#include "Common/ExternConsts.h"
-#include "DIF/RIB/RIBdListeners.h"
-#include "Common/RINASignals.h"
-#include "Common/PDU.h"
-#include "DIF/Routing/IntRoutingUpdate.h"
-#include "DIF/FA/FANotifier.h"
-#include "DIF/Enrollment/EnrollmentNotifier.h"
-#include "DIF/Routing/RoutingNotifier.h"
 
 //Constants
 extern const char* MSG_CONGEST;
 //extern const char* MSG_ROUTINGUPDATE;
 //extern const char* MSG_ENROLLMENT;
 
+class FANotifierBase;
+class EnrollmentNotifierBase;
+class RoutingNotifierBase;
+
+class LisRIBDRcvData;
+class LisRIBDCongesNotif;
+
 class RIBd : public RIBdBase {
   public:
+    RIBd();
+    ~RIBd() override;
+
     virtual void receiveData(CDAPMessage* cimsg);
     /* Handles information coming from PDUFTG module. */
     //virtual void receiveRoutingUpdateFromRouting(IntRoutingUpdate * update);

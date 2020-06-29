@@ -27,6 +27,7 @@ class FABase;
 
 class FANotifier : public FANotifierBase {
   public:
+    ~FANotifier() override;
 
     virtual void sendCreateRequestFlow(Flow* flow);
     virtual void sendCreateResponseNegative(Flow* flow);

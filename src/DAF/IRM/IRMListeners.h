@@ -25,34 +25,29 @@
 
 //Standard libraries
 #include <omnetpp.h>
-//RINASim libraries
-#include "DAF/IRM/IRM.h"
 
 class IRM;
 class IRMListeners : public cListener {
   public:
-    IRMListeners(IRM* nirm);
-    virtual ~IRMListeners();
+    IRMListeners(IRM *irm) : irm(irm) {}
 
-    virtual void receiveSignal(cComponent *src, simsignal_t id, bool b, cObject *detail) {
-        EV << "Signal to IRM initiated by " << src->getFullPath() << endl;
-    }
   protected:
-      IRM* irm;
+    IRM *irm;
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) override = 0;
 };
 
 class LisIRMAllocReq : public IRMListeners {
   public:
     LisIRMAllocReq(IRM* nirm) : IRMListeners(nirm){};
-    using IRMListeners::receiveSignal;
-    void virtual receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
+  protected:
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) override;
 };
 
 class LisIRMDeallocReq : public IRMListeners {
   public:
     LisIRMDeallocReq(IRM* nirm) : IRMListeners(nirm){};
-    using IRMListeners::receiveSignal;
-    void virtual receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail);
+  protected:
+    void receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail) override;
 };
 
 

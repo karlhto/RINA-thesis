@@ -170,7 +170,7 @@ class QoSCube {
     /**
      * @brief Vector of bound default policies
      */
-    EFCPPolicySet* efcpPolicies;
+    EFCPPolicySet efcpPolicies;
 
     /**
      * @brief Attribute holding resiliency information, see PRISTINE D4.3 for more
@@ -185,18 +185,13 @@ class QoSCube {
 
     QoSCube(cXMLElementList& attrs);
 
-    QoSCube(std::string tqosid,
+    QoSCube(const std::string &tqosid,
             int tavgBand, int tavgSDUBand, int tpeakBandDuration, int tpeakSDUBandDuration, int tburstPeriod, int tburstDuration,
             double tundetectedBitErr, double tpduDropProbab,
             int tmaxSDUsize, bool tpartDeliv, bool tincompleteDeliv, bool tforceOrder,
-            unsigned int tmaxAllowGap, int tdelay, int tjitter, int tcosttime, int tcostbits,
+            int tmaxAllowGap, int tdelay, int tjitter, int tcosttime, int tcostbits,
             double tatime, bool trxon, bool twinfcon, bool tratefcon
             );
-
-    /**
-     * @brief Destructor assigning default uninitialized values
-     */
-    virtual ~QoSCube();
 
     static const QoSCube MANAGEMENT;
 
@@ -458,8 +453,8 @@ class QoSCube {
      */
     std::string str() const;
 
-    const EFCPPolicySet* getEfcpPolicies() const;
-    void setEfcpPolicies(EFCPPolicySet* efcpPolicies);
+    const EFCPPolicySet &getEfcpPolicies() const;
+    void setEfcpPolicies(const EFCPPolicySet &efcpPolicies);
     bool isRateFcOn() const;
     bool isRxOn() const;
     bool isWindowFcOn() const;

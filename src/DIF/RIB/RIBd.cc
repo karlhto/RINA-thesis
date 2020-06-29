@@ -30,6 +30,18 @@
 
 #include "DIF/RIB/RIBd.h"
 
+//RINASim libraries
+#include "Common/Utils.h"
+#include "Common/CDAPProcessingBase.h"
+#include "Common/ExternConsts.h"
+#include "DIF/RIB/RIBdListeners.h"
+#include "Common/RINASignals.h"
+#include "Common/PDU.h"
+#include "DIF/Routing/IntRoutingUpdate.h"
+#include "DIF/FA/FANotifier.h"
+#include "DIF/Enrollment/EnrollmentNotifier.h"
+#include "DIF/Routing/RoutingNotifier.h"
+
 const char* MSG_CONGEST         = "Congestion";
 //const char* MSG_ROUTINGUPDATE   = "RoutingUpdate";
 //const char* MSG_ENROLLMENT      = "Enrollment";
@@ -39,6 +51,13 @@ const char* PAR_USEENROLLNOTIF      = "useEnrollmentNotifier";
 const char* PAR_USEROUTINGNOTIF      = "useRoutingNotifier";
 
 Define_Module(RIBd);
+
+RIBd::RIBd() : useFANotifier(false), useEnrollmentNotifier(false), useRoutingNotifier(false) {}
+
+RIBd::~RIBd() {
+    delete lisRIBDRcvData;
+    delete lisRIBDCongNotif;
+}
 
 void RIBd::initialize() {
 
@@ -75,7 +94,8 @@ void RIBd::initPointers() {
 }
 
 void RIBd::handleMessage(cMessage *msg) {
-
+    EV_ERROR << "This module is not supposed to handle messages" << endl;
+    delete msg;
 }
 
 void RIBd::receiveData(CDAPMessage* msg) {
