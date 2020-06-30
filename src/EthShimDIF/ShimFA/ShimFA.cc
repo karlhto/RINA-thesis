@@ -140,9 +140,12 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     if (nft != nullptr) {
         auto *fai = static_cast<ShimFAI *>(nft->getFai());
         flow->setSrcPortId(fai->getLocalPortId());
-        // fai->receiveAllocateRequest(flow);
         return true;
     }
+
+    const auto result = shim->createEntry(apName);
+    if (result == EthShim::CreateResult::error)
+        return false;
 
     ConnectionId connId;
     connId.setQoSId("QoSCube_Unreliable");
@@ -158,8 +161,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     // TODO implement some form of QoS checking - should be done in a shim RA
     // validateQosRequirements(flow);
 
-    bool resolved = shim->createEntry(apName);
-    if (resolved)
+    if (result == EthShim::CreateResult::completed)
         return fai->receiveAllocateRequest();
 
     return true;

@@ -87,7 +87,7 @@ bool ShimFAI::receiveAllocateResponsePositive()
 
     nft->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
 
-    shim->sendWaitingSDUs(flow->getDstApni().getApn());
+    shim->sendWaitingIncomingSDUs(flow->getDstApni().getApn());
     return true;
 }
 
