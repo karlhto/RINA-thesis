@@ -141,7 +141,7 @@ void setPolicyDisplayString(cModule* mod, const char* str)
     }
 }
 
-void interconnectModules(cModule* m1, cModule* m2, std::string n1, std::string n2)
+void interconnectModules(cModule* m1, cModule* m2, const std::string &n1, const std::string &n2)
 {
     if (!m1->hasGate(n1.c_str()))
     {
@@ -175,6 +175,6 @@ int m_iuniform(int min, int max) {
 double m_duniform(double min, double max) {
     return omnetpp::uniform(omnetpp::getEnvir()->getRNG(0), min, max);
 }
-simtime_t m_tuniform(simtime_t min, simtime_t max) {
+simtime_t m_tuniform(const simtime_t &min, const simtime_t &max) {
     return omnetpp::uniform(omnetpp::getEnvir()->getRNG(0), min, max);
 }

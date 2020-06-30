@@ -103,7 +103,7 @@ void setPolicyDisplayString(cModule* mod, const char* str = nullptr);
  * @param n1 first module gate name
  * @param n2 second module gate name
  */
-void interconnectModules(cModule* m1, cModule* m2, std::string n1, std::string n2);
+void interconnectModules(cModule* m1, cModule* m2, const std::string &n1, const std::string &n2);
 
 
 /**
@@ -134,6 +134,6 @@ modType getRINAModule(  cModule* curMod,
 
 int m_iuniform(int min, int max);
 double m_duniform(double min, double max);
-simtime_t m_tuniform(simtime_t min, simtime_t max);
+simtime_t m_tuniform(const simtime_t &min, const simtime_t &max);
 
 #endif /* UTILS_H_ */
