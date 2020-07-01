@@ -95,17 +95,17 @@ class Enrollment : public cSimpleModule
     simsignal_t sigEnrollmentStartOperRes;
 
     // TODO (someone): Please kill these with fire
-    LisEnrollmentAllResPosi* lisEnrollmentAllResPosi;
-    LisEnrollmentGetFlowFromFaiCreResPosi* lisEnrollmentGetFlowFromFaiCreResPosi;
-    LisEnrollmentStartEnrollReq* lisEnrollmentStartEnrollReq;
-    LisEnrollmentStartEnrollRes* lisEnrollmentStartEnrollRes;
-    LisEnrollmentStopEnrollReq* lisEnrollmentStopEnrollReq;
-    LisEnrollmentStopEnrollRes* lisEnrollmentStopEnrollRes;
-    LisEnrollmentStopOperationReq* lisEnrollmentStartOperationReq;
-    LisEnrollmentStartOperationRes* lisEnrollmentStartOperationRes;
-    LisEnrollmentConResPosi* lisEnrollmentConResPosi;
-    LisEnrollmentConResNega* lisEnrollmentConResNega;
-    LisEnrollmentConReq* lisEnrollmentConReq;
+    LisEnrollmentAllResPosi* lisEnrollmentAllResPosi = nullptr;
+    LisEnrollmentGetFlowFromFaiCreResPosi* lisEnrollmentGetFlowFromFaiCreResPosi = nullptr;
+    LisEnrollmentStartEnrollReq* lisEnrollmentStartEnrollReq = nullptr;
+    LisEnrollmentStartEnrollRes* lisEnrollmentStartEnrollRes = nullptr;
+    LisEnrollmentStopEnrollReq* lisEnrollmentStopEnrollReq = nullptr;
+    LisEnrollmentStopEnrollRes* lisEnrollmentStopEnrollRes = nullptr;
+    LisEnrollmentStopOperationReq* lisEnrollmentStartOperationReq = nullptr;
+    LisEnrollmentStartOperationRes* lisEnrollmentStartOperationRes = nullptr;
+    LisEnrollmentConResPosi* lisEnrollmentConResPosi = nullptr;
+    LisEnrollmentConResNega* lisEnrollmentConResNega = nullptr;
+    LisEnrollmentConReq* lisEnrollmentConReq = nullptr;
 
   public:
     enum IconEnrolStatus {ENICON_ENROLLED, ENICON_FLOWMIS, ENICON_NOTENROLLED};

@@ -84,8 +84,8 @@ private:
 
     /* Listeners */
 
-    LisEFCPCongestFromRA* lisEFCPCongestFromRA;
-    LisEFCPQueueInfoFromAE* lisEFCPQueueInfoFromAE;
+    LisEFCPCongestFromRA* lisEFCPCongestFromRA = nullptr;
+    LisEFCPQueueInfoFromAE* lisEFCPQueueInfoFromAE = nullptr;
 
     Delimiting* createDelimiting(cModule* efcpi, int portId);
     DTCP* createDTCP(cModule* efcpi, const EFCPPolicySet &efcpPolicySet, const QoSCube* qosCube);

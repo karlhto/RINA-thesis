@@ -41,7 +41,9 @@ EFCPTable::EFCPTable()
 
 EFCPTable::~EFCPTable()
 {
-
+    for (auto &elem : efcpTable) {
+        delete elem;
+    }
 }
 
 void EFCPTable::handleMessage(cMessage* msg) {

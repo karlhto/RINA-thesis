@@ -101,16 +101,16 @@ class RA : public RABase
     RMTPort* bindNM1FlowToRMT(cModule* ipc, FABase* fab, Flow* flow);
     std::string normalizePortID(const std::string &ipcName, int flowPortID);
 
-    LisRACreFlow* lisRACreFlow;
-    LisRAAllocResPos* lisRAAllocResPos;
-    LisRACreAllocResPos* lisRACreAllocResPos;
-    LisRACreResPosi* lisRACreResPosi;
-    LisRADelFlow* lisRADelFlow;
-    LisEFCPStopSending* lisEFCPStopSending;
-    LisEFCPStartSending* lisEFCPStartSending;
+    LisRACreFlow* lisRACreFlow = nullptr;
+    LisRAAllocResPos* lisRAAllocResPos = nullptr;
+    LisRACreAllocResPos* lisRACreAllocResPos = nullptr;
+    LisRACreResPosi* lisRACreResPosi = nullptr;
+    LisRADelFlow* lisRADelFlow = nullptr;
+    LisEFCPStopSending* lisEFCPStopSending = nullptr;
+    LisEFCPStartSending* lisEFCPStartSending = nullptr;
 
-    LisRMTSlowdownRequest* lisRMTSDReq;
-    LisRIBCongNotif* lisRIBCongNotif;
+    LisRMTSlowdownRequest* lisRMTSDReq = nullptr;
+    LisRIBCongNotif* lisRIBCongNotif = nullptr;
 
     void signalizeCreateFlowPositiveToRIBd(Flow* flow);
     void signalizeCreateFlowNegativeToRIBd(Flow* flow);

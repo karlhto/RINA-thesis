@@ -53,14 +53,14 @@ class EnrollmentNotifier : public EnrollmentNotifierBase
     simsignal_t sigRIBDConReq;
     simsignal_t sigRIBDCACESend;
 
-    LisRIBDRcvCACE*             lisRIBDRcvCACE;
-    LisRIBDRcvEnrollCACE*       lisRIBDRcvEnrollCACE;
-    LisRIBDStaEnrolReq*         lisRIBDStaEnrolReq;
-    LisRIBDStaEnrolRes*         lisRIBDStaEnrolRes;
-    LisRIBDStoEnrolReq*         lisRIBDStoEnrolReq;
-    LisRIBDStoEnrolRes*         lisRIBDStoEnrolRes;
-    LisRIBDStaOperReq*          lisRIBDStaOperReq;
-    LisRIBDStaOperRes*          lisRIBDStaOperRes;
+    LisRIBDRcvCACE*             lisRIBDRcvCACE = nullptr;
+    LisRIBDRcvEnrollCACE*       lisRIBDRcvEnrollCACE = nullptr;
+    LisRIBDStaEnrolReq*         lisRIBDStaEnrolReq = nullptr;
+    LisRIBDStaEnrolRes*         lisRIBDStaEnrolRes = nullptr;
+    LisRIBDStoEnrolReq*         lisRIBDStoEnrolReq = nullptr;
+    LisRIBDStoEnrolRes*         lisRIBDStoEnrolRes = nullptr;
+    LisRIBDStaOperReq*          lisRIBDStaOperReq = nullptr;
+    LisRIBDStaOperRes*          lisRIBDStaOperRes = nullptr;
 
     void initPointers();
     void initSignalsAndListeners();

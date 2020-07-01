@@ -27,6 +27,11 @@ const char* PAR_USEDAFENROLLNOTIF      = "useEnrollmentNotifier";
 
 Define_Module(DAFRIBd);
 
+DAFRIBd::~DAFRIBd() {
+    if (lisDAFRIBDRcvData != nullptr)
+        delete lisDAFRIBDRcvData;
+}
+
 void DAFRIBd::initialize() {
 
     useEnrollmentNotifier = false;

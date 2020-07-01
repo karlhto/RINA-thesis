@@ -38,6 +38,7 @@
 
 class DAFRIBd : public DAFRIBdBase {
 public:
+  ~DAFRIBd() override;
   virtual void receiveData(CDAPMessage* cimsg);
 
   virtual void signalizeSendData(CDAPMessage* msg);
@@ -57,7 +58,7 @@ protected:
   simsignal_t sigDAFRIBDSendData;
 
   //Listeners
-  LisDAFRIBDRcvData*             lisDAFRIBDRcvData;
+  LisDAFRIBDRcvData*             lisDAFRIBDRcvData = nullptr;
 
 };
 

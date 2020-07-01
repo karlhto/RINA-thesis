@@ -100,8 +100,8 @@ class DAFEnrollment : public DAFEnrollmentBase
     void checkEnrolled(APNIPair* apnip);
 
 
-    IRM* Irm;
-    CACEMgmt* cace;
+    IRM* Irm = nullptr;
+    CACEMgmt* cace = nullptr;
   protected:
     void initPointers();
     void initSignalsAndListeners();
@@ -149,20 +149,20 @@ class DAFEnrollment : public DAFEnrollmentBase
     simsignal_t sigDAFEnrollmentAllocResNega;
     simsignal_t sigDAFEnrollmentAllocResPosi;
 
-    LisDAFEnrollmentAllResPosi* lisDAFEnrollmentAllResPosi;
-    LisDAFEnrollmentGetFlowFromFaiCreResPosi* lisDAFEnrollmentGetFlowFromFaiCreResPosi;
+    LisDAFEnrollmentAllResPosi* lisDAFEnrollmentAllResPosi = nullptr;
+    LisDAFEnrollmentGetFlowFromFaiCreResPosi* lisDAFEnrollmentGetFlowFromFaiCreResPosi = nullptr;
 
-    LisDAFEnrollmentStartEnrollReq* lisDAFEnrollmentStartEnrollReq;
-    LisDAFEnrollmentStartEnrollRes* lisDAFEnrollmentStartEnrollRes;
-    LisDAFEnrollmentStopEnrollReq* lisDAFEnrollmentStopEnrollReq;
-    LisDAFEnrollmentStopEnrollRes* lisDAFEnrollmentStopEnrollRes;
-    LisDAFEnrollmentStopOperationReq* lisDAFEnrollmentStartOperationReq;
-    LisDAFEnrollmentStartOperationRes* lisDAFEnrollmentStartOperationRes;
-    LisDAFEnrollmentConResPosi* lisDAFEnrollmentConResPosi;
-    LisDAFEnrollmentConResNega* lisDAFEnrollmentConResNega;
-    LisDAFEnrollmentConReq* lisDAFEnrollmentConReq;
-    LisDAFEnrollmentRequest* lisDAFEnrollmentRequest;
-    LisDAFEnrollmentAllReqFromFai* lisDAFEnrollmentAllReqFromFai;
+    LisDAFEnrollmentStartEnrollReq* lisDAFEnrollmentStartEnrollReq = nullptr;
+    LisDAFEnrollmentStartEnrollRes* lisDAFEnrollmentStartEnrollRes = nullptr;
+    LisDAFEnrollmentStopEnrollReq* lisDAFEnrollmentStopEnrollReq = nullptr;
+    LisDAFEnrollmentStopEnrollRes* lisDAFEnrollmentStopEnrollRes = nullptr;
+    LisDAFEnrollmentStopOperationReq* lisDAFEnrollmentStartOperationReq = nullptr;
+    LisDAFEnrollmentStartOperationRes* lisDAFEnrollmentStartOperationRes = nullptr;
+    LisDAFEnrollmentConResPosi* lisDAFEnrollmentConResPosi = nullptr;
+    LisDAFEnrollmentConResNega* lisDAFEnrollmentConResNega = nullptr;
+    LisDAFEnrollmentConReq* lisDAFEnrollmentConReq = nullptr;
+    LisDAFEnrollmentRequest* lisDAFEnrollmentRequest = nullptr;
+    LisDAFEnrollmentAllReqFromFai* lisDAFEnrollmentAllReqFromFai = nullptr;
 
     DAFEnrollmentStateTable* StateTable;
 

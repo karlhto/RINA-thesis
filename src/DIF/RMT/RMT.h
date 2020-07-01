@@ -118,12 +118,12 @@ class RMT : public RMTBase
 
     simsignal_t sigRMTNoConnID;
     simsignal_t sigRMTPacketError;
-    LisRMTQueuePDUPreRcvd* lisRMTQueuePDUPreRcvd;
-    LisRMTQueuePDUPostRcvd* lisRMTQueuePDUPostRcvd;
-    LisRMTQueuePDUPreSend* lisRMTQueuePDUPreSend;
-    LisRMTQueuePDUSent* lisRMTQueuePDUSent;
-    LisRMTPortReadyToServe* lisRMTPortReadyToServe;
-    LisRMTPortReadyForRead* lisRMTPortReadyForRead;
+    LisRMTQueuePDUPreRcvd* lisRMTQueuePDUPreRcvd = nullptr;
+    LisRMTQueuePDUPostRcvd* lisRMTQueuePDUPostRcvd = nullptr;
+    LisRMTQueuePDUPreSend* lisRMTQueuePDUPreSend = nullptr;
+    LisRMTQueuePDUSent* lisRMTQueuePDUSent = nullptr;
+    LisRMTPortReadyToServe* lisRMTPortReadyToServe = nullptr;
+    LisRMTPortReadyForRead* lisRMTPortReadyForRead = nullptr;
 
     // management methods for Resource Allocator
     void setOnWire(bool status) { onWire = status; };

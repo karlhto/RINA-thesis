@@ -24,8 +24,7 @@
 #include "Common/Socket.h"
 Define_Module(AE);
 
-AE::AE() :
-        Irm(nullptr), Cdap(nullptr)
+AE::AE()
 {
     FlowObject = nullptr;
     connectionState = NIL;
@@ -34,10 +33,18 @@ AE::AE() :
 }
 
 AE::~AE() {
-    connectionState = NIL;
-    FlowObject = nullptr;
-    Irm = nullptr;
-    Cdap = nullptr;
+    if (lisAEAllResNega != nullptr) {
+        delete lisAERcvData;
+        delete lisAEEnrolled;
+        delete lisAPAEAPI;
+        delete lisAEDeallReqFromFai;
+        delete lisAEDeallResFromFai;
+        delete lisAEAllResPosi;
+        delete lisAEAllResNega;
+    }
+
+    if (Cace != nullptr)
+        delete Cace;
 }
 
 void AE::initialize() {
@@ -215,11 +222,11 @@ void AE::CACEFinished() {
     changeConStatus(ESTABLISHED);
 
     //send response to AP Instance
-    APIResult *obj = new APIResult();
-    obj->setInvokeId(startInvokeId);
-    obj->setCDAPConId(cdapConId);
-    obj->setAPIResType(APIResult::A_GET_OPEN);
-    signalizeAEAPAPI(obj);
+    APIResult obj;
+    obj.setInvokeId(startInvokeId);
+    obj.setCDAPConId(cdapConId);
+    obj.setAPIResType(APIResult::A_GET_OPEN);
+    signalizeAEAPAPI(&obj);
 
 }
 
@@ -490,10 +497,10 @@ bool AE::deleteBindings(Flow& flow) {
     gIrmIn->disconnect();
 
 
-    APIResult *del = new APIResult();
-    del->setAPIResType(APIResult::D_DELETE);
-    del->setObjName(this->getModuleByPath("^")->getFullName());
-    signalizeAEAPAPI(del);
+    APIResult del;
+    del.setAPIResType(APIResult::D_DELETE);
+    del.setObjName(this->getModuleByPath("^")->getFullName());
+    signalizeAEAPAPI(&del);
 
 
     //Return true if all dynamically created gates are disconnected

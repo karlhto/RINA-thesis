@@ -49,6 +49,7 @@
 
 class AEMgmt : public AEMgmtBase {
   public:
+    ~AEMgmt() override;
     virtual void signalizeSendData(CDAPMessage* msg);
     virtual void receiveData(CDAPMessage* cimsg);
 

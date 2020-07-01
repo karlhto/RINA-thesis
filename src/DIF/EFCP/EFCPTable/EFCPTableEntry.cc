@@ -37,7 +37,9 @@ EFCPTableEntry::EFCPTableEntry()
 
 EFCPTableEntry::~EFCPTableEntry()
 {
-
+    for (auto &elem : efcpiTab) {
+        delete elem;
+    }
 }
 
 

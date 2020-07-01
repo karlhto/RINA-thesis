@@ -35,6 +35,11 @@ const char* DAF_PAR_USEENROLLNOTIF      = "useEnrollmentNotifier";
 
 Define_Module(AEMgmt);
 
+AEMgmt::~AEMgmt() {
+    if (lisAEMgmtRcvData != nullptr)
+        delete lisAEMgmtRcvData;
+}
+
 void AEMgmt::initialize() {
     //Init signals and listeners
     initSignalsAndListeners();

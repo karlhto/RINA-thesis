@@ -75,9 +75,9 @@ private:
     simsignal_t sigAEEnrolled;
 
     //Listeners
-    LisAPAllReqFromFai* lisAPAllReqFromFai;
-    LisAPEnrolled* lisAPEnrolled;
-    LisAEAPAPI* lisAEAPAPI;
+    LisAPAllReqFromFai* lisAPAllReqFromFai = nullptr;
+    LisAPEnrolled* lisAPEnrolled = nullptr;
+    LisAEAPAPI* lisAEAPAPI = nullptr;
 
     ConnectionRequests ConReqStack;
 

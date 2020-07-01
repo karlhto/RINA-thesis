@@ -29,6 +29,11 @@ AP::AP(){
 }
 
 AP::~AP() {
+    if (lisAEAPAPI != nullptr) {
+        delete lisAPAllReqFromFai;
+        delete lisAPEnrolled;
+        delete lisAEAPAPI;
+    }
 }
 
 void AP::initialize() {
@@ -75,17 +80,11 @@ void AP::onClose(APIResult* result) {
 bool AP::a_open(int invokeID, std::string APName, std::string APInst, std::string AEName, std::string AEInst) {
     if (this->isEnrolled == this->EnrollmentState::NOT_ENROLLED) {
         //Vesely -> Jerabek: Je zde duvod k hardcodovani hodnot?
-        APNIPair* apnip = new APNIPair(
-        APNamingInfo(APN(this->getParentModule()->par("apName").stringValue()),
-                    "0",
-                    "Mgmt",
-                    "0"),
-        APNamingInfo(APN(APName),
-                    "0",
-                    "Mgmt",
-                    "0"));
+        APNIPair apnip(APNamingInfo(APN(this->getParentModule()->par("apName").stringValue()), "0",
+                                    "Mgmt", "0"),
+                       APNamingInfo(APN(APName), "0", "Mgmt", "0"));
 
-        emit(sigAEEnrolled, apnip);
+        emit(sigAEEnrolled, &apnip);
         this->isEnrolled = this->EnrollmentState::ENROLLING;
 
         //insert connection requests to queue
@@ -109,34 +108,34 @@ bool AP::a_open(int invokeID, Flow* flow){
 }
 
 bool AP::a_close(int CDAPConn, int invokeID) {
-    APIReqObj* obj = new APIReqObj();
-    obj->setCDAPConId(CDAPConn);
-    obj->setAPIReqType(APIReqObj::A_CLOSE);
+    APIReqObj obj;
+    obj.setCDAPConId(CDAPConn);
+    obj.setAPIReqType(APIReqObj::A_CLOSE);
 
-    this->signalizeAPAEAPI(obj);
+    this->signalizeAPAEAPI(&obj);
     return true;
 }
 
 bool AP::a_read(int CDAPConn, std::string objName, int invokeID) {
-    APIReqObj* obj = new APIReqObj();
-    obj->setCDAPConId(CDAPConn);
-    obj->setObjName(objName);
-    obj->setInvokeId(invokeID);
-    obj->setAPIReqType(APIReqObj::A_READ);
+    APIReqObj obj;
+    obj.setCDAPConId(CDAPConn);
+    obj.setObjName(objName);
+    obj.setInvokeId(invokeID);
+    obj.setAPIReqType(APIReqObj::A_READ);
 
-    this->signalizeAPAEAPI(obj);
+    this->signalizeAPAEAPI(&obj);
     return true;
 }
 
 bool AP::a_write(int CDAPConn, std::string objName, object_t *obj, int invokeID) {
-    APIReqObj *req = new APIReqObj();
-    req->setCDAPConId(CDAPConn);
-    req->setObjName(objName);
-    req->setObj(obj);
-    req->setInvokeId(invokeID);
-    req->setAPIReqType(APIReqObj::A_WRITE);
+    APIReqObj req;
+    req.setCDAPConId(CDAPConn);
+    req.setObjName(objName);
+    req.setObj(obj);
+    req.setInvokeId(invokeID);
+    req.setAPIReqType(APIReqObj::A_WRITE);
 
-    this->signalizeAPAEAPI(req);
+    this->signalizeAPAEAPI(&req);
     return true;
 }
 

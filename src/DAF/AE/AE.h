@@ -70,9 +70,9 @@ class AE : public AEBase
     virtual bool onA_write(APIReqObj* obj);
 
   protected:
-    IRM* Irm;
-    cModule* Cdap;
-    CACEGeneric* Cace;
+    IRM* Irm = nullptr;
+    cModule* Cdap = nullptr;
+    CACEGeneric* Cace = nullptr;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

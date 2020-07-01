@@ -61,14 +61,14 @@ class FAI : public FAIBase  {
     FABase* fa;
 
     //Listeners
-    LisFAIAllocResNega*  lisAllocResNega;
-    LisFAIAllocResPosi*  lisAllocResPosi;
-    LisFAICreResNega*    lisCreResNega;
-    LisFAICreResPosi*    lisCreResPosi;
-    LisFAIDelReq*        lisDelReq;
-    LisFAIDelRes*        lisDelRes;
-    LisFAICreResPosiNminusOne* lisCreResPosiNmO;
-    LisFAICreResNegaNminusOne* lisCreResNegaNmO;
+    LisFAIAllocResNega*  lisAllocResNega = nullptr;
+    LisFAIAllocResPosi*  lisAllocResPosi = nullptr;
+    LisFAICreResNega*    lisCreResNega = nullptr;
+    LisFAICreResPosi*    lisCreResPosi = nullptr;
+    LisFAIDelReq*        lisDelReq = nullptr;
+    LisFAIDelRes*        lisDelRes = nullptr;
+    LisFAICreResPosiNminusOne* lisCreResPosiNmO = nullptr;
+    LisFAICreResNegaNminusOne* lisCreResNegaNmO = nullptr;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

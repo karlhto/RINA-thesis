@@ -81,8 +81,8 @@ class IRM : public cSimpleModule   {
     simsignal_t sigStatIRMPassDown;
 
     //Listeners
-    LisIRMAllocReq* lisAllocReq;
-    LisIRMDeallocReq* lisDeallocReq;
+    LisIRMAllocReq* lisAllocReq = nullptr;
+    LisIRMDeallocReq* lisDeallocReq = nullptr;
 
     /*
     //Signaling

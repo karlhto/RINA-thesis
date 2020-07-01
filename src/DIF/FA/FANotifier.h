@@ -50,17 +50,17 @@ class FANotifier : public FANotifierBase {
     simsignal_t sigRIBDCreFlow;
 
     //Listeners
-    LisRIBDCreReq*              lisRIBDCreReq;
-    LisRIBDCreReq*              lisRIBDCreReqByForward;
-    LisRIBDAllReqFromFai*       lisRIBDAllReqFromFai;
-    LisRIBDCreResNega*          lisRIBDCreResNega;
-    LisRIBDCreResNega*          lisRIBDCreResNegaFromFa;
-    LisRIBDCreResPosi*          lisRIBDCreResPosi;
-    LisRIBDCreResPosi*          lisRIBDCreResPosiForward;
-    LisRIBDDelReq*              lisRIBDDelReq;
-    LisRIBDDelRes*              lisRIBDDelRes;
-    LisRIBDCreFloPosi*          lisRIBDCreFloPosi;
-    LisRIBDCreFloNega*          lisRIBDCreFloNega;
+    LisRIBDCreReq*              lisRIBDCreReq = nullptr;
+    LisRIBDCreReq*              lisRIBDCreReqByForward = nullptr;
+    LisRIBDAllReqFromFai*       lisRIBDAllReqFromFai = nullptr;
+    LisRIBDCreResNega*          lisRIBDCreResNega = nullptr;
+    LisRIBDCreResNega*          lisRIBDCreResNegaFromFa = nullptr;
+    LisRIBDCreResPosi*          lisRIBDCreResPosi = nullptr;
+    LisRIBDCreResPosi*          lisRIBDCreResPosiForward = nullptr;
+    LisRIBDDelReq*              lisRIBDDelReq = nullptr;
+    LisRIBDDelRes*              lisRIBDDelRes = nullptr;
+    LisRIBDCreFloPosi*          lisRIBDCreFloPosi = nullptr;
+    LisRIBDCreFloNega*          lisRIBDCreFloNega = nullptr;
 
     void signalizeCreateRequestFlow(Flow* flow);
     void signalizeDeleteRequestFlow(Flow* flow);

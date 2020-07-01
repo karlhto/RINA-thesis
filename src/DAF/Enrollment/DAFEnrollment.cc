@@ -54,9 +54,23 @@ DAFEnrollment::DAFEnrollment() : cace(nullptr), StateTable(nullptr)//, aemgmt(NU
 }
 
 DAFEnrollment::~DAFEnrollment(){
-    StateTable = nullptr;
-    cace = nullptr;
-    //aemgmt = NULL;
+    if (lisDAFEnrollmentConReq != nullptr) {
+        delete lisDAFEnrollmentAllResPosi;
+        delete lisDAFEnrollmentAllReqFromFai;
+        delete lisDAFEnrollmentRequest;
+        delete lisDAFEnrollmentStartEnrollReq;
+        delete lisDAFEnrollmentStartEnrollRes;
+        delete lisDAFEnrollmentStopEnrollReq;
+        delete lisDAFEnrollmentStopEnrollRes;
+        delete lisDAFEnrollmentStartOperationReq;
+        delete lisDAFEnrollmentStartOperationRes;
+        delete lisDAFEnrollmentConResPosi;
+        delete lisDAFEnrollmentConResNega;
+        delete lisDAFEnrollmentConReq;
+    }
+
+    if (cace != nullptr)
+        delete cace;
 }
 
 void DAFEnrollment::initialize()
@@ -608,8 +622,8 @@ void DAFEnrollment::signalizeStartOperationResponse(DAFOperationObj* obj) {
 
 void DAFEnrollment::signalizeEnrollmentFinished(DAFEnrollmentStateTableEntry* entry) {
     updateEnrollmentDisplay(ENICON_ENROLLED);
-    APNIPair* apnip = new APNIPair(entry->getLocal(), entry->getRemote());
-    emit(sigDAFEnrollmentFinish, apnip);
+    APNIPair apnip(entry->getLocal(), entry->getRemote());
+    emit(sigDAFEnrollmentFinish, &apnip);
 }
 
 void DAFEnrollment::parseConfig(cXMLElement* config) {
