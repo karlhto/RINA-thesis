@@ -29,23 +29,23 @@
 class NeighborTableEntry {
   public:
     NeighborTableEntry(const APN& napn);
-    virtual ~NeighborTableEntry();
+    ~NeighborTableEntry() = default;
 
     bool operator== (const NeighborTableEntry& other) const;
 
-    std::string str() const;
+    [[nodiscard]] std::string str() const;
 
-    const APN& getApn() const;
+    [[nodiscard]] const APN& getApn() const;
     void setApn(const APN& apn);
-    const APNList& getNeigbors() const;
-    void setNeigbors(const APNList& neigbors);
+    [[nodiscard]] const APNList& getNeighbors() const;
+    void setNeighbors(const APNList& neighbors);
 
     void addNeighbor(const APN& neighbor);
-    bool hasNeighbor(const APN& neighbor) const;
+    [[nodiscard]] bool hasNeighbor(const APN& neighbor) const;
 
   private:
-    APN Apn;
-    APNList Neigbors;
+    APN apn;
+    APNList neighbors;
 };
 
 //Free function

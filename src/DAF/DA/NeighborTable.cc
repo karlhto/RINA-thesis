@@ -30,7 +30,7 @@ Define_Module(NeighborTable);
 
 void NeighborTable::updateDisplayString() {
     std::ostringstream description;
-    description << NeiTable.size() << " entries";
+    description << neighborTable.size() << " entries";
     this->getDisplayString().setTagArg("t", 0, description.str().c_str());
     this->getDisplayString().setTagArg("t", 1, "t");
 }
@@ -42,7 +42,7 @@ void NeighborTable::initialize()
 
     updateDisplayString();
     //Init watchers
-    WATCH_LIST(NeiTable);
+    WATCH_LIST(neighborTable);
 }
 
 void NeighborTable::handleMessage(cMessage *msg)
@@ -51,20 +51,20 @@ void NeighborTable::handleMessage(cMessage *msg)
 }
 
 void NeighborTable::addNeighborEntry(const APN& apn) {
-    NeiTable.push_back(NeighborTableEntry(apn));
+    neighborTable.push_back(NeighborTableEntry(apn));
 }
 
 NeighborTableEntry* NeighborTable::findNeighborEntryByApn(const APN& apn) {
-    for (NeiEntryItem it = NeiTable.begin(); it != NeiTable.end(); ++it) {
-        if (it->getApn() == apn)
-            return &(*it);
+    for (auto &it : neighborTable) {
+        if (it.getApn() == apn)
+            return &it;
     }
     return nullptr;
 }
 
 const APNList* NeighborTable::findNeighborsByApn(const APN& apn) {
     NeighborTableEntry* entry = findNeighborEntryByApn(apn);
-    return entry ? &(entry->getNeigbors()) : nullptr;
+    return entry ? &(entry->getNeighbors()) : nullptr;
 }
 
 void NeighborTable::addNewNeighbor(const APN& apn, const APN& neighbor) {
@@ -72,14 +72,14 @@ void NeighborTable::addNewNeighbor(const APN& apn, const APN& neighbor) {
 }
 
 void NeighborTable::removeNeighborEntry(const APN& apn) {
-    NeiTable.remove(*(findNeighborEntryByApn(apn)));
+    neighborTable.remove(*(findNeighborEntryByApn(apn)));
 }
 
-const APNList* NeighborTable::findApnsByNeighbor(const APN& neighbor) {
-    APNList* apnlist = new APNList();
-    for (NeiEntryCItem it = NeiTable.begin(); it != NeiTable.end(); ++it) {
+const APNList NeighborTable::findApnsByNeighbor(const APN& neighbor) {
+    APNList apnlist;
+    for (NeiEntryCItem it = neighborTable.begin(); it != neighborTable.end(); ++it) {
         if (it->hasNeighbor(neighbor)) {
-            apnlist->push_back(it->getApn());
+            apnlist.push_back(it->getApn());
         }
     }
     return apnlist;
@@ -95,22 +95,18 @@ void NeighborTable::parseConfig(cXMLElement* config) {
     }
 
     cXMLElementList apnlist = mainTag->getChildrenByTagName(ELEM_APN);
-    for (cXMLElementList::const_iterator it = apnlist.begin(); it != apnlist.end(); ++it) {
-        cXMLElement* m = *it;
-
+    for (auto &m : apnlist) {
         if (!(m->getAttribute(ATTR_APN) && m->getFirstChildWithTag(ELEM_NEIGHBOR))) {
             EV << "\nError when parsing NeighborTable record" << endl;
             continue;
         }
 
-        APN newapn = APN(m->getAttribute(ATTR_APN));
+        APN newapn(m->getAttribute(ATTR_APN));
 
         addNeighborEntry(newapn);
 
         cXMLElementList neighborlist = m->getChildrenByTagName(ELEM_NEIGHBOR);
-        for (cXMLElementList::const_iterator jt = neighborlist.begin(); jt != neighborlist.end(); ++jt) {
-            cXMLElement* n = *jt;
-
+        for (auto &n : neighborlist) {
             if (!(n->getAttribute(ATTR_APN))) {
                 EV << "\nError when parsing Synonym record" << endl;
                 continue;

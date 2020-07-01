@@ -42,11 +42,11 @@ class NeighborTable : public cSimpleModule
     void addNeighborEntry(const APN& apn);
     NeighborTableEntry* findNeighborEntryByApn(const APN& apn);
     const APNList* findNeighborsByApn(const APN& apn);
-    const APNList* findApnsByNeighbor(const APN& neighbor);
+    const APNList findApnsByNeighbor(const APN& neighbor);
     void addNewNeighbor(const APN& apn, const APN& neighbor);
     void removeNeighborEntry(const APN& apn);
   protected:
-    NeighborEntries NeiTable;
+    NeighborEntries neighborTable;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

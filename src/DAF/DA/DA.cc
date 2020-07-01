@@ -24,8 +24,8 @@
 
 Define_Module(DA);
 
-const APNList* DA::findApnNeigbors(const APN& apn) {
-    return NeighborTab->findNeighborsByApn(apn);
+const APNList* DA::findApnNeighbors(const APN& apn) {
+    return neighborTab->findNeighborsByApn(apn);
 }
 
 const Address* DA::resolveApnToBestAddress(const APN& apn) {
@@ -38,9 +38,9 @@ const Address* DA::resolveApnToBestAddress(const APN& apn) {
     }
 
     //Return first local DIF address
-    for (AddrCItem it = de->getSupportedDifs().begin(); it != de->getSupportedDifs().end(); ++it) {
-        if (isDifLocal(it->getDifName()))
-            return &(*it);
+    for (const auto &it : de->getSupportedDifs()) {
+        if (isDifLocal(it.getDifName()))
+            return &it;
     }
 
     EV << "None of found DIFs is local!" << endl;
@@ -57,25 +57,25 @@ const Address* DA::resolveApnToBestAddress(const APN& apn, const DAP& difName) {
     }
 
     //Return address from a given DIF
-    for (AddrCItem it = de->getSupportedDifs().begin(); it != de->getSupportedDifs().end(); ++it) {
-        if (it->getDifName() == difName && isDifLocal(it->getDifName()))
-            return &(*it);
+    for (const auto &it : de->getSupportedDifs()) {
+        if (it.getDifName() == difName && isDifLocal(it.getDifName()))
+            return &it;
     }
 
     EV << "None of found DIFs is local!" << endl;
     return nullptr;
 }
 
-const APNList* DA::findNeigborApns(const APN& neighbor) {
-    return NeighborTab->findApnsByNeighbor(neighbor);
+const APNList DA::findNeighborApns(const APN& neighbor) {
+    return neighborTab->findApnsByNeighbor(neighbor);
 }
 
 void DA::initPointers() {
     //Retrieve pointers to submodules
-    Dir = getRINAModule<Directory*>(this, 1, {MOD_DIRECTORY});
-    NamInfo = getRINAModule<NamingInformation*>(this, 1, {MOD_NAMINFO});
-    NeighborTab = getRINAModule<NeighborTable*>(this, 1, {MOD_NEIGHBORTABLE});
-    SearchTab = getRINAModule<SearchTable*>(this, 1, {MOD_SEARCHTAB});
+    dir = getRINAModule<Directory*>(this, 1, {MOD_DIRECTORY});
+    namInfo = getRINAModule<NamingInformation*>(this, 1, {MOD_NAMINFO});
+    neighborTab = getRINAModule<NeighborTable*>(this, 1, {MOD_NEIGHBORTABLE});
+    searchTab = getRINAModule<SearchTable*>(this, 1, {MOD_SEARCHTAB});
 }
 
 void DA::initialize()
@@ -90,7 +90,7 @@ void DA::initialize()
   * @param ipc Source IPC Process
   * @return True if yes, otherwise false
   */
-bool DA::isDifLocalToIpc(const std::string difName, cModule* ipc) {
+bool DA::isDifLocalToIpc(const std::string &difName, cModule* ipc) {
     cModule* top = ipc->getParentModule();
     for (cModule::SubmoduleIterator j(top); !j.end(); j++) {
         cModule *submodp = j();
@@ -186,10 +186,10 @@ FABase* DA::findFaInsideIpc(cModule* ipc) {
 
 DirectoryEntry* DA::resolveApn(const APN& apn) {
     Enter_Method("resolveApn()");
-    APNList apns = NamInfo->findAllApnNames(apn);
+    APNList apns = namInfo->findAllApnNames(apn);
     //Return first Directory mapping from APN and all its synonyms
     for (ApnCItem it = apns.begin(); it != apns.end(); ++it) {
-        DirectoryEntry* dre = Dir->findDirEntryByApn(*it);
+        DirectoryEntry* dre = dir->findDirEntryByApn(*it);
         if (dre)
             return dre;
     }
@@ -224,9 +224,9 @@ const Addresses* DA::resolveApnToAddressList(const APN& apn, const DAP& difName)
 
     Addresses* addrs = new Addresses();
     //Return address from a given DIF
-    for (AddrCItem it = de->getSupportedDifs().begin(); it != de->getSupportedDifs().end(); ++it) {
-        if (it->getDifName() == difName && isDifLocal(it->getDifName()))
-            addrs->push_back(*it);
+    for (const auto &it : de->getSupportedDifs()) {
+        if (it.getDifName() == difName && isDifLocal(it.getDifName()))
+            addrs->push_back(it);
     }
 
     if (addrs->empty()) {
@@ -238,19 +238,19 @@ const Addresses* DA::resolveApnToAddressList(const APN& apn, const DAP& difName)
 /*
 cModule* DA::resolveApnToIpc(const APN& apn) {
     Enter_Method("resolveApnToDif()");
-    DirectoryEntry* dre = Dir->findDirEntryByApn(apn);
+    DirectoryEntry* dre = dir->findDirEntryByApn(apn);
     return  dre ? dre->getIpc() : NULL;
 }
 
 FABase* DA::resolveApnToFa(const APN& apn) {
     Enter_Method("resolveApnToDifFa()");
-    DirectoryEntry* dre = Dir->findDirEntryByApn(apn);
+    DirectoryEntry* dre = dir->findDirEntryByApn(apn);
     return dre ? dre->getFlowAlloc() : NULL;
 }
 
 std::string DA::resolveApnToIpcPath(const APN& apn) {
     Enter_Method("resolveApnToDifName()");
-    DirectoryEntry* dre = Dir->findDirEntryByApn(apn);
+    DirectoryEntry* dre = dir->findDirEntryByApn(apn);
     return  dre ? dre->getIpcPath() : NULL;
 }
 
@@ -273,6 +273,6 @@ FABase* DA::resolveApniToFa(const APNamingInfo& apni) {
 }
 
 DirectoryEntry* DA::resolveApni(const APNamingInfo& apni) {
-    return Dir->findEntryByApni(apni);
+    return dir->findEntryByApni(apni);
 }
 */

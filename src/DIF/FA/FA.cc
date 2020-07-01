@@ -95,10 +95,10 @@ const Address FA::getAddressFromDa(const APN& apn, bool useNeighbor, bool isMgmt
     }
 
     if (useNeighbor) {
-        const APNList* apnlist = difAllocator->findApnNeigbors(addr.getApn());
+        const APNList* apnlist = difAllocator->findApnNeighbors(addr.getApn());
         if (apnlist) {
-            for (ApnCItem it = apnlist->begin(); it != apnlist->end(); ++it) {
-                Address tmp = Address(it->getName());
+            for (const auto &it : *apnlist) {
+                Address tmp = Address(it.getName());
                 //EV << "!!!!!" << tmp << endl;
                 if (addr.getDifName() == tmp.getDifName()) {
                     addr = tmp;
@@ -183,7 +183,7 @@ bool FA::changeDstAddresses(Flow* flow, bool useNeighbor) {
 
     //If destination address does have neighbor then use first neighbor address
     if (useNeighbor) {
-        const APNList* apnlist = difAllocator->findApnNeigbors(addr.getIpcAddress());
+        const APNList* apnlist = difAllocator->findApnNeighbors(addr.getIpcAddress());
         if (apnlist)
             addr.setIpcAddress(apnlist->front());
     }

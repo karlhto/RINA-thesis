@@ -23,57 +23,52 @@
 #include "DAF/DA/NeighborTableEntry.h"
 
 NeighborTableEntry::NeighborTableEntry(const APN& napn) :
-    Apn(napn)
+    apn(napn)
 {
 }
 
-NeighborTableEntry::~NeighborTableEntry() {
-    Neigbors.clear();
-}
-
 const APN& NeighborTableEntry::getApn() const {
-    return Apn;
+    return apn;
 }
 
 void NeighborTableEntry::setApn(const APN& apn) {
-    Apn = apn;
+    this->apn = apn;
 }
 
-const APNList& NeighborTableEntry::getNeigbors() const {
-    return Neigbors;
+const APNList& NeighborTableEntry::getNeighbors() const {
+    return neighbors;
 }
 
 bool NeighborTableEntry::operator ==(const NeighborTableEntry& other) const {
-    return Apn == other.Apn && Neigbors == other.Neigbors;
+    return apn == other.apn && neighbors == other.neighbors;
 }
 
 std::string NeighborTableEntry::str() const {
     std::ostringstream os;
-    os << "APN: " << Apn << ", Neighbors: ";
-    for (auto n : Neigbors){
+    os << "APN: " << apn << ", neighbors: ";
+    for (const auto &n : neighbors) {
         os << "\n\t" << n.str();
     }
     return os.str();
 }
 
-void NeighborTableEntry::setNeigbors(const APNList& neigbors) {
-    Neigbors = neigbors;
+void NeighborTableEntry::setNeighbors(const APNList& neighbors) {
+    this->neighbors = neighbors;
 }
 
 void NeighborTableEntry::addNeighbor(const APN& neighbor) {
-    Neigbors.push_back(neighbor);
+    neighbors.push_back(neighbor);
 }
 
 std::ostream& operator <<(std::ostream& os, const NeighborTableEntry& nte) {
     return os << nte.str();
 }
 
-bool NeighborTableEntry::hasNeighbor(const APN& neighbor) const
+bool NeighborTableEntry::hasNeighbor(const APN& apn) const
 {
-    for (ApnCItem it = Neigbors.begin(); it != Neigbors.end(); ++it) {
-        if (*it == neighbor)
+    for (const auto &neighbor : neighbors) {
+        if (neighbor == apn)
             return true;
     }
     return false;
-
 }

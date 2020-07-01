@@ -52,8 +52,8 @@ class DA : public cSimpleModule
     const Address* resolveApnToBestAddress(const APN& apn, const DAP& difName);
     const Addresses* resolveApnToAddressList(const APN& apn, const DAP& difName);
 
-    const APNList* findApnNeigbors(const APN& apn);
-    const APNList* findNeigborApns(const APN& neighbor);
+    const APNList* findApnNeighbors(const APN& apn);
+    const APNList findNeighborApns(const APN& neighbor);
 
     //Methods checking local-ness relevant to this DA
     bool isAppLocal(const APN& apn);
@@ -75,7 +75,7 @@ class DA : public cSimpleModule
      * @param ipc Source IPC Process
      * @return True if yes, otherwise false
      */
-    bool isDifLocalToIpc(const std::string difName, cModule* ipc);
+    bool isDifLocalToIpc(const std::string &difName, cModule* ipc);
 
     /**
      * Check whether given IPC X is on the same computation system as IPC Y
@@ -87,10 +87,10 @@ class DA : public cSimpleModule
 
 
   protected:
-    Directory*          Dir;
-    NamingInformation*  NamInfo;
-    NeighborTable*      NeighborTab;
-    SearchTable*        SearchTab;
+    Directory*          dir;
+    NamingInformation*  namInfo;
+    NeighborTable*      neighborTab;
+    SearchTable*        searchTab;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

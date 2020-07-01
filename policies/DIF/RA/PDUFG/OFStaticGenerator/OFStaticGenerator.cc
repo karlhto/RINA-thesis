@@ -34,54 +34,53 @@ OFStaticGenerator::OFStaticGenerator() {
 }
 
 // A new flow has been inserted/or removed
-void OFStaticGenerator::insertedFlow(const Address &addr, const QoSCube &qos, RMTPort * port){
-    //Iterate through all QoS cubes and check if qos is a valid
-    for(QoSCube qosI : cubes) {
-        if(comparer->isValid(qosI, qos)) {
+void OFStaticGenerator::insertedFlow(const Address &addr, const QoSCube &qos, RMTPort *port) {
+    // Iterate through all QoS cubes and check if qos is a valid
+    for (const QoSCube &qosI : cubes) {
+        if (comparer->isValid(qosI, qos)) {
             fwd->insert(addr, qosI.getQosId(), port);
             fwd->insert(addr, port);
-            if(inj != nullptr) {
+            if (inj != nullptr) {
                 inj->setPort(addr.getIpcAddress().getName(), qosI.getQosId(), port);
             }
 
-            const APNList* remoteApps = difA->findNeigborApns(addr.getApn());
-            if (remoteApps) {
-                for (ApnCItem it = remoteApps->begin(); it != remoteApps->end(); ++it) {
-                    fwd->insert(Address(it->getName()), qosI.getQosId(), port);
-                    fwd->insert(Address(it->getName()), port);
-                    if(inj != nullptr) {
-                        inj->setPort(it->getName(), qosI.getQosId(), port);
-                    }
+            const APNList remoteApps = difA->findNeighborApns(addr.getApn());
+            for (const auto &remoteApp : remoteApps) {
+                fwd->insert(Address(remoteApp.getName()), qosI.getQosId(), port);
+                fwd->insert(Address(remoteApp.getName()), port);
+                if (inj != nullptr) {
+                    inj->setPort(remoteApp.getName(), qosI.getQosId(), port);
                 }
             }
         }
     }
 
-    if(qos.getQosId() == VAL_UNDEF_QOSID) {
+    if (qos.getQosId() == VAL_UNDEF_QOSID) {
         error("Undef QoS");
     }
-
 }
+
 void OFStaticGenerator::removedFlow(const Address &addr, const QoSCube& qos, RMTPort * port){
+    // FIXME Correct this comment, `qos` is not even used
     //Iterate through all QoS cubes and check if exist an entry with qos
-    for(QoSCube qosI : cubes) {
+    const APNList remoteApps = difA->findNeighborApns(addr.getApn());
+
+    for (const QoSCube &qosI : cubes) {
         auto res = fwd->lookup(addr, qosI.getQosId());
-        if(!res.empty()){
-            RMTPort * tp = *res.begin();
-            if(tp == port){
+        if (!res.empty()) {
+            RMTPort *tp = *res.begin();
+            if (tp == port) {
                 fwd->remove(addr, qosI.getQosId());
-                if(inj != nullptr) {
+                if (inj != nullptr) {
                     inj->setPort(addr.getIpcAddress().getName(), qosI.getQosId(), nullptr);
                 }
             }
-            if (const APNList* remoteApps = difA->findNeigborApns(addr.getApn())) {
-                for (ApnCItem it = remoteApps->begin(); it != remoteApps->end(); ++it){
-                    res = fwd->lookup(Address(it->getName()), qosI.getQosId());
-                    if(!res.empty()) {
-                        tp = *res.begin();
-                        if(tp == port){
-                            inj->setPort(it->getName(), qosI.getQosId(), nullptr);
-                        }
+            for (const auto &remoteApp : remoteApps) {
+                res = fwd->lookup(Address(remoteApp.getName()), qosI.getQosId());
+                if (!res.empty()) {
+                    tp = *res.begin();
+                    if (tp == port) {
+                        inj->setPort(remoteApp.getName(), qosI.getQosId(), nullptr);
                     }
                 }
             }
@@ -89,19 +88,17 @@ void OFStaticGenerator::removedFlow(const Address &addr, const QoSCube& qos, RMT
     }
 
     auto res = fwd->lookup(addr, ANY_QOS);
-    if(!res.empty()){
-        RMTPort * tp = *res.begin();
-        if(tp == port){
+    if (!res.empty()) {
+        RMTPort *tp = *res.begin();
+        if (tp == port) {
             fwd->remove(addr);
         }
-        if (const APNList* remoteApps = difA->findNeigborApns(addr.getApn())) {
-            for (ApnCItem it = remoteApps->begin(); it != remoteApps->end(); ++it){
-                res = fwd->lookup(Address(it->getName()), ANY_QOS);
-                if(!res.empty()) {
-                    tp = *res.begin();
-                    if(tp == port){
-                        fwd->remove(Address(it->getName()));
-                    }
+        for (const auto &remoteApp : remoteApps) {
+            res = fwd->lookup(Address(remoteApp.getName()), ANY_QOS);
+            if (!res.empty()) {
+                tp = *res.begin();
+                if (tp == port) {
+                    fwd->remove(Address(remoteApp.getName()));
                 }
             }
         }
