@@ -34,8 +34,8 @@ const simsignal_t RINArp::initiatedRINArpResolutionSignal =
 const simsignal_t RINArp::completedRINArpResolutionSignal =
     registerSignal("completedRINArpResolution");
 const simsignal_t RINArp::failedRINArpResolutionSignal = registerSignal("failedRINArpResolution");
-
-RINArp::RINArp() = default;
+const simsignal_t RINArp::sentRINArpReqSignal = registerSignal("sentRINArpReq");
+const simsignal_t RINArp::sentRINArpReplySignal = registerSignal("sentRINArpReply");
 
 RINArp::~RINArp()
 {
@@ -57,7 +57,10 @@ void RINArp::initialize()
     retryCount = par("retryCount");
     cacheTimeout = par("cacheTimeout");
 
-    netwOutGate = gate("netwOut");
+    WATCH(numResolutions);
+    WATCH(numFailedResolutions);
+    WATCH(numRequestsSent);
+    WATCH(numRepliesSent);
 }
 
 bool RINArp::addStaticEntry(const inet::MACAddress &mac, const APN &apn)
@@ -191,6 +194,7 @@ void RINArp::initiateArpResolution(ArpCacheEntry *entry)
     msg->setContextPointer(entry);
     scheduleAt(simTime() + retryTimeout, msg);
 
+    numResolutions++;
     ArpNotification signal(apn, inet::MACAddress::UNSPECIFIED_ADDRESS);
     emit(initiatedRINArpResolutionSignal, &signal);
 }
@@ -211,7 +215,10 @@ void RINArp::sendArpRequest(const APN &dstApn)
     arp->setSrcMacAddress(srcMac);
     arp->setSrcApName(srcApn);
     arp->setDstApName(dstApn);
+
     sendPacketToNIC(arp, inet::MACAddress::BROADCAST_ADDRESS);
+    numRequestsSent++;
+    emit(sentRINArpReqSignal, 1L);
 }
 
 void RINArp::processArpPacket(RINArpPacket *arp)
@@ -268,6 +275,8 @@ void RINArp::processArpPacket(RINArpPacket *arp)
             arp->setOpcode(ARP_REPLY);
             delete arp->removeControlInfo();
             sendPacketToNIC(arp, srcMac);
+            numRepliesSent++;
+            emit(sentRINArpReplySignal, 1L);
 
             break;
         }
@@ -300,7 +309,7 @@ void RINArp::sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress)
     msg->setControlInfo(controlInfo);
 
     EV_INFO << "Sending " << msg << " to ethernet shim." << endl;
-    send(msg, netwOutGate);
+    send(msg, "netwOut");
 }
 
 void RINArp::requestTimeout(cMessage *selfmsg)
@@ -324,4 +333,5 @@ void RINArp::requestTimeout(cMessage *selfmsg)
     emit(failedRINArpResolutionSignal, &signal);
     arpCache.erase(entry->myIter);
     delete entry;
+    numFailedResolutions++;
 }

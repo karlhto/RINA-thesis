@@ -77,24 +77,29 @@ class RINArp : public cSimpleModule
     static const simsignal_t initiatedRINArpResolutionSignal;
     static const simsignal_t completedRINArpResolutionSignal;
     static const simsignal_t failedRINArpResolutionSignal;
+    static const simsignal_t sentRINArpReqSignal;
+    static const simsignal_t sentRINArpReplySignal;
 
   private:
-    /** @brief  */
+    /// Retry settings for ARP cache entries
     simtime_t retryTimeout;
     int retryCount = 0;
 
-    /** @brief How long an ARP entry should stay in cache */
+    /// Some watchable numbers
+    long numResolutions = 0;
+    long numFailedResolutions = 0;
+    long numRequestsSent = 0;
+    long numRepliesSent = 0;
+
+    /// How long an ARP entry should stay in cache
     simtime_t cacheTimeout;
 
-    /** @brief ARP cache entries */
+    /// ARP cache entries
     ArpCache arpCache;
     std::pair<APN, ArpCacheEntry *> thisHost;  ///< Naming information for this host
 
-    /** @brief Where to send arp packets */
-    cGate *netwOutGate;
-
   public:
-    RINArp();
+    RINArp() = default;
     ~RINArp() override;
 
     /** @brief Attempts to resolve an application name, may send ARP_REQ packet */

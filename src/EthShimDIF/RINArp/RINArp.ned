@@ -28,9 +28,16 @@ simple RINArp {
         int retryCount = default(3);
         double cacheTimeout @unit("s") = default(120s);
         @display("i=block/layer");
+        @signal[sentRINArpReq](type=long);
+        @signal[sentRINArpReply](type=long);
         @signal[initiatedRINArpResolution](type=RINArp::ArpNotification);
         @signal[completedRINArpResolution](type=RINArp::ArpNotification);
         @signal[failedRINArpResolution](type=RINArp::ArpNotification);
+        @statistic[sentRINArpReq](title="ARP requests sent"; record=count,vector);
+        @statistic[sentRINArpReply](title="ARP replies sent"; record=count,vector);
+        @statistic[initiatedRINArpResolution](title="ARP resolutions initiated"; record=count);
+        @statistic[completedRINArpResolution](title="ARP resolutions completed"; record=count);
+        @statistic[failedRINArpResolution](title="ARP resolutions failed"; record=count);
     gates:
         input netwIn @labels(RINArpPacket+Ieee802Ctrl);
         output netwOut @labels(RINArpPacket+Ieee802Ctrl);
