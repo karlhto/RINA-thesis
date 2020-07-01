@@ -60,8 +60,8 @@ class EthShim : public cSimpleModule, public cListener
         ConnectionState state = ConnectionState::none;
         cGate *inGate = nullptr;
         cGate *outGate = nullptr;
-        std::queue<SDUData *> outQueue; /// Queue for pending outgoing packets
-        std::queue<SDUData *> inQueue; /// Queue for pending incoming packets
+        cPacketQueue outQueue = cPacketQueue("Queue for outgoing packets");
+        cPacketQueue inQueue = cPacketQueue("Queue for incoming packets");
     };
 
   private:
@@ -75,8 +75,8 @@ class EthShim : public cSimpleModule, public cListener
     inet::InterfaceEntry *ie = nullptr;
 
     /// Statistics
-    int numSDUsSent = 0;
-    int numSDUsReceived = 0;
+    long numSentToNetwork = 0;
+    long numReceivedFromNetwork = 0;
 
     /// Provides string names for ConnectionState structs
     static const std::array<std::string, static_cast<unsigned int>(ConnectionState::_size)>

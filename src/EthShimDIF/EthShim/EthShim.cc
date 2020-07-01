@@ -39,16 +39,12 @@ EthShim::~EthShim()
 {
     for (auto &elem : connections) {
         auto &outQueue = elem.second.outQueue;
-        while (!outQueue.empty()) {
-            delete outQueue.front();
-            outQueue.pop();
-        }
+        while (!outQueue.isEmpty())
+            delete outQueue.pop();
 
         auto &inQueue = elem.second.inQueue;
-        while (!inQueue.empty()) {
-            delete inQueue.front();
-            inQueue.pop();
-        }
+        while (!inQueue.isEmpty())
+            delete inQueue.pop();
     }
 }
 
@@ -82,6 +78,8 @@ void EthShim::initialize(int stage)
             throw cRuntimeError("DIF name not valid: %s", difName.c_str());
         }
 
+        WATCH(numSentToNetwork);
+        WATCH(numReceivedFromNetwork);
         WATCH_MAP(connections);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
@@ -153,6 +151,7 @@ void EthShim::handleMessage(cMessage *msg)
         sendPacketToNIC(msg);
     } else if (msg->arrivedOn("ifIn")) {
         EV_INFO << "Received " << msg << " from network." << endl;
+        numReceivedFromNetwork++;
         if (auto arpPacket = dynamic_cast<RINArpPacket *>(msg))
             handleIncomingArpPacket(arpPacket);
         else if (auto sdu = dynamic_cast<SDUData *>(msg))
@@ -202,8 +201,10 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 {
     EV_INFO << "Passing SDU to correct gate" << endl;
 
-    auto *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->getControlInfo());
+    auto *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->removeControlInfo());
     const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
+    delete ctrlInfo;
+
     const APN &srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
         EV_WARN << "ARP does not have a valid entry for source MAC " << srcApn << endl;
@@ -231,11 +232,13 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 void EthShim::sendPacketToNIC(cMessage *msg)
 {
     EV_INFO << "Sending " << msg << " to ethernet interface." << endl;
+    numSentToNetwork++;
     send(msg, "ifOut");
 }
 
 void EthShim::sendWaitingIncomingSDUs(const APN &srcApn)
 {
+    Enter_Method("sendWaitingIncomingSDUs(%s)", srcApn.c_str());
     auto &entry = connections[srcApn];
     ASSERT(entry.state == ConnectionState::allocated);
 
@@ -247,10 +250,9 @@ void EthShim::sendWaitingIncomingSDUs(const APN &srcApn)
     }
 
     auto &queue = entry.inQueue;
-    while (!queue.empty()) {
-        auto &sdu = queue.front();
+    while (!queue.isEmpty()) {
+        cPacket *sdu = queue.pop();
         send(sdu, gate);
-        queue.pop();
     }
 }
 
@@ -258,14 +260,14 @@ void EthShim::insertOutgoingSDU(const APN &apn, SDUData *sdu)
 {
     auto &entry = connections[apn];
     ASSERT(entry.state != ConnectionState::none);
-    entry.outQueue.push(sdu);
+    entry.outQueue.insert(sdu);
 }
 
 void EthShim::insertIncomingSDU(const APN &apn, SDUData *sdu)
 {
     auto &entry = connections[apn];
     ASSERT(entry.state != ConnectionState::none);
-    entry.inQueue.push(sdu);
+    entry.inQueue.insert(sdu);
 }
 
 void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
@@ -319,14 +321,13 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
     }
 
     auto &queue = entry.outQueue;
-    while (!queue.empty()) {
-        auto &sdu = queue.front();
+    while (!queue.isEmpty()) {
+        cPacket *sdu = queue.pop();
         auto *controlInfo = new inet::Ieee802Ctrl();
         controlInfo->setDest(mac);
         controlInfo->setEtherType(ETHERTYPE_RINA);
         sdu->setControlInfo(controlInfo);
         sendPacketToNIC(sdu);
-        queue.pop();
     }
 }
 
@@ -353,7 +354,7 @@ std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionEntry &conne
         os << connectionEntry.inGate->getBaseName();
     else
         os << "undefined";
-    os << ", In queue size: " << connectionEntry.inQueue.size();
-    os << ", Out queue size: " << connectionEntry.outQueue.size();
+    os << ", In-queue size: " << connectionEntry.inQueue.getLength();
+    os << ", Out-queue size: " << connectionEntry.outQueue.getLength();
     return os;
 }
