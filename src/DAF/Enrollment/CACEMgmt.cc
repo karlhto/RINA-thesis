@@ -61,7 +61,7 @@ void CACEMgmt::startCACE(Flow* flow) {
 
     auto entry = StateTable->findEntryByDstAPNI(flow->getDstApni());
 
-    CDAP_M_Connect* msg = new CDAP_M_Connect(DAF_MSG_CONREQ);
+    CDAP_M_Connect msg(DAF_MSG_CONREQ);
 
     authValue_t aValue;
     aValue.authName = this->outerClass->authName;
@@ -72,8 +72,8 @@ void CACEMgmt::startCACE(Flow* flow) {
     auth.authType = this->outerClass->authType;
     auth.authValue = aValue;
 
-    msg->setAuth(auth);
-    msg->setAbsSyntax(GPB);
+    msg.setAuth(auth);
+    msg.setAbsSyntax(GPB);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
                 entry->getLocal().getApinstance(),
@@ -100,14 +100,14 @@ void CACEMgmt::startCACE(Flow* flow) {
     src.ApName = entry.getLocal().getApn().getName();
     */
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to ribd to send
-    outerClass->signalizeCACESendData(msg);
+    outerClass->signalizeCACESendData(&msg);
 }
 
 void CACEMgmt::insertStateTableEntry(Flow* flow) {
@@ -211,7 +211,7 @@ void CACEMgmt::receiveConnectRequest(CDAPMessage* msg) {
 }
 
 void CACEMgmt::processConResPosi(DAFEnrollmentStateTableEntry* entry, CDAPMessage* cmsg) {
-    CDAP_M_Connect_R* msg = new CDAP_M_Connect_R(DAF_MSG_CONRESPOS);
+    CDAP_M_Connect_R msg(DAF_MSG_CONRESPOS);
     CDAP_M_Connect* cmsg1 = check_and_cast<CDAP_M_Connect*>(cmsg);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
@@ -231,25 +231,25 @@ void CACEMgmt::processConResPosi(DAFEnrollmentStateTableEntry* entry, CDAPMessag
     auth.authType = cmsg1->getAuth().authType;
     auth.authValue = cmsg1->getAuth().authValue;
 
-    msg->setAbsSyntax(GPB);
-    msg->setResult(result);
-    msg->setAuth(auth);
+    msg.setAbsSyntax(GPB);
+    msg.setResult(result);
+    msg.setAuth(auth);
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to ribd to send
-    outerClass->signalizeCACESendData(msg);
+    outerClass->signalizeCACESendData(&msg);
 
     entry->setCACEConStatus(DAFEnrollmentStateTableEntry::CON_ESTABLISHED);
     entry->setDAFEnrollmentStatus(DAFEnrollmentStateTableEntry::ENROLL_WAIT_START_ENROLLMENT);
 }
 
 void CACEMgmt::processConResNega(DAFEnrollmentStateTableEntry* entry, CDAPMessage* cmsg) {
-    CDAP_M_Connect_R* msg = new CDAP_M_Connect_R(DAF_MSG_CONRESNEG);
+    CDAP_M_Connect_R msg(DAF_MSG_CONRESNEG);
     CDAP_M_Connect* cmsg1 = check_and_cast<CDAP_M_Connect*>(cmsg);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
@@ -269,18 +269,18 @@ void CACEMgmt::processConResNega(DAFEnrollmentStateTableEntry* entry, CDAPMessag
     auth.authType = cmsg1->getAuth().authType;
     auth.authValue = cmsg1->getAuth().authValue;
 
-    msg->setAbsSyntax(GPB);
-    msg->setResult(result);
-    msg->setAuth(auth);
+    msg.setAbsSyntax(GPB);
+    msg.setResult(result);
+    msg.setAuth(auth);
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to send to ribd
-    outerClass->signalizeCACESendData(msg);
+    outerClass->signalizeCACESendData(&msg);
 
     entry->setCACEConStatus(DAFEnrollmentStateTableEntry::CON_CONNECTPENDING);
 
@@ -293,7 +293,7 @@ void CACEMgmt::processNewConReq(DAFEnrollmentStateTableEntry* entry) {
 
     //TODO: probably change values, this is retry
 
-    CDAP_M_Connect* msg = new CDAP_M_Connect(DAF_MSG_CONREQRETRY);
+    CDAP_M_Connect msg(DAF_MSG_CONREQRETRY);
 
     authValue_t aValue;
     aValue.authName = this->outerClass->authName;
@@ -304,8 +304,8 @@ void CACEMgmt::processNewConReq(DAFEnrollmentStateTableEntry* entry) {
     auth.authType = this->outerClass->authType;
     auth.authValue = aValue;
 
-    msg->setAuth(auth);
-    msg->setAbsSyntax(GPB);
+    msg.setAuth(auth);
+    msg.setAbsSyntax(GPB);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
                 entry->getLocal().getApinstance(),
@@ -317,14 +317,14 @@ void CACEMgmt::processNewConReq(DAFEnrollmentStateTableEntry* entry) {
             entry->getRemote().getAename(),
             entry->getRemote().getAeinstance());
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to ribd to send
-    outerClass->signalizeCACESendData(msg);
+    outerClass->signalizeCACESendData(&msg);
 
     //change state to auth after send retry
     entry->setCACEConStatus(DAFEnrollmentStateTableEntry::CON_AUTHENTICATING);

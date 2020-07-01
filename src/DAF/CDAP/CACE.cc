@@ -55,12 +55,15 @@ void CACE::initSignalsAndListeners(){
 
 void CACE::sendData(CDAPMessage *cmsg){
     Enter_Method("CACE SendData()");
-    // FIXME This is really dirty. Why not let CACE module handle construction of messages?
-    // Note that this makes examples/Routing/UnreliableLinks -c HopsFloodMEntries crash.
-    take(check_and_cast<cOwnedObject*>(cmsg));
+
+    // Avoid ownership issues with dup, was previously `take`, which sometimes had issues with
+    // objects still being in the event heap
+    // FIXME honestly, if the point of the CACE module is just to pass messages, it should either
+    //       be deleted, or construction of `M_CONNECT` and friends should be moved here
+    CDAPMessage *msg = cmsg->dup();
 
     cGate* out = gateHalf(GATE_SPLITIO, cGate::OUTPUT);
-    send(cmsg, out);
+    send(msg, out);
 }
 
 void CACE::signalizeDataReceive(CDAPMessage* cmsg) {

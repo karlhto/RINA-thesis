@@ -197,7 +197,7 @@ void Enrollment::startCACE(const APNIPair &apnip) {
     auto entry = EnrollmentStateTableEntry(src, dst, EnrollmentStateTableEntry::CON_AUTHENTICATING);
     stateTable->insert(entry);
 
-    CDAP_M_Connect* msg = new CDAP_M_Connect(MSG_CONREQ);
+    CDAP_M_Connect msg(MSG_CONREQ);
 
     authValue_t aValue;
     aValue.authName = authName;
@@ -208,15 +208,15 @@ void Enrollment::startCACE(const APNIPair &apnip) {
     auth.authType = authType;
     auth.authValue = aValue;
 
-    msg->setAuth(auth);
-    msg->setAbsSyntax(GPB);
-    msg->setSrc(src);
-    msg->setDst(dst);
-    msg->setSrcAddr(Address(src.getApn()));
-    msg->setDstAddr(Address(dst.getApn()));
+    msg.setAuth(auth);
+    msg.setAbsSyntax(GPB);
+    msg.setSrc(src);
+    msg.setDst(dst);
+    msg.setSrcAddr(Address(src.getApn()));
+    msg.setDstAddr(Address(dst.getApn()));
 
     //send data to ribd to send
-    signalizeCACESendData(msg);
+    signalizeCACESendData(&msg);
 }
 
 void Enrollment::insertStateTableEntry(Flow* flow){
@@ -528,7 +528,7 @@ void Enrollment::processNewConReq(EnrollmentStateTableEntry* entry) {
 
     //TODO: probably change values, this is retry
 
-    CDAP_M_Connect* msg = new CDAP_M_Connect(MSG_CONREQRETRY);
+    CDAP_M_Connect msg(MSG_CONREQRETRY);
 
     authValue_t aValue;
     aValue.authName = authName;
@@ -539,8 +539,8 @@ void Enrollment::processNewConReq(EnrollmentStateTableEntry* entry) {
     auth.authType = authType;
     auth.authValue = aValue;
 
-    msg->setAuth(auth);
-    msg->setAbsSyntax(GPB);
+    msg.setAuth(auth);
+    msg.setAbsSyntax(GPB);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
                 entry->getLocal().getApinstance(),
@@ -552,21 +552,21 @@ void Enrollment::processNewConReq(EnrollmentStateTableEntry* entry) {
             entry->getRemote().getAename(),
             entry->getRemote().getAeinstance());
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to ribd to send
-    signalizeCACESendData(msg);
+    signalizeCACESendData(&msg);
 
     //change state to auth after send retry
     entry->setCACEConStatus(EnrollmentStateTableEntry::CON_AUTHENTICATING);
 }
 
 void Enrollment::processConResPosi(EnrollmentStateTableEntry* entry, CDAPMessage* cmsg) {
-    CDAP_M_Connect_R* msg = new CDAP_M_Connect_R(MSG_CONRESPOS);
+    CDAP_M_Connect_R msg(MSG_CONRESPOS);
     CDAP_M_Connect* cmsg1 = check_and_cast<CDAP_M_Connect*>(cmsg);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
@@ -586,25 +586,25 @@ void Enrollment::processConResPosi(EnrollmentStateTableEntry* entry, CDAPMessage
     auth.authType = cmsg1->getAuth().authType;
     auth.authValue = cmsg1->getAuth().authValue;
 
-    msg->setAbsSyntax(GPB);
-    msg->setResult(result);
-    msg->setAuth(auth);
+    msg.setAbsSyntax(GPB);
+    msg.setResult(result);
+    msg.setAuth(auth);
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to ribd to send
-    signalizeCACESendData(msg);
+    signalizeCACESendData(&msg);
 
     entry->setCACEConStatus(EnrollmentStateTableEntry::CON_ESTABLISHED);
     entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_WAIT_START_ENROLLMENT);
 }
 
 void Enrollment::processConResNega(EnrollmentStateTableEntry* entry, CDAPMessage* cmsg) {
-    CDAP_M_Connect_R* msg = new CDAP_M_Connect_R(MSG_CONRESNEG);
+    CDAP_M_Connect_R msg(MSG_CONRESNEG);
     CDAP_M_Connect* cmsg1 = check_and_cast<CDAP_M_Connect*>(cmsg);
 
     APNamingInfo src = APNamingInfo(entry->getLocal().getApn(),
@@ -624,18 +624,18 @@ void Enrollment::processConResNega(EnrollmentStateTableEntry* entry, CDAPMessage
     auth.authType = cmsg1->getAuth().authType;
     auth.authValue = cmsg1->getAuth().authValue;
 
-    msg->setAbsSyntax(GPB);
-    msg->setResult(result);
-    msg->setAuth(auth);
+    msg.setAbsSyntax(GPB);
+    msg.setResult(result);
+    msg.setAuth(auth);
 
-    msg->setSrc(src);
-    msg->setDst(dst);
+    msg.setSrc(src);
+    msg.setDst(dst);
 
-    msg->setSrcAddr(Address(entry->getLocal().getApn()));
-    msg->setDstAddr(Address(entry->getRemote().getApn()));
+    msg.setSrcAddr(Address(entry->getLocal().getApn()));
+    msg.setDstAddr(Address(entry->getRemote().getApn()));
 
     //send data to send to ribd
-    signalizeCACESendData(msg);
+    signalizeCACESendData(&msg);
 
     entry->setCACEConStatus(EnrollmentStateTableEntry::CON_CONNECTPENDING);
 
