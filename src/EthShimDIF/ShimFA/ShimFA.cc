@@ -30,7 +30,6 @@
 #include "EthShimDIF/EthShim/EthShim.h"
 #include "EthShimDIF/RINArp/RINArp.h"
 #include "EthShimDIF/ShimFA/ShimFAI.h"
-#include "inet/linklayer/common/MACAddress.h"
 
 Define_Module(ShimFA);
 
@@ -111,6 +110,7 @@ bool ShimFA::createUpperFlow(const APN &dstApn)
        << endl;
 
     ConnectionId connId;
+    // TODO replace this with QoS ID that we accept
     connId.setQoSId("QoSCube_Unreliable");
 
     Flow *flow = new Flow(registeredApplication, dstApn);

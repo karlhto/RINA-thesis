@@ -35,20 +35,20 @@ class RINArp;
 /**
  * Shim specific Flow Allocator.
  *
- * Different from normal IPC Process Flow Allocator in the way that no flow allocator instances are
- * actually allocated, only the first registered flow is.
+ * Flow Allocator Instances are still allocated, but only source port information is kept.
  */
 class ShimFA : public FABase
 {
   private:
-    cModule *shimIpcProcess;
-    cModule *connectedApplication;
-    RINArp *arp;
-    EthShim *shim;
+    cModule *shimIpcProcess = nullptr;
+    cModule *connectedApplication = nullptr;
+    RINArp *arp = nullptr;
+    EthShim *shim = nullptr;
 
     // Only one flow necessary
     APN registeredApplication;  ///< apName of "registered" application
 
+    // TODO (karlhto): This should be entirely moved to ShimRA
     QoSCube qos;  ///< Unreliable stuff
   public:
     ShimFA();
@@ -73,7 +73,7 @@ class ShimFA : public FABase
     bool setOriginalAddresses(Flow *flow) override;
     bool setNeighborAddresses(Flow *flow) override;
 
-  protected:
+  private:
     /** @brief Initialises the QoS cube with parameters from ethernet interface */
     void initQoS();
 

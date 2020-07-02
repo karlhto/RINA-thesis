@@ -61,6 +61,10 @@ class FABase : public cSimpleModule {
     NFlowTable* getNFlowTable() const;
     const Address& getMyAddress() const;
 
+    static const int RANDOM_NUMBER_GENERATOR;
+    static const int MAX_PORTID;
+    static const int MAX_CEPID;
+
   protected:
     NFlowTable* nFlowTable;
     Address myAddress;
@@ -71,10 +75,6 @@ class FABase : public cSimpleModule {
     virtual void handleMessage(cMessage *msg) = 0;
 
     void initMyAddress();
-
-    static const int RANDOM_NUMBER_GENERATOR;
-    static const int MAX_PORTID;
-    static const int MAX_CEPID;
 };
 
 
