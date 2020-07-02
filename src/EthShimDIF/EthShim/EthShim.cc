@@ -91,59 +91,6 @@ void EthShim::initialize(int stage)
     }
 }
 
-bool EthShim::addPort(const APN &dstApn, const int &portId)
-{
-    auto &entry = connections[dstApn];
-    if (entry.state != ConnectionState::pending) {
-        EV_ERROR << "Bindings for destination APN " << dstApn << " with source port ID " << portId
-                 << " cannot be created since state is not pending. Current state is: "
-                 << getConnInfoString(entry) << endl;
-        return false;
-    }
-
-    std::ostringstream gateName;
-    gateName << GATE_NORTHIO_ << portId;
-    const std::string &tmp = gateName.str();
-    const char *gateStr = tmp.c_str();
-
-    addGate(gateStr, cGate::INOUT, false);
-    cGate *shimIn = gateHalf(gateStr, cGate::INPUT);
-    cGate *shimOut = gateHalf(gateStr, cGate::OUTPUT);
-
-    if (!ipcProcess->hasGate(gateStr))
-        ipcProcess->addGate(gateStr, cGate::INOUT, false);
-    cGate *ipcDownIn = ipcProcess->gateHalf(gateStr, cGate::INPUT);
-    cGate *ipcDownOut = ipcProcess->gateHalf(gateStr, cGate::OUTPUT);
-
-    shimOut->connectTo(ipcDownOut);
-    ipcDownIn->connectTo(shimIn);
-    if (!shimOut->isConnected() || !shimIn->isConnected())
-        return false;
-
-    entry.inGate = shimIn;
-    entry.outGate = shimOut;
-    entry.state = ConnectionState::allocated;
-
-    return true;
-}
-
-EthShim::CreateResult EthShim::createEntry(const APN &dstApn)
-{
-    auto &entry = connections[dstApn];
-    if (entry.state != ConnectionState::none) {
-        EV_ERROR << "ConnectionEntry already exists, something has probably gone wrong" << endl;
-        return CreateResult::error;
-    }
-
-    entry.state = ConnectionState::pending;
-
-    auto &mac = arp->resolveAddress(dstApn);
-    if (!mac.isUnspecified())
-        return CreateResult::completed;
-
-    return CreateResult::pending;
-}
-
 void EthShim::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("arpIn")) {
@@ -159,34 +106,26 @@ void EthShim::handleMessage(cMessage *msg)
         else
             throw cRuntimeError(msg, "Unsupported message type");
     } else {
-        cGate *gate = msg->getArrivalGate();
-        EV_INFO << "Received PDU from upper layer." << endl;
+        auto &dstApn = getApnFromGate(msg->getArrivalGate());
+        ASSERT(!dstApn.isUnspecified());
+
+        EV_INFO << "Received PDU from upper layer for desination APN " << dstApn << endl;
         auto *sdu = check_and_cast<SDUData *>(msg);
-        handleOutgoingSDU(sdu, gate);
+        handleOutgoingSDU(sdu, dstApn);
     }
 }
 
-void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
+void EthShim::handleOutgoingSDU(SDUData *sdu, const APN &dstApn)
 {
-    EV_INFO << "Doing stuff" << endl;
+    EV_INFO << "Sending packet over ethernet" << endl;
+    ASSERT(!dstApn.isUnspecified());
 
-    // TODO (karlhto): split into separate function so we can use references instead
-    const APN *dstApn = nullptr;
-    for (auto &connectionEntry : connections) {
-        if (connectionEntry.second.inGate == gate) {
-            dstApn = &connectionEntry.first;
-        }
-    }
-
-    if (dstApn == nullptr) {
-        EV_ERROR << "Gate " << gate->getName() << " does not belong to any connection" << endl;
-        return;
-    }
-
-    inet::MACAddress mac = arp->resolveAddress(*dstApn);
-
+    inet::MACAddress mac = arp->resolveAddress(dstApn);
     if (mac.isUnspecified()) {
-        insertOutgoingSDU(*dstApn, sdu);
+        // This means that resolution has started
+        auto &entry = connections[dstApn];
+        ASSERT(entry.state != ConnectionState::none);
+        entry.inQueue.insert(sdu);
         return;
     }
 
@@ -207,26 +146,39 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 
     const APN &srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
-        EV_WARN << "ARP does not have a valid entry for source MAC " << srcApn << endl;
-        // TODO (karlhto): Consider whether having some queue for this is better
+        EV_WARN << "ARP does not have a valid entry for source MAC " << srcMac
+                << ". Dropping packet." << endl;
         delete sdu;
         return;
     }
 
+    EV_INFO << "SDU is from application with name " << srcApn << endl;
+
     auto &entry = connections[srcApn];
     if (entry.state == ConnectionState::none) {
+        EV_INFO << "No connection entry with destination application name " << srcApn
+                << ". Creating a new one and passing request to Flow Allocator." << endl;
         entry.state = ConnectionState::pending;
-        insertIncomingSDU(srcApn, sdu);
+        entry.inQueue.insert(sdu);
         shimFA->createUpperFlow(srcApn);
         return;
     }
 
     if (entry.state == ConnectionState::pending) {
-        insertIncomingSDU(srcApn, sdu);
+        EV_INFO << "Connection with application " << srcApn
+                << " is still pending, SDU inserted into queue." << endl;
+        entry.inQueue.insert(sdu);
         return;
     }
 
+    EV_INFO << "Sending SDU to upper layer" << endl;
     send(sdu, entry.outGate);
+}
+
+void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
+{
+    EV_INFO << "Sending " << arpPacket << " to ARP module." << endl;
+    send(arpPacket, "arpOut");
 }
 
 void EthShim::sendPacketToNIC(cMessage *msg)
@@ -238,42 +190,130 @@ void EthShim::sendPacketToNIC(cMessage *msg)
 
 void EthShim::sendWaitingIncomingSDUs(const APN &srcApn)
 {
-    Enter_Method("sendWaitingIncomingSDUs(%s)", srcApn.c_str());
     auto &entry = connections[srcApn];
     ASSERT(entry.state == ConnectionState::allocated);
-
-    cGate *gate = entry.outGate;
-    // TODO (karlhto): Possibly better with assert here
-    if (gate == nullptr) {
-        EV_ERROR << "Called to send SDUs from " << srcApn << ", but no gate present" << endl;
-        return;
-    }
+    ASSERT(entry.outGate != nullptr);
 
     auto &queue = entry.inQueue;
     while (!queue.isEmpty()) {
         cPacket *sdu = queue.pop();
-        send(sdu, gate);
+        send(sdu, entry.outGate);
     }
 }
 
-void EthShim::insertOutgoingSDU(const APN &apn, SDUData *sdu)
+bool EthShim::createBindingsForEntry(ConnectionEntry &entry, const int portId)
 {
-    auto &entry = connections[apn];
-    ASSERT(entry.state != ConnectionState::none);
-    entry.outQueue.insert(sdu);
+    ASSERT(portId >= 0 && portId < ShimFA::MAX_PORTID);
+    ASSERT(entry.state == ConnectionState::pending);
+
+    std::ostringstream gateName;
+    gateName << GATE_NORTHIO_ << portId;
+    const std::string &tmp = gateName.str();
+    const char *gateStr = tmp.c_str();
+
+    ASSERT(!hasGate(gateStr));
+
+    addGate(gateStr, cGate::INOUT, false);
+    cGate *shimIn = gateHalf(gateStr, cGate::INPUT);
+    cGate *shimOut = gateHalf(gateStr, cGate::OUTPUT);
+
+    if (!ipcProcess->hasGate(gateStr))
+        ipcProcess->addGate(gateStr, cGate::INOUT, false);
+    cGate *ipcDownIn = ipcProcess->gateHalf(gateStr, cGate::INPUT);
+    cGate *ipcDownOut = ipcProcess->gateHalf(gateStr, cGate::OUTPUT);
+
+    shimOut->connectTo(ipcDownOut);
+    ipcDownIn->connectTo(shimIn);
+    if (!shimOut->isConnected() || !shimIn->isConnected())
+        return false;
+
+    entry.inGate = shimIn;
+    entry.outGate = shimOut;
+
+    return true;
 }
 
-void EthShim::insertIncomingSDU(const APN &apn, SDUData *sdu)
+void EthShim::removeBindingsForEntry(ConnectionEntry &entry)
 {
-    auto &entry = connections[apn];
-    ASSERT(entry.state != ConnectionState::none);
-    entry.inQueue.insert(sdu);
+    if (entry.inGate == nullptr || entry.outGate == nullptr)
+        return;
+
+    const char *basename = entry.inGate->getBaseName();
+    if (ipcProcess->hasGate(basename)) {
+        cGate *ipcDownIn = ipcProcess->gateHalf(basename, cGate::INPUT);
+        ipcDownIn->disconnect();
+        entry.outGate->disconnect();
+    }
+
+    deleteGate(basename);
+    entry.inGate = nullptr;
+    entry.outGate = nullptr;
 }
 
-void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
+const APN &EthShim::getApnFromGate(const cGate *gate) const
 {
-    EV_INFO << "Sending " << arpPacket << " to arp." << endl;
-    send(arpPacket, "arpOut");
+    for (auto &entry : connections)
+        if (entry.second.inGate == gate)
+            return entry.first;
+
+    return APN::UNSPECIFIED_APN;
+}
+
+bool EthShim::finalizeConnection(const APN &dstApn, const int portId)
+{
+    Enter_Method("finalizeConnection(%s, %d)", dstApn.c_str(), portId);
+    auto &entry = connections[dstApn];
+    if (entry.state != ConnectionState::pending) {
+        EV_ERROR << "Connection entry for destination application with name " << dstApn
+                 << " cannot be finalized since state is not pending. Current state is: "
+                 << getConnInfoString(entry) << endl;
+        return false;
+    }
+
+    const bool isConnected = createBindingsForEntry(entry, portId);
+    if (!isConnected) {
+        EV_ERROR << "Bindings for entry with destination address " << dstApn
+                 << " could not be created" << endl;
+        deleteEntry(dstApn);
+        return false;
+    }
+
+    entry.state = ConnectionState::allocated;
+    sendWaitingIncomingSDUs(dstApn);
+    return true;
+}
+
+EthShim::CreateResult EthShim::createEntry(const APN &dstApn)
+{
+    Enter_Method("createEntry(%s)", dstApn.c_str());
+    auto &entry = connections[dstApn];
+    if (entry.state != ConnectionState::none) {
+        EV_ERROR << "ConnectionEntry already exists, something has probably gone wrong" << endl;
+        return CreateResult::error;
+    }
+
+    entry.state = ConnectionState::pending;
+
+    EV_INFO << "Initiating ARP resolution for destination address " << dstApn << endl;
+    auto &mac = arp->resolveAddress(dstApn);
+    if (!mac.isUnspecified()) {
+        EV_INFO << "ARP entry was found!" << endl;
+        return CreateResult::completed;
+    }
+
+    return CreateResult::pending;
+}
+
+void EthShim::deleteEntry(const APN &dstApn)
+{
+    Enter_Method("deleteEntry(%s)", dstApn.c_str());
+    auto &entry = connections[dstApn];
+    if (entry.state == ConnectionState::none)
+        return;
+
+    removeBindingsForEntry(entry);
+    // Destructor of cPacketQueue will fix deletion of cPackets
+    connections.erase(dstApn);
 }
 
 void EthShim::registerApplication(const APN &apni) const
@@ -300,21 +340,16 @@ void EthShim::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObje
     (void)detail;
 }
 
-void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
+void EthShim::arpResolutionCompleted(const RINArp::ArpNotification *notification)
 {
     const APN &apn = notification->getApName();
     const inet::MACAddress &mac = notification->getMacAddress();
     auto &entry = connections[apn];
-    if (entry.state == ConnectionState::none) {
-        // Do nothing
+    if (entry.state == ConnectionState::none)
         return;
-    }
 
     Enter_Method("arpResolutionCompleted(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
 
-    // TODO (karlhto): Add more states: this should only be relevant for initiator pending. While
-    //                 race conditions are unlikely here because of cooperative scheduling,
-    //                 programming for robustness is a good idea.
     if (entry.state == ConnectionState::pending) {
         shimFA->completedAddressResolution(apn);
         return;
@@ -331,9 +366,16 @@ void EthShim::arpResolutionCompleted(RINArp::ArpNotification *notification)
     }
 }
 
-void EthShim::arpResolutionFailed(RINArp::ArpNotification *entry)
+void EthShim::arpResolutionFailed(const RINArp::ArpNotification *notification)
 {
-    (void)entry;
+    const APN &apn = notification->getApName();
+    const inet::MACAddress &mac = notification->getMacAddress();
+    auto &entry = connections[apn];
+    if (entry.state == ConnectionState::none)
+        return;
+
+    Enter_Method("arpResolutionFailed(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
+
     // discard all SDU entries, deallocate flow?
 }
 

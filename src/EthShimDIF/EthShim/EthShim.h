@@ -101,13 +101,7 @@ class EthShim : public cSimpleModule, public cListener
      * @param  portId Port ID used as handle for registered application, used in gate names
      * @return true if the bindings were successfully created, false otherwise
      */
-    bool addPort(const APN &dstApn, const int &portId);
-
-    // TODO (karlhto): might replace this function with a "hook" for `addPort`
-    /**
-     * @brief Sends waiting SDUs in queue,
-     */
-    void sendWaitingIncomingSDUs(const APN &srcApn);
+    [[nodiscard]] bool finalizeConnection(const APN &dstApn, int portId);
 
     /**
      * @brief Creates a connection state entry, and starts ARP resolution
@@ -115,34 +109,22 @@ class EthShim : public cSimpleModule, public cListener
      * @return CreateResult::completed if ARP returned an address immediately, ::pending if ARP
      *         resolution was initiated, and ::failed if a connection entry already exists
      */
-    CreateResult createEntry(const APN &dstApn);
+    [[nodiscard]] CreateResult createEntry(const APN &dstApn);
+
+    /**
+     * @brief Deletes a connection entry
+     * @param  dstApn Name of "connected" application
+     */
+    void deleteEntry(const APN &dstApn);
 
     /**
      * @brief Give a string representing the state of a ConnectionEntry object
      * @param  connectionEntry
      * @return String representing the state of the connection
      */
-    static const std::string &getConnInfoString(const ConnectionEntry &connectionEntry);
+    [[nodiscard]] static const std::string &getConnInfoString(const ConnectionEntry &connectionEntry);
 
   private:
-    /// Queue management
-
-    // TODO (karlhto): Rework these functions
-    /**
-     * @brief Helper function to insert packets into outgoing queue for a connection entry
-     * @param dstApn APN of connected application
-     * @param sdu    Packet to insert
-     */
-    void insertOutgoingSDU(const APN &dstApn, SDUData *sdu);
-
-    /**
-     * @brief Helper function to insert packets into ingoing queue for a connection entry
-     * @param srcApn APN of connected application
-     * @param sdu    Packet to insert
-     */
-    void insertIncomingSDU(const APN &srcApn, SDUData *sdu);
-
-
     /// cSimpleModule overrides
 
     /** @brief Initialises module pointers and subscribes to ARP signals */
@@ -160,7 +142,7 @@ class EthShim : public cSimpleModule, public cListener
      * @param  sdu  SDU from upper layer
      * @param  gate Input gate that received sdu
      */
-    void handleOutgoingSDU(SDUData *sdu, const cGate *gate);
+    void handleOutgoingSDU(SDUData *sdu, const APN &dstApn);
 
     /**
      * @brief Handles SDU from network, resolving connection entry from source MAC Address
@@ -180,6 +162,30 @@ class EthShim : public cSimpleModule, public cListener
      */
     void sendPacketToNIC(cMessage *msg);
 
+    /**
+     * @brief Sends waiting SDUs in queue,
+     * @param  srcApn The name of the application that the SDUs originated from
+     */
+    void sendWaitingIncomingSDUs(const APN &srcApn);
+
+
+    /// Entry management
+
+    /**
+     * @brief
+     */
+    [[nodiscard]] bool createBindingsForEntry(ConnectionEntry &entry, const int portId);
+
+    /**
+     * @brief
+     */
+    void removeBindingsForEntry(ConnectionEntry &entry);
+
+    /**
+     * @brief Retrieves APN of an entry from input gate
+     */
+    [[nodiscard]] const APN &getApnFromGate(const cGate *gate) const;
+
 
     /// cListener overrides, for ARP signals
 
@@ -192,8 +198,15 @@ class EthShim : public cSimpleModule, public cListener
      */
     void receiveSignal(cComponent *source, simsignal_t id, cObject *obj, cObject *details) override;
 
-    void arpResolutionCompleted(RINArp::ArpNotification *entry);
-    void arpResolutionFailed(RINArp::ArpNotification *entry);
+    /**
+     * @brief
+     */
+    void arpResolutionCompleted(const RINArp::ArpNotification *entry);
+
+    /**
+     * @brief
+     */
+    void arpResolutionFailed(const RINArp::ArpNotification *entry);
 };
 
 std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionEntry &shimEntry);

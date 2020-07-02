@@ -103,10 +103,10 @@ class RINArp : public cSimpleModule
     ~RINArp() override;
 
     /** @brief Attempts to resolve an application name, may send ARP_REQ packet */
-    const inet::MACAddress resolveAddress(const APN &apn);
+    const inet::MACAddress &resolveAddress(const APN &apn);
 
     /** @brief Finds the APN name of an entry by its MAC address */
-    APN getAddressFor(const inet::MACAddress &mac) const;
+    const APN &getAddressFor(const inet::MACAddress &mac) const;
 
     /** @brief Adds this host's information, necessary for N+1 registration */
     bool addStaticEntry(const inet::MACAddress &mac, const APN &apn);

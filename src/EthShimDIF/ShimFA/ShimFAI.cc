@@ -43,7 +43,7 @@ int ShimFAI::getLocalPortId() const
 bool ShimFAI::receiveAllocateRequest()
 {
     Enter_Method("receiveAllocateRequest()");
-    bool res = shim->addPort(flow->getDstApni().getApn(), localPortId);
+    bool res = shim->finalizeConnection(flow->getDstApni().getApn(), localPortId);
     if (res) {
         EV << "Successfully allocated flow" << endl;
         emit(ribdCreateFlowResponsePositive, flow);
@@ -78,21 +78,20 @@ bool ShimFAI::receiveAllocateResponsePositive()
     }
 
     auto &dstApn = flow->getDstApni().getApn();
-    bool res = shim->addPort(dstApn, localPortId);
+    bool res = shim->finalizeConnection(dstApn, localPortId);
     if (!res) {
         // TODO (karlhto): deallocate flows here
-        EV_ERROR << "Failed to create gates!" << endl;
+        EV_ERROR << "Failed to create entry!" << endl;
         return false;
     }
 
     nft->changeAllocStatus(flow, NFlowTableEntry::TRANSFER);
-
-    shim->sendWaitingIncomingSDUs(flow->getDstApni().getApn());
     return true;
 }
 
 void ShimFAI::receiveAllocateResponseNegative()
 {
+    // TODO (karlhto): Remove this entry, cancel ethshim entry, etc.
 }
 
 

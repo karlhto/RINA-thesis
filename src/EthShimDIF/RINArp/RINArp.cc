@@ -140,7 +140,7 @@ void RINArp::updateArpCache(ArpCacheEntry *entry, const inet::MACAddress &macAdd
     emit(completedRINArpResolutionSignal, &signal);
 }
 
-const inet::MACAddress RINArp::resolveAddress(const APN &apn)
+const inet::MACAddress &RINArp::resolveAddress(const APN &apn)
 {
     Enter_Method("resolveAddress(%s)", apn.getName().c_str());
 
@@ -166,7 +166,7 @@ const inet::MACAddress RINArp::resolveAddress(const APN &apn)
     return inet::MACAddress::UNSPECIFIED_ADDRESS;
 }
 
-APN RINArp::getAddressFor(const inet::MACAddress &mac) const
+const APN &RINArp::getAddressFor(const inet::MACAddress &mac) const
 {
     Enter_Method_Silent();
 
