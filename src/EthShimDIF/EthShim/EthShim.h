@@ -142,7 +142,7 @@ class EthShim : public cSimpleModule, public cListener
      * @param  sdu  SDU from upper layer
      * @param  gate Input gate that received sdu
      */
-    void handleOutgoingSDU(SDUData *sdu, const APN &dstApn);
+    void handleOutgoingSDU(SDUData *sdu, const cGate *gate);
 
     /**
      * @brief Handles SDU from network, resolving connection entry from source MAC Address
@@ -180,11 +180,6 @@ class EthShim : public cSimpleModule, public cListener
      * @brief
      */
     void removeBindingsForEntry(ConnectionEntry &entry);
-
-    /**
-     * @brief Retrieves APN of an entry from input gate
-     */
-    [[nodiscard]] const APN &getApnFromGate(const cGate *gate) const;
 
 
     /// cListener overrides, for ARP signals

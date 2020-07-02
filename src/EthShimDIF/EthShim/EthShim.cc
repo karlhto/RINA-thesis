@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
+#include <algorithm>
 
 #include "Common/SDUData_m.h"
 #include "Common/Utils.h"
@@ -106,26 +107,28 @@ void EthShim::handleMessage(cMessage *msg)
         else
             throw cRuntimeError(msg, "Unsupported message type");
     } else {
-        auto &dstApn = getApnFromGate(msg->getArrivalGate());
-        ASSERT(!dstApn.isUnspecified());
-
-        EV_INFO << "Received PDU from upper layer for desination APN " << dstApn << endl;
+        EV_INFO << "Received PDU from upper layer" << endl;
         auto *sdu = check_and_cast<SDUData *>(msg);
-        handleOutgoingSDU(sdu, dstApn);
+        handleOutgoingSDU(sdu, sdu->getArrivalGate());
     }
 }
 
-void EthShim::handleOutgoingSDU(SDUData *sdu, const APN &dstApn)
+void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
 {
     EV_INFO << "Sending packet over ethernet" << endl;
-    ASSERT(!dstApn.isUnspecified());
+    ASSERT(gate != nullptr);
 
+    auto iter = std::find_if(connections.begin(), connections.end(),
+                             [gate](const auto &iter) { return iter.second.inGate == gate; });
+    ASSERT(iter != connections.end());
+
+    const APN &dstApn = iter->first;
     inet::MACAddress mac = arp->resolveAddress(dstApn);
     if (mac.isUnspecified()) {
         // This means that resolution has started
-        auto &entry = connections[dstApn];
+        ConnectionEntry &entry = iter->second;
         ASSERT(entry.state != ConnectionState::none);
-        entry.inQueue.insert(sdu);
+        entry.outQueue.insert(sdu);
         return;
     }
 
@@ -183,6 +186,9 @@ void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
 void EthShim::sendPacketToNIC(cPacket *packet)
 {
     EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
+    auto *controlInfo = dynamic_cast<inet::Ieee802Ctrl *>(packet->getControlInfo());
+    ASSERT(controlInfo != nullptr);
+    controlInfo->setInterfaceId(ie->getInterfaceId());
     numSentToNetwork++;
     send(packet, "ifOut");
 }
@@ -247,15 +253,6 @@ void EthShim::removeBindingsForEntry(ConnectionEntry &entry)
     deleteGate(basename);
     entry.inGate = nullptr;
     entry.outGate = nullptr;
-}
-
-const APN &EthShim::getApnFromGate(const cGate *gate) const
-{
-    for (auto &entry : connections)
-        if (entry.second.inGate == gate)
-            return entry.first;
-
-    return APN::UNSPECIFIED_APN;
 }
 
 bool EthShim::finalizeConnection(const APN &dstApn, const int portId)
