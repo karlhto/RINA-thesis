@@ -157,10 +157,10 @@ class EthShim : public cSimpleModule, public cListener
     void handleIncomingArpPacket(RINArpPacket *arpPacket);
 
     /**
-     * @brief Wrapper function for `send(msg, "ifOut")`
-     * @param  msg Message to send
+     * @brief Wrapper function for `send(packet, "ifOut")`
+     * @param  packet Packet to send
      */
-    void sendPacketToNIC(cMessage *msg);
+    void sendPacketToNIC(cPacket *packet);
 
     /**
      * @brief Sends waiting SDUs in queue,

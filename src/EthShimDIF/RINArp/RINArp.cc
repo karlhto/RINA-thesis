@@ -65,7 +65,7 @@ void RINArp::initialize()
 
 bool RINArp::addStaticEntry(const inet::MACAddress &mac, const APN &apn)
 {
-    Enter_Method("addStaticEntry(%s, %s)", mac.str().c_str(), apn.getName().c_str());
+    Enter_Method("addStaticEntry(%s, %s)", mac.str().c_str(), apn.c_str());
 
     ASSERT(!mac.isUnspecified());
     ASSERT(!apn.isUnspecified());
@@ -142,7 +142,7 @@ void RINArp::updateArpCache(ArpCacheEntry *entry, const inet::MACAddress &macAdd
 
 const inet::MACAddress &RINArp::resolveAddress(const APN &apn)
 {
-    Enter_Method("resolveAddress(%s)", apn.getName().c_str());
+    Enter_Method("resolveAddress(%s)", apn.c_str());
 
     EV << "Asked to resolve destination address " << apn << endl;
 
@@ -301,15 +301,15 @@ void RINArp::processArpPacket(RINArpPacket *arp)
     }
 }
 
-void RINArp::sendPacketToNIC(cMessage *msg, const inet::MACAddress &macAddress)
+void RINArp::sendPacketToNIC(cPacket *packet, const inet::MACAddress &macAddress)
 {
     auto *controlInfo = new inet::Ieee802Ctrl();
     controlInfo->setDest(macAddress);
     controlInfo->setEtherType(inet::ETHERTYPE_ARP);
-    msg->setControlInfo(controlInfo);
+    packet->setControlInfo(controlInfo);
 
-    EV_INFO << "Sending " << msg << " to ethernet shim." << endl;
-    send(msg, "netwOut");
+    EV_INFO << "Sending " << packet << " to ethernet shim." << endl;
+    send(packet, "netwOut");
 }
 
 void RINArp::requestTimeout(cMessage *selfmsg)

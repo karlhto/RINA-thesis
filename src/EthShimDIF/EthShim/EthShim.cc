@@ -95,7 +95,7 @@ void EthShim::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("arpIn")) {
         EV_INFO << "Received Arp packet." << endl;
-        sendPacketToNIC(msg);
+        sendPacketToNIC(check_and_cast<cPacket *>(msg));
     } else if (msg->arrivedOn("ifIn")) {
         EV_INFO << "Received " << msg << " from network." << endl;
         numReceivedFromNetwork++;
@@ -142,9 +142,8 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
 
     auto *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->removeControlInfo());
     const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
-    delete ctrlInfo;
-
     const APN &srcApn = arp->getAddressFor(srcMac);
+    delete ctrlInfo;
     if (srcApn.isUnspecified()) {
         EV_WARN << "ARP does not have a valid entry for source MAC " << srcMac
                 << ". Dropping packet." << endl;
@@ -181,11 +180,11 @@ void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
     send(arpPacket, "arpOut");
 }
 
-void EthShim::sendPacketToNIC(cMessage *msg)
+void EthShim::sendPacketToNIC(cPacket *packet)
 {
-    EV_INFO << "Sending " << msg << " to ethernet interface." << endl;
+    EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
     numSentToNetwork++;
-    send(msg, "ifOut");
+    send(packet, "ifOut");
 }
 
 void EthShim::sendWaitingIncomingSDUs(const APN &srcApn)
@@ -318,7 +317,7 @@ void EthShim::deleteEntry(const APN &dstApn)
 
 void EthShim::registerApplication(const APN &apni) const
 {
-    Enter_Method("registerApplication(%s)", apni.getName().c_str());
+    Enter_Method("registerApplication(%s)", apni.c_str());
     EV_INFO << "Received request to register application name " << apni << " with Arp module."
             << endl;
 
@@ -348,7 +347,7 @@ void EthShim::arpResolutionCompleted(const RINArp::ArpNotification *notification
     if (entry.state == ConnectionState::none)
         return;
 
-    Enter_Method("arpResolutionCompleted(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
+    Enter_Method("arpResolutionCompleted(%s -> %s)", apn.c_str(), mac.str().c_str());
 
     if (entry.state == ConnectionState::pending) {
         shimFA->completedAddressResolution(apn);
@@ -374,7 +373,7 @@ void EthShim::arpResolutionFailed(const RINArp::ArpNotification *notification)
     if (entry.state == ConnectionState::none)
         return;
 
-    Enter_Method("arpResolutionFailed(%s -> %s)", apn.getName().c_str(), mac.str().c_str());
+    Enter_Method("arpResolutionFailed(%s -> %s)", apn.c_str(), mac.str().c_str());
 
     // discard all SDU entries, deallocate flow?
 }
