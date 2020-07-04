@@ -64,8 +64,8 @@ class DTCP: public cSimpleModule {
     friend class DTP;
   private:
 
-    DTP* dtp;
-    DTCPState *dtcpState;
+    DTP* dtp = nullptr;
+    DTCPState *dtcpState = nullptr;
 //    FlowControl* flowControl;
 //    RXControl* rxControl;
 

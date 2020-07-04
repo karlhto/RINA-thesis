@@ -63,13 +63,13 @@ void IRM::handleMessage(cMessage* msg) {
         //Find output gate based on input
         bool isGoingUp = false;
         cGate* g = ConTable->findOutputGate(msg->getArrivalGate(), isGoingUp);
-        //Send out if gate exist
-        cPacket* packet = dynamic_cast<cPacket*>(msg);
-        cPacket* outPacket;
         if (g) {
+            //Send out if gate exist
+            cPacket* outPacket;
             if (isGoingUp) {
                 statPassUp++;
                 emit(sigStatIRMPassUp, true);
+                SDUData* packet = dynamic_cast<SDUData*>(msg);
                 outPacket = packet->decapsulate();
                 delete packet;
             }
@@ -78,6 +78,7 @@ void IRM::handleMessage(cMessage* msg) {
                 statPassDown++;
                 emit(sigStatIRMPassDown, true);
                 SDUData* sduData = new SDUData();
+                cPacket* packet = dynamic_cast<cPacket*>(msg);
                 sduData->encapsulate(packet);
                 outPacket = sduData;
             }

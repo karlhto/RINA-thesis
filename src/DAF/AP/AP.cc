@@ -294,7 +294,7 @@ void AP::resultAssign(APIResult* result) {
         Enter_Method("onA_getOpen()");
         onA_getOpen(result);
     }
-    if (result->getAPIResType() == APIResult::A_GET_READ) {
+    else if (result->getAPIResType() == APIResult::A_GET_READ) {
         Enter_Method("onA_getRead()");
         onA_getRead(result);
     }

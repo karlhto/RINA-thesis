@@ -39,8 +39,8 @@
 class EFCPInstance
 {
   private:
-    DTP* dtp;
-    DTCP* dtcp;
+    DTP* dtp = nullptr;
+    DTCP* dtcp = nullptr;
 
   public:
     EFCPInstance();

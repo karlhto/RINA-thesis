@@ -33,7 +33,7 @@ class ShimRA : public RABase
     ShimRA();
     ~ShimRA() override;
 
-    void createNM1Flow(Flow *flow) override;
+    bool createNM1Flow(Flow *flow) override;
     void createNM1FlowWithoutAllocate(Flow *flow) override;
     void createNFlow(Flow *flow) override;
     void postNFlowAllocation(Flow *flow) override;
@@ -53,4 +53,5 @@ class ShimRA : public RABase
     void handleMessage(cMessage *msg) override;
     void initialize(int stage) override;
     int numInitStages() const override { return 2; }
+    void checkQos();
 };

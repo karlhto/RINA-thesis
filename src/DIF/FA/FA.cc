@@ -331,14 +331,14 @@ bool FA::receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) {
     bool status = true;
     //If N-1 mgmt-flow not ready, then allocate
     if (!raModule->hasFlow(dst.getApn().getName(), VAL_MGMTQOSID)) {
-        Flow* mgmtflow = new Flow(src, dst);
-        mgmtflow->setQosRequirements(QoSReq::MANAGEMENT);
-        mgmtflow->setSrcAddr(Address(src.getApn()));
-        mgmtflow->setDstAddr(Address(dst.getApn()));
-        mgmtflow->setSrcNeighbor(Address(src.getApn()));
-        mgmtflow->setDstNeighbor(Address(dst.getApn()));
+        Flow mgmtflow(src, dst);
+        mgmtflow.setQosRequirements(QoSReq::MANAGEMENT);
+        mgmtflow.setSrcAddr(Address(src.getApn()));
+        mgmtflow.setDstAddr(Address(dst.getApn()));
+        mgmtflow.setSrcNeighbor(Address(src.getApn()));
+        mgmtflow.setDstNeighbor(Address(dst.getApn()));
 
-        status = raModule->bindNFlowToNM1Flow(mgmtflow);
+        status = raModule->bindNFlowToNM1Flow(&mgmtflow);
     }
 
     if (status) {

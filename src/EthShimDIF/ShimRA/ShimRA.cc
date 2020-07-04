@@ -9,6 +9,12 @@ ShimRA::~ShimRA() = default;
 void ShimRA::initialize(int stage)
 {
     RABase::initialize(stage);
+    if (stage == 0) {
+        checkQos();
+    }
+}
+
+void ShimRA::checkQos() {
 }
 
 void ShimRA::handleMessage(cMessage *msg)
@@ -17,9 +23,10 @@ void ShimRA::handleMessage(cMessage *msg)
     throw cRuntimeError("This module is not supposed to handle messages");
 }
 
-void ShimRA::createNM1Flow(Flow *flow)
+bool ShimRA::createNM1Flow(Flow *flow)
 {
     (void)flow;
+    return false;
 }
 
 void ShimRA::createNM1FlowWithoutAllocate(Flow *flow)

@@ -56,7 +56,7 @@ class RABase : public cSimpleModule
     RABase();
     virtual ~RABase();
 
-    virtual void createNM1Flow(Flow *flow) = 0;
+    virtual bool createNM1Flow(Flow *flow) = 0;
     virtual void createNM1FlowWithoutAllocate(Flow *flow) = 0;
     virtual void createNFlow(Flow *flow) = 0;
     virtual void postNFlowAllocation(Flow* flow) = 0;

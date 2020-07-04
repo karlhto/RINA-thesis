@@ -120,7 +120,7 @@ void RA::handleMessage(cMessage *msg)
         {
             auto flows = preAllocs[simTime()];
 
-            while (!flows->empty())
+            while (!flows.empty())
             {
                 // Data connections are carried by (N-1)-flows alone, whereas
                 // management connections use (N-1)-management flows ALONG WITH
@@ -129,31 +129,31 @@ void RA::handleMessage(cMessage *msg)
                 // In addition to that, we can assume that (N-1)-data flows
                 // are going to require (N)-management, so it's allocated as well.
 
-                Flow* flow = flows->front();
+                Flow *flow = flows.front();
                 if (flow->isManagementFlow())
                 { // mgmt flow
                     //std::cout << "prepare MGMT flow" << endl;
                     //createNM1Flow(flow);
                     createNFlow(flow);
+                    delete flow;
                 }
                 else
                 { // data flow
-                    createNM1Flow(flow);
+                    if (!createNM1Flow(flow)) {
+                        delete flow;
+                    }
                 }
 
-                flows->pop_front();
+                flows.pop_front();
             }
-
-            delete flows;
-            delete msg;
         }
         else if (!opp_strcmp(msg->getName(), "RA-TerminateConnections"))
         {
             auto flows = preDeallocs[simTime()];
 
-            while (!flows->empty())
+            while (!flows.empty())
             {
-                Flow* flow = flows->front();
+                Flow *flow = flows.front();
                 if (flow->isManagementFlow())
                 { // mgmt flow
                     // huh?
@@ -163,13 +163,12 @@ void RA::handleMessage(cMessage *msg)
                     removeNM1Flow(flow);
                 }
 
-                flows->pop_front();
+                flows.pop_front();
             }
 
-            delete flows;
-            delete msg;
         }
     }
+    delete msg;
 }
 
 void RA::initSignalsAndListeners()
@@ -238,37 +237,34 @@ void RA::initFlowAlloc()
             APNamingInfo srcAPN = APNamingInfo(APN(src));
             APNamingInfo dstAPN = APNamingInfo(APN(dst));
 
-            QoSReq* qosReq = nullptr;
+            QoSReq qosReq;
             if (!opp_strcmp(qosReqID, "mgmt"))
             {
-                qosReq = &mgmtReqs;
+                qosReq = mgmtReqs;
             }
             else
             {
-                qosReq = initQoSReqById(qosReqID);
-            }
-
-            if (!qosReq)
-            {
-                throw cRuntimeError(R"(Invalid QoSReqId %s for SimTime=%s, src="%s", dst="%s")",
-                        qosReqID,
-                        time.str().c_str(),
-                        src,
-                        dst);
+                // TODO replace this function to not allocate dynamically
+                QoSReq *tmp = initQoSReqById(qosReqID);
+                if (!tmp)
+                {
+                    throw cRuntimeError(R"(Invalid QoSReqId %s for SimTime=%s, src="%s", dst="%s")",
+                                        qosReqID, time.str().c_str(), src, dst);
+                }
+                qosReq = *tmp;
+                delete tmp;
             }
 
             Flow *flow = new Flow(srcAPN, dstAPN);
-            flow->setQosRequirements(*qosReq);
+            flow->setQosRequirements(qosReq);
 
-            if (preAllocs[time] == nullptr)
+            if (preAllocs[time].empty())
             {
-                preAllocs[time] = new std::list<Flow*>;
                 cMessage* msg = new cMessage("RA-CreateConnections");
                 scheduleAt(time, msg);
-
             }
 
-            preAllocs[time]->push_back(flow);
+            preAllocs[time].push_back(flow);
 
             const char* until_s = n->getAttribute("until");
             if (until_s)
@@ -282,14 +278,13 @@ void RA::initFlowAlloc()
                         time.str().c_str(), src, dst, qosReqID);
                 }
 
-                if (preDeallocs[until] == nullptr)
+                if (preDeallocs[until].empty())
                 {
-                    preDeallocs[until] = new std::list<Flow*>;
                     cMessage* msg = new cMessage("RA-TerminateConnections");
                     scheduleAt(until, msg);
                 }
 
-                preDeallocs[until]->push_back(flow);
+                preDeallocs[until].push_back(flow);
             }
         }
     }
@@ -452,7 +447,7 @@ void RA::createNFlow(Flow *flow)
  *
  * @param flow specified flow object
  */
-void RA::createNM1Flow(Flow *flow)
+bool RA::createNM1Flow(Flow *flow)
 {
     Enter_Method("createNM1Flow()");
 
@@ -469,7 +464,7 @@ void RA::createNM1Flow(Flow *flow)
             neighbor.getDestAddr().getApn().getName(), neighbor.getQoSCube().getQosId());
 
         if (fi) {
-            return;
+            return false;
         }
     }
 
@@ -478,7 +473,7 @@ void RA::createNM1Flow(Flow *flow)
     if (ad == nullptr)
     {
         EV << "DifAllocator returned nullptr for resolving " << dstApn << endl;
-        return;
+        return false;
     }
     Address addr = *ad;
 
@@ -486,7 +481,7 @@ void RA::createNM1Flow(Flow *flow)
     if (!difAllocator->isDifLocal(addr.getDifName()))
     {
         EV << "Local CS does not have any IPC in DIF " << addr.getDifName() << endl;
-        return;
+        return false;
     }
 
     // retrieve local IPC process enrolled in given DIF
@@ -496,33 +491,34 @@ void RA::createNM1Flow(Flow *flow)
     // command the (N-1)-FA to allocate the flow
     bool status = fab->receiveAllocateRequest(flow);
 
-    if (status)
-    { // the Allocate procedure has successfully begun (and M_CREATE request has been sent)
-        // bind the new (N-1)-flow to an RMT port
-        RMTPort* port = bindNM1FlowToRMT(targetIPC, fab, flow);
-
-        fab->invokeNewFlowRequestPolicy(flow);
-
-        // notify the PDUFG of the new flow
-        fwdtg->insertFlowInfo(
-            Address(flow->getDstApni().getApn().getName()),
-            flow->getQosCube(),
-            port);
-    }
-    else
+    if (!status)
     { // Allocate procedure couldn't be invoked
        EV << "Flow not allocated!" << endl;
+       return false;
     }
+
+    // the Allocate procedure has successfully begun (and M_CREATE request has been sent)
+    // bind the new (N-1)-flow to an RMT port
+    RMTPort* port = bindNM1FlowToRMT(targetIPC, fab, flow);
+
+    fab->invokeNewFlowRequestPolicy(flow);
+
+    // notify the PDUFG of the new flow
+    fwdtg->insertFlowInfo(
+        Address(flow->getDstApni().getApn().getName()),
+        flow->getQosCube(),
+        port);
 
     // flow creation will be finalized by postNM1FlowAllocation(flow)
     // (on arrival of M_CREATE_R)
+    return true;
 }
 
 /**
  * Handles receiver-side allocation of an (N-1)-flow requested by other IPC.
  * (this is the mechanism behind answering an M_CREATE request).
  *
- * @param flow specified flow object
+ * @param flow secified flow object
  */
 void RA::createNM1FlowWithoutAllocate(Flow* flow)
 {
@@ -732,7 +728,9 @@ bool RA::bindNFlowToNM1Flow(Flow* flow)
         EV << "No such (N-1)-flow present, allocating a new one." << endl;
         Flow *nm1Flow = new Flow(srcAPN, neighAPN);
         nm1Flow->setQosRequirements(flow->getQosRequirements());
-        createNM1Flow(nm1Flow);
+        if (!createNM1Flow(nm1Flow)) {
+            delete nm1Flow;
+        }
     }
 
     return false;
@@ -790,21 +788,19 @@ bool RA::sleepFlow(Flow * flow, const simtime_t &wakeUp) {
             Flow *nflow = new Flow(flow->getSrcApni(), flow->getDstApni());
             nflow->setQosRequirements(flow->getQosReqs());
 
-            if (preAllocs[wakeUp] == nullptr) {
-                preAllocs[wakeUp] = new std::list<Flow*>;
+            if (preAllocs[wakeUp].empty()) {
                 cMessage* msg = new cMessage("RA-CreateConnections");
                 scheduleAt(wakeUp, msg);
             }
-            preAllocs[wakeUp]->push_back(nflow);
+            preAllocs[wakeUp].push_back(nflow);
         }
 
-        if (preDeallocs[now] == nullptr)
+        if (preDeallocs[now].empty())
         {
-            preDeallocs[now] = new std::list<Flow*>;
             cMessage* msg = new cMessage("RA-TerminateConnections");
             scheduleAt(now, msg);
         }
-        preDeallocs[now]->push_back(flow);
+        preDeallocs[now].push_back(flow);
 
         return true;
     }

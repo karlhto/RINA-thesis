@@ -274,9 +274,8 @@ void Enrollment::receiveConnectRequest(CDAPMessage* msg) {
 
     CDAP_M_Connect* cmsg = check_and_cast<CDAP_M_Connect*>(msg);
 
-    auto ent = EnrollmentStateTableEntry(
-             cmsg->getDst(), cmsg->getSrc(), EnrollmentStateTableEntry::CON_CONNECTPENDING);
-    stateTable->insert(ent);
+    stateTable->insert(EnrollmentStateTableEntry(cmsg->getDst(), cmsg->getSrc(),
+                                                 EnrollmentStateTableEntry::CON_CONNECTPENDING));
 
     EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(cmsg->getSrc().getApn());
 
@@ -286,6 +285,7 @@ void Enrollment::receiveConnectRequest(CDAPMessage* msg) {
         return;
     }
 
+    //what? we just inserted this
     //check appropriate state
     if (entry->getCACEConStatus() != EnrollmentStateTableEntry::CON_CONNECTPENDING) {
         //TODO: send M_Release and invoke deallocate
@@ -310,7 +310,7 @@ void Enrollment::startEnrollment(EnrollmentStateTableEntry* entry) {
 
     auto enrollObj = new EnrollmentObj(Address(entry->getLocal().getApn()), Address(entry->getRemote().getApn()));
 
-    enrollObj->setAddress(APN(ribDaemon->getMyAddress().getIpcAddress().getName()));
+    enrollObj->setAddress(ribDaemon->getMyAddress().getIpcAddress());
 
     //TODO: add other necessary information
 
@@ -332,8 +332,8 @@ void Enrollment::receiveStartEnrollmentResponse(CDAPMessage* msg) {
         return;
     }
 
-    EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentObj* enrollRec = check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal);
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(enrollRec->getSrcAddress().getApn());
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_START_RESPONSE_ENROLLMENT) {
@@ -343,7 +343,7 @@ void Enrollment::receiveStartEnrollmentResponse(CDAPMessage* msg) {
 
     //assign new, received address
     Address newAddr = ribDaemon->getMyAddress();
-    newAddr.setIpcAddress(APN(enrollRec->getAddress().getName().c_str()));
+    newAddr.setIpcAddress(APN(enrollRec->getAddress().getName()));
     ribDaemon->setMyAddress(newAddr);
 
     //TODO: assign other received values
@@ -352,6 +352,7 @@ void Enrollment::receiveStartEnrollmentResponse(CDAPMessage* msg) {
     entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_WAIT_STOP_ENROLLMENT);
 
     //TODO: wait for create messages and stop enrollment request
+    delete enrollRec;
 }
 
 void Enrollment::receiveStopEnrollmentRequest(CDAPMessage* msg) {
@@ -366,8 +367,8 @@ void Enrollment::receiveStopEnrollmentRequest(CDAPMessage* msg) {
         return;
     }
 
-    EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentObj* enrollRec = check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal);
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(enrollRec->getSrcAddress().getApn());
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_STOP_ENROLLMENT) {
@@ -384,6 +385,7 @@ void Enrollment::receiveStopEnrollmentRequest(CDAPMessage* msg) {
     //TODO: send read requests, wait for responses, send Mstop enrollment
     //for now send stop enrollment response
     processStopEnrollmentResponse(entry);
+    delete enrollRec;
 }
 
 void Enrollment::processStopEnrollmentResponse(EnrollmentStateTableEntry* entry) {
@@ -395,8 +397,8 @@ void Enrollment::processStopEnrollmentResponse(EnrollmentStateTableEntry* entry)
     if (entry->getIsImmediateEnrollment()) {
         entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_ENROLLED);
         updateEnrollmentDisplay(ENICON_ENROLLED);
-        APNIPair* apnip = new APNIPair(entry->getLocal(), entry->getRemote());
-        flowAlloc->receiveMgmtAllocateFinish(apnip);
+        APNIPair apnip(entry->getLocal(), entry->getRemote());
+        flowAlloc->receiveMgmtAllocateFinish(&apnip);
     }
     else {
         entry->setEnrollmentStatus(EnrollmentStateTableEntry::ENROLL_WAIT_START_OPERATION);
@@ -423,8 +425,8 @@ void Enrollment::receiveStartEnrollmentRequest(CDAPMessage* msg) {
         return;
     }
 
-    EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentObj* enrollRec = check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal);
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(enrollRec->getSrcAddress().getApn().getName());
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_START_ENROLLMENT) {
@@ -446,21 +448,21 @@ void Enrollment::receiveStartEnrollmentRequest(CDAPMessage* msg) {
     //TODO: send create messages, wait for responses, then send stop enrollment
     //for now send stop enrollment
     processStopEnrollmentImmediate(entry);
+    delete enrollRec;
 }
 
 void Enrollment::receiveStopEnrollmentResponse(CDAPMessage* msg) {
     Enter_Method("receiveStopEnrollmentResponse()");
 
-    CDAP_M_Stop_R* smsg = check_and_cast<CDAP_M_Stop_R*>(msg);
-
+    CDAP_M_Stop_R* smsg = dynamic_cast<CDAP_M_Stop_R*>(msg);
     //not expected message
     if (!smsg) {
         //TODO: send release and deallocate
         return;
     }
 
-    EnrollmentObj* enrollRec = (check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal))->dup();
-    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(APN(enrollRec->getSrcAddress().getApn().getName().c_str()));
+    EnrollmentObj* enrollRec = check_and_cast<EnrollmentObj*>(smsg->getObjectItem().objectVal);
+    EnrollmentStateTableEntry* entry = stateTable->findEntryByDstAPN(enrollRec->getSrcAddress().getApn());
 
     //check for appropriate state
     if (entry->getEnrollmentStatus() != EnrollmentStateTableEntry::ENROLL_WAIT_STOP_RESPONSE_ENROLLMENT) {
@@ -475,6 +477,7 @@ void Enrollment::receiveStopEnrollmentResponse(CDAPMessage* msg) {
     else {
         //TODO: add appropriate state for read and wait operation
     }
+    delete enrollRec;
 }
 
 void Enrollment::receiveStartOperationResponse(CDAPMessage* msg) {

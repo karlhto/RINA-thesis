@@ -317,36 +317,39 @@ void FANotifier::processMCreate(CDAP_M_Create* msg) {
 void FANotifier::processMCreateR(CDAP_M_Create_R* msg) {
     object_t object = msg->getObjectItem();
     //CreateResponseFlow
-    if (dynamic_cast<Flow*>(object.objectVal)) {
-        Flow* flow = (check_and_cast<Flow*>(object.objectVal))->dup();
-        flow->swapFlow();
+    Flow *srcFlow = dynamic_cast<Flow*>(object.objectVal);
+    if (srcFlow != nullptr) {
+        Flow flow(*srcFlow);
+        flow.swapFlow();
         //Positive response
         if (!msg->getResult().resultValue) {
-            signalizeCreateResponseFlowPositive(flow);
+            signalizeCreateResponseFlowPositive(&flow);
         }
         //Negative response
         else
-            signalizeCreateResponseFlowNegative(flow);
+            signalizeCreateResponseFlowNegative(&flow);
     }
 }
 
 void FANotifier::processMDelete(CDAP_M_Delete* msg) {
     object_t object = msg->getObjectItem();
     //DeleteRequest Flow
-    if (dynamic_cast<Flow*>(object.objectVal)) {
-        Flow* fl = (check_and_cast<Flow*>(object.objectVal))->dup();
-        fl->swapFlow();
-        signalizeDeleteRequestFlow(fl);
+    Flow *srcFlow = dynamic_cast<Flow*>(object.objectVal);
+    if (srcFlow != nullptr) {
+        Flow flow(*srcFlow);
+        flow.swapFlow();
+        signalizeDeleteRequestFlow(&flow);
     }
 }
 
 void FANotifier::processMDeleteR(CDAP_M_Delete_R* msg) {
     object_t object = msg->getObjectItem();
     //DeleteResponseFlow
-    if (dynamic_cast<Flow*>(object.objectVal)) {
-        Flow* flow = (check_and_cast<Flow*>(object.objectVal))->dup();
-        flow->swapFlow();
-        signalizeDeleteResponseFlow(flow);
+    Flow *srcFlow = dynamic_cast<Flow*>(object.objectVal);
+    if (srcFlow != nullptr) {
+        Flow flow(*srcFlow);
+        flow.swapFlow();
+        signalizeDeleteResponseFlow(&flow);
     }
 }
 

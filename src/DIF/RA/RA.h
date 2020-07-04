@@ -50,7 +50,7 @@ class RA : public RABase
 {
   public:
     ~RA() override;
-    virtual void createNM1Flow(Flow* flow);
+    virtual bool createNM1Flow(Flow* flow);
     virtual void createNM1FlowWithoutAllocate(Flow* flow);
     virtual void removeNM1Flow(Flow* flow);
     virtual void removeNM1FlowBindings(NM1FlowTableItem* ftItem);
@@ -88,9 +88,9 @@ class RA : public RABase
     IntPDUFG * fwdtg;
 
     std::string processName;
-    std::map<simtime_t, std::list<Flow*>*> preAllocs;
-    std::map<simtime_t, std::list<Flow*>*> preDeallocs;
-    std::map<std::string, std::list<Flow*>*> pendingFlows;
+    std::map<simtime_t, std::list<Flow*>> preAllocs;
+    std::map<simtime_t, std::list<Flow*>> preDeallocs;
+    std::map<std::string, std::list<Flow*>> pendingFlows;
     QoSReq mgmtReqs;
 
     QoSReq* initQoSReqById(const char* id);

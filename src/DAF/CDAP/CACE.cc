@@ -35,9 +35,11 @@ void CACE::initialize()
 void CACE::handleMessage(cMessage *msg)
 {
     //check message and process it to CACEStateMachine
-    if (dynamic_cast<CDAPMessage*>(msg)) {
-        CDAPMessage* cmsg = check_and_cast<CDAPMessage*>(msg);
+
+    CDAPMessage* cmsg = dynamic_cast<CDAPMessage*>(msg);
+    if (cmsg != nullptr) {
         signalizeDataReceive(cmsg);
+        delete cmsg;
     }
 }
 
