@@ -262,7 +262,7 @@ bool EthShim::finalizeConnection(const APN &dstApn, const int portId)
     if (entry.state != ConnectionState::pending) {
         EV_ERROR << "Connection entry for destination application with name " << dstApn
                  << " cannot be finalized since state is not pending. Current state is: "
-                 << getConnInfoString(entry) << endl;
+                 << entry.state << endl;
         return false;
     }
 
@@ -375,18 +375,26 @@ void EthShim::arpResolutionFailed(const RINArp::ArpNotification *notification)
     // discard all SDU entries, deallocate flow?
 }
 
-const std::array<std::string, static_cast<unsigned int>(EthShim::ConnectionState::_size)>
-    EthShim::connInfo = {"NONE", "PENDING", "ALLOCATED"};
-
-const std::string &EthShim::getConnInfoString(const ConnectionEntry &connectionEntry)
+std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionState &connectionState)
 {
-    ASSERT(connectionEntry.state != ConnectionState::_size);
-    return connInfo[static_cast<unsigned int>(connectionEntry.state)];
+    // No default case so warning will be supplied if someone ever changes ConnectionState
+    switch (connectionState) {
+    case EthShim::ConnectionState::none:
+        os << "NONE";
+        break;
+    case EthShim::ConnectionState::pending:
+        os << "PENDING";
+        break;
+    case EthShim::ConnectionState::allocated:
+        os << "ALLOCATED";
+        break;
+    }
+    return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionEntry &connectionEntry)
 {
-    os << "State: " << EthShim::getConnInfoString(connectionEntry);
+    os << "State: " << connectionEntry.state;
     os << ", Gate: ";
     if (connectionEntry.inGate != nullptr)
         os << connectionEntry.inGate->getBaseName();

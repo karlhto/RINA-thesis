@@ -48,11 +48,10 @@ class EthShim : public cSimpleModule, public cListener
     };
 
     /// enum used for recording the state of a connection
-    enum class ConnectionState : unsigned int {
-        none = 0,
+    enum class ConnectionState {
+        none,
         pending,
-        allocated,
-        _size
+        allocated
     };
 
     /// Information required for connection with a remote system
@@ -77,10 +76,6 @@ class EthShim : public cSimpleModule, public cListener
     /// Statistics
     long numSentToNetwork = 0;
     long numReceivedFromNetwork = 0;
-
-    /// Provides string names for ConnectionState structs
-    static const std::array<std::string, static_cast<unsigned int>(ConnectionState::_size)>
-        connInfo;
 
   public:
     /** @brief Empty constructor for the time being */
@@ -116,13 +111,6 @@ class EthShim : public cSimpleModule, public cListener
      * @param  dstApn Name of "connected" application
      */
     void deleteEntry(const APN &dstApn);
-
-    /**
-     * @brief Give a string representing the state of a ConnectionEntry object
-     * @param  connectionEntry
-     * @return String representing the state of the connection
-     */
-    [[nodiscard]] static const std::string &getConnInfoString(const ConnectionEntry &connectionEntry);
 
   private:
     /// cSimpleModule overrides
@@ -204,4 +192,5 @@ class EthShim : public cSimpleModule, public cListener
     void arpResolutionFailed(const RINArp::ArpNotification *entry);
 };
 
-std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionEntry &shimEntry);
+std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionState &connectionState);
+std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionEntry &connectionEntry);
