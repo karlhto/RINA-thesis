@@ -73,6 +73,9 @@ class EthShim : public cSimpleModule, public cListener
     ShimFA *shimFA = nullptr;
     inet::InterfaceEntry *ie = nullptr;
 
+    /// DIF name represented as VLAN id (unused until support for INET >4.1 is implemented)
+    unsigned int vlanId = 0;
+
     /// Statistics
     long numSentToNetwork = 0;
     long numReceivedFromNetwork = 0;
@@ -80,9 +83,6 @@ class EthShim : public cSimpleModule, public cListener
   public:
     /** @brief Empty constructor for the time being */
     EthShim() = default;
-
-    /** @brief Deletes all dynamically allocated entries in queues */
-    ~EthShim() override;
 
     /**
      * @brief Registers name of the application using this shim IPCP in static ARP entry

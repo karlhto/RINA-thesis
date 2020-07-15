@@ -36,19 +36,6 @@
 
 Define_Module(EthShim);
 
-EthShim::~EthShim()
-{
-    for (auto &elem : connections) {
-        auto &outQueue = elem.second.outQueue;
-        while (!outQueue.isEmpty())
-            delete outQueue.pop();
-
-        auto &inQueue = elem.second.inQueue;
-        while (!inQueue.isEmpty())
-            delete inQueue.pop();
-    }
-}
-
 void EthShim::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
@@ -67,20 +54,24 @@ void EthShim::initialize(int stage)
         std::string difName = ipcProcess->par("difName").stringValue();
         try {
             std::string::size_type rest;
-            unsigned int vlanID = std::stoul(difName, &rest, 10);
-            if (rest < difName.length()) {
+            unsigned int tmpId = std::stoul(difName, &rest, 10);
+            if (rest < difName.length())
                 throw std::invalid_argument("");
-            }
 
-            // TODO (karlhto): use some constant for this (hopefully already supplied)
-            if (vlanID >= 4096) {
-            }
+            // TODO (karlhto): do this in a cleaner way, maybe INET has some method for it
+            // VLAN IDs 0 and 4095 (where 4095 is max, 2^12) are reserved
+            if (tmpId < 1 || tmpId >= 4095)
+                throw std::invalid_argument("");
+
+            vlanId = tmpId;
         } catch (std::invalid_argument) {
-            throw cRuntimeError("DIF name not valid: %s", difName.c_str());
+            throw cRuntimeError("DIF name for shim IPCP must be a valid VLAN ID, not: %s",
+                                difName.c_str());
         }
 
         WATCH(numSentToNetwork);
         WATCH(numReceivedFromNetwork);
+        WATCH(vlanId);
         WATCH_MAP(connections);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
@@ -123,7 +114,7 @@ void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
     ASSERT(iter != connections.end());
 
     const APN &dstApn = iter->first;
-    inet::MACAddress mac = arp->resolveAddress(dstApn);
+    const inet::MACAddress &mac = arp->resolveAddress(dstApn);
     if (mac.isUnspecified()) {
         // This means that resolution has started
         ConnectionEntry &entry = iter->second;
@@ -222,6 +213,7 @@ bool EthShim::createBindingsForEntry(ConnectionEntry &entry, const int portId)
     cGate *shimIn = gateHalf(gateStr, cGate::INPUT);
     cGate *shimOut = gateHalf(gateStr, cGate::OUTPUT);
 
+    // This gate should already be created
     if (!ipcProcess->hasGate(gateStr))
         ipcProcess->addGate(gateStr, cGate::INOUT, false);
     cGate *ipcDownIn = ipcProcess->gateHalf(gateStr, cGate::INPUT);
@@ -240,7 +232,7 @@ bool EthShim::createBindingsForEntry(ConnectionEntry &entry, const int portId)
 
 void EthShim::removeBindingsForEntry(ConnectionEntry &entry)
 {
-    if (entry.inGate == nullptr || entry.outGate == nullptr)
+    if (entry.inGate == nullptr)
         return;
 
     const char *basename = entry.inGate->getBaseName();
