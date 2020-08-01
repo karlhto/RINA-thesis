@@ -13,18 +13,18 @@ from typing import Generator, List
 
 def find_fingerprints(path: str) -> Generator[tuple, None, None]:
     ''' Takes an ini file, yield pairs of section name and fingerprint '''
-    runs_base = "1"
+    runs_base = 1
     config = configparser.ConfigParser()
     config.read(path)
     for key in config:
         runs = runs_base
         section = config[key]
         if 'repeat' in section:
+            runs = int(section['repeat'])
             if section.name == "General":
-                runs_base = section['repeat']
-            runs = section['repeat']
+                runs_base = runs
         if 'fingerprint' in section:
-            yield (int(runs), key, section['fingerprint'].strip('"'))
+            yield (runs, key, section['fingerprint'].strip('"'))
 
 
 def compile_row(path: Path, config: str,
