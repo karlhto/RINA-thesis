@@ -39,14 +39,11 @@ import rina.src.DAF.DA.DIFAllocator;
 import rina.src.DIF.IPCProcess;
 import rina.src.EthShimDIF.IPCProcessShim;
 
-import inet.networklayer.common.InterfaceTable;
-
 module InteriorRouter2IntShim
 {
     parameters:
         @display("i=abstract/switch;bgb=290,230");
         @networkNode;
-        *.interfaceTableModule = default(absPath(".interfaceTable"));
 
     gates:
         inout medium[2];
@@ -67,11 +64,6 @@ module InteriorRouter2IntShim
 
         difAllocator: DIFAllocator {
             @display("p=65,53");
-        }
-
-        interfaceTable: InterfaceTable {
-            parameters:
-                @display("p=69.93,303.89334;is=s");
         }
 
     connections:
