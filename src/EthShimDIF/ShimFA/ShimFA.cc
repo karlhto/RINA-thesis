@@ -70,7 +70,7 @@ void ShimFA::initialize(int stage)
         if (!connectedApplication->hasPar("apName"))
             throw cRuntimeError(
                 "Shim IPC process not connected to overlying IPC/Application Process");
-    } else if (stage == inet::INITSTAGE_NETWORK_LAYER_2) {
+    } else if (stage == inet::INITSTAGE_TRANSPORT_LAYER) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
         // TODO (karlhto): look for alternative function
         setRegisteredApName();
