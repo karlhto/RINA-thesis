@@ -25,7 +25,9 @@
 #include <omnetpp.h>
 
 #include "Common/APN.h"
-#include "inet/linklayer/common/MACAddress.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/linklayer/common/MacAddress.h"
+#include "inet/networklayer/common/InterfaceEntry.h"
 
 class RINArpPacket;
 
@@ -46,7 +48,7 @@ class RINArp : public cSimpleModule
      */
     struct ArpCacheEntry
     {
-        inet::MACAddress macAddress;
+        inet::MacAddress macAddress;
         bool pending = false;
         simtime_t lastUpdate;
         int numRetries = 0;
@@ -60,17 +62,17 @@ class RINArp : public cSimpleModule
     class ArpNotification : public cObject
     {
       private:
-        APN apName;
-        inet::MACAddress macAddress;
+        const APN apName;
+        const inet::MacAddress macAddress;
 
       public:
-        ArpNotification(const APN &apName, const inet::MACAddress &macAddress)
+        ArpNotification(const APN &apName, const inet::MacAddress &macAddress)
             : apName(apName), macAddress(macAddress)
         {
         }
 
         [[nodiscard]] const APN &getApName() const { return apName; }
-        [[nodiscard]] const inet::MACAddress &getMacAddress() const { return macAddress; }
+        [[nodiscard]] const inet::MacAddress &getMacAddress() const { return macAddress; }
     };
 
     /** @brief Signals for publishing ARP state changes */
@@ -98,25 +100,28 @@ class RINArp : public cSimpleModule
     ArpCache arpCache;
     std::pair<APN, ArpCacheEntry *> thisHost;  ///< Naming information for this host
 
+    /// Interface entry of bound interface
+    inet::InterfaceEntry *ie;
+
   public:
     RINArp() = default;
     ~RINArp() override;
 
     /** @brief Attempts to resolve an application name, may send ARP_REQ packet */
-    const inet::MACAddress &resolveAddress(const APN &apn);
+    const inet::MacAddress &resolveAddress(const APN &apn);
 
     /** @brief Finds the APN name of an entry by its MAC address */
-    const APN &getAddressFor(const inet::MACAddress &mac) const;
+    const APN &getAddressFor(const inet::MacAddress &mac) const;
 
     /** @brief Adds this host's information, necessary for N+1 registration */
-    bool addStaticEntry(const inet::MACAddress &mac, const APN &apn);
+    bool addStaticEntry(const inet::MacAddress &mac, const APN &apn);
 
     /** @brief Removes static entry for connected host */
     void deleteStaticEntry();
 
   protected:
     /** @brief Processes ARP packets, adds entry if destination is same as apname */
-    void processArpPacket(RINArpPacket *arp);
+    void processArpPacket(inet::Packet *packet);
 
     /** @brief Handles timeout selfmessages */
     void requestTimeout(cMessage *msg);
@@ -128,13 +133,10 @@ class RINArp : public cSimpleModule
     void initiateArpResolution(ArpCacheEntry *entry);
 
     /** @brief Updates an ARP cache entry with an address */
-    void updateArpCache(ArpCacheEntry *entry, const inet::MACAddress &mac);
+    void updateArpCache(ArpCacheEntry *entry, const inet::MacAddress &mac);
 
     /** @brief Checks if specified APN is same as in static entry */
     bool addressRecognized(const APN &apn);
-
-    /** @brief Sends packet to network (likely passing it to NIC */
-    void sendPacketToNIC(cPacket *packet, const inet::MACAddress &macAddress);
 
     /** @brief Sends an ARP request addressed to specified APN */
     void sendArpRequest(const APN &apn);
@@ -143,7 +145,8 @@ class RINArp : public cSimpleModule
     /// cSimpleModule overrides
 
     /** @brief Initialises parameters and out gate */
-    void initialize() override;
+    void initialize(int stage) override;
+    int numInitStages() const override { return inet::NUM_INIT_STAGES; }
 
     /** @brief Handles selfmessages and messages from ethernet shim module */
     void handleMessage(cMessage *msg) override;

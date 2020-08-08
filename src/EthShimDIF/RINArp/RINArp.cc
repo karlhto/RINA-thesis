@@ -23,7 +23,13 @@
 #include "EthShimDIF/RINArp/RINArp.h"
 
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
-#include "inet/linklayer/common/Ieee802Ctrl.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/common/IProtocolRegistrationListener.h"
+#include "inet/common/ProtocolTag_m.h"
+#include "inet/linklayer/common/InterfaceTag_m.h"
+#include "inet/common/ModuleAccess.h"
+#include "inet/linklayer/common/MacAddressTag_m.h"
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
 
 Define_Module(RINArp);
 Register_Abstract_Class(RINArp::ArpNotification);
@@ -49,21 +55,33 @@ RINArp::~RINArp()
         delete thisHost.second;
 }
 
-void RINArp::initialize()
+void RINArp::initialize(int stage)
 {
-    cSimpleModule::initialize();
+    cSimpleModule::initialize(stage);
 
-    retryTimeout = par("retryTimeout");
-    retryCount = par("retryCount");
-    cacheTimeout = par("cacheTimeout");
+    if (stage == inet::INITSTAGE_LOCAL) {
+        retryTimeout = par("retryTimeout");
+        retryCount = par("retryCount");
+        cacheTimeout = par("cacheTimeout");
 
-    WATCH(numResolutions);
-    WATCH(numFailedResolutions);
-    WATCH(numRequestsSent);
-    WATCH(numRepliesSent);
+        WATCH(numResolutions);
+        WATCH(numFailedResolutions);
+        WATCH(numRequestsSent);
+        WATCH(numRepliesSent);
+    } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
+        cModule *ipcProcess = getParentModule();
+        auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
+        cModule *eth = ipcProcess->getModuleByPath(".eth");
+        ie = ift->findInterfaceByInterfaceModule(eth);
+        if (ie == nullptr)
+            throw cRuntimeError("Interface entry is required for shim module to work");
+
+        inet::registerService(inet::Protocol::arp, nullptr, gate("ifIn"));
+        inet::registerProtocol(inet::Protocol::arp, gate("ifOut"), nullptr);
+    }
 }
 
-bool RINArp::addStaticEntry(const inet::MACAddress &mac, const APN &apn)
+bool RINArp::addStaticEntry(const inet::MacAddress &mac, const APN &apn)
 {
     Enter_Method("addStaticEntry(%s, %s)", mac.str().c_str(), apn.c_str());
 
@@ -121,12 +139,12 @@ void RINArp::handleMessage(cMessage *msg)
     if (msg->isSelfMessage())
         requestTimeout(msg);
     else {
-        auto *arp = check_and_cast<RINArpPacket *>(msg);
-        processArpPacket(arp);
+        auto *packet = check_and_cast<inet::Packet *>(msg);
+        processArpPacket(packet);
     }
 }
 
-void RINArp::updateArpCache(ArpCacheEntry *entry, const inet::MACAddress &macAddress)
+void RINArp::updateArpCache(ArpCacheEntry *entry, const inet::MacAddress &macAddress)
 {
     if (entry->pending) {
         entry->pending = false;
@@ -140,7 +158,7 @@ void RINArp::updateArpCache(ArpCacheEntry *entry, const inet::MACAddress &macAdd
     emit(completedRINArpResolutionSignal, &signal);
 }
 
-const inet::MACAddress &RINArp::resolveAddress(const APN &apn)
+const inet::MacAddress &RINArp::resolveAddress(const APN &apn)
 {
     Enter_Method("resolveAddress(%s)", apn.c_str());
 
@@ -153,9 +171,9 @@ const inet::MACAddress &RINArp::resolveAddress(const APN &apn)
         auto where = arpCache.insert(arpCache.begin(), std::make_pair(apn, entry));
         entry->myIter = where;
         initiateArpResolution(entry);
-        return inet::MACAddress::UNSPECIFIED_ADDRESS;
+        return inet::MacAddress::UNSPECIFIED_ADDRESS;
     } else if (it->second->pending) {
-        return inet::MACAddress::UNSPECIFIED_ADDRESS;
+        return inet::MacAddress::UNSPECIFIED_ADDRESS;
     } else if (it->second->lastUpdate + cacheTimeout >= simTime()) {
         return it->second->macAddress;
     }
@@ -163,10 +181,10 @@ const inet::MACAddress &RINArp::resolveAddress(const APN &apn)
     // If entry exists but has been timed out
     auto *entry = it->second;
     initiateArpResolution(entry);
-    return inet::MACAddress::UNSPECIFIED_ADDRESS;
+    return inet::MacAddress::UNSPECIFIED_ADDRESS;
 }
 
-const APN &RINArp::getAddressFor(const inet::MACAddress &mac) const
+const APN &RINArp::getAddressFor(const inet::MacAddress &mac) const
 {
     Enter_Method_Silent();
 
@@ -187,7 +205,7 @@ void RINArp::initiateArpResolution(ArpCacheEntry *entry)
     entry->pending = true;
     entry->numRetries = 0;
     entry->lastUpdate = SIMTIME_ZERO;
-    entry->macAddress = inet::MACAddress::UNSPECIFIED_ADDRESS;
+    entry->macAddress = inet::MacAddress::UNSPECIFIED_ADDRESS;
     sendArpRequest(apn);
 
     cMessage *msg = entry->timer = new cMessage("ARP timeout");
@@ -195,38 +213,50 @@ void RINArp::initiateArpResolution(ArpCacheEntry *entry)
     scheduleAt(simTime() + retryTimeout, msg);
 
     numResolutions++;
-    ArpNotification signal(apn, inet::MACAddress::UNSPECIFIED_ADDRESS);
+    ArpNotification signal(apn, inet::MacAddress::UNSPECIFIED_ADDRESS);
     emit(initiatedRINArpResolutionSignal, &signal);
 }
 
 void RINArp::sendArpRequest(const APN &dstApn)
 {
     const APN &srcApn = thisHost.first;  // Registered application
-    const inet::MACAddress &srcMac = thisHost.second->macAddress;
+    const inet::MacAddress &srcMac = thisHost.second->macAddress;
 
     ASSERT(!srcMac.isUnspecified());
     ASSERT(!srcApn.isUnspecified());
 
     const int apnLen = std::max(srcApn.length(), dstApn.length());
-    auto *arp = new RINArpPacket("arpREQ");
-    arp->setByteLength(ARP_BASE_LEN + apnLen * 2);
+
+    const auto &arp = inet::makeShared<RINArpPacket>();
+    arp->setChunkLength(inet::B(ARP_BASE_LEN + apnLen * 2));
     arp->setApnLength(apnLen);
+
     arp->setOpcode(ARP_REQUEST);
     arp->setSrcMacAddress(srcMac);
     arp->setSrcApName(srcApn);
     arp->setDstApName(dstApn);
 
-    sendPacketToNIC(arp, inet::MACAddress::BROADCAST_ADDRESS);
+    inet::Packet *packet = new inet::Packet("arpREQ");
+    packet->insertAtFront(arp);
+    packet->addTag<inet::MacAddressReq>()->setDestAddress(inet::MacAddress::BROADCAST_ADDRESS);
+    packet->addTag<inet::InterfaceReq>()->setInterfaceId(ie->getInterfaceId());
+    packet->addTag<inet::PacketProtocolTag>()->setProtocol(&inet::Protocol::arp);
+
+    EV_INFO << "Sending " << packet << " to network." << endl;
+    send(packet, "ifOut");
+
     numRequestsSent++;
     emit(sentRINArpReqSignal, 1L);
 }
 
-void RINArp::processArpPacket(RINArpPacket *arp)
+void RINArp::processArpPacket(inet::Packet *packet)
 {
-    EV_INFO << "Received " << arp << " from ethernet shim." << endl;
-    const inet::MACAddress srcMac = arp->getSrcMacAddress();
-    const APN srcApn = arp->getSrcApName();
-    const APN dstApn = arp->getDstApName();
+    EV_INFO << "Received " << packet << " from network." << endl;
+    const auto &arp = packet->peekAtFront<RINArpPacket>();
+
+    const inet::MacAddress &srcMac = arp->getSrcMacAddress();
+    const APN &srcApn = arp->getSrcApName();
+    const APN &dstApn = arp->getDstApName();
 
     ASSERT(!srcMac.isUnspecified());
     ASSERT(!srcApn.isUnspecified());
@@ -265,23 +295,33 @@ void RINArp::processArpPacket(RINArpPacket *arp)
         case ARP_REQUEST: {
             EV_TRACE << "Sending ARP reply with MAC destination: " << srcMac
                      << ", source: " << thisHost.second->macAddress << endl;
+
+            const auto &arpReply = inet::makeShared<RINArpPacket>();
             // Protocol address length will remain the same. We need to
             // swap the addresses, however.
-            arp->setName("arpREPLY");
-            arp->setDstMacAddress(srcMac);
-            arp->setDstApName(srcApn);
-            arp->setSrcMacAddress(thisHost.second->macAddress);
-            arp->setSrcApName(dstApn);
-            arp->setOpcode(ARP_REPLY);
-            delete arp->removeControlInfo();
-            sendPacketToNIC(arp, srcMac);
+            arpReply->setChunkLength(arp->getChunkLength());
+            arpReply->setApnLength(arp->getApnLength());
+            arpReply->setDstMacAddress(srcMac);
+            arpReply->setDstApName(srcApn);
+            arpReply->setSrcMacAddress(thisHost.second->macAddress);
+            arpReply->setSrcApName(dstApn);
+            arpReply->setOpcode(ARP_REPLY);
+
+            inet::Packet *outPacket = new inet::Packet("arpReply");
+            outPacket->insertAtFront(arpReply);
+            outPacket->addTag<inet::MacAddressReq>()->setDestAddress(srcMac);
+            outPacket->addTag<inet::InterfaceReq>()->setInterfaceId(ie->getInterfaceId());
+            outPacket->addTag<inet::PacketProtocolTag>()->setProtocol(&inet::Protocol::arp);
+
+            EV_INFO << "Sending " << outPacket << " to network protocol." << endl;
+            send(outPacket, "ifOut");
             numRepliesSent++;
             emit(sentRINArpReplySignal, 1L);
 
             break;
         }
         case ARP_REPLY: {
-            delete arp;
+            EV_DETAIL << "Discarding packet." << endl;
             break;
         }
         case ARP_RARP_REQUEST:
@@ -297,19 +337,9 @@ void RINArp::processArpPacket(RINArpPacket *arp)
     } else {
         EV_INFO << "Address " << dstApn << " not recognized, "
                 << "dropping packet." << endl;
-        delete arp;
     }
-}
 
-void RINArp::sendPacketToNIC(cPacket *packet, const inet::MACAddress &macAddress)
-{
-    auto *controlInfo = new inet::Ieee802Ctrl();
-    controlInfo->setDest(macAddress);
-    controlInfo->setEtherType(inet::ETHERTYPE_ARP);
-    packet->setControlInfo(controlInfo);
-
-    EV_INFO << "Sending " << packet << " to ethernet shim." << endl;
-    send(packet, "netwOut");
+    delete packet;
 }
 
 void RINArp::requestTimeout(cMessage *selfmsg)
@@ -329,7 +359,7 @@ void RINArp::requestTimeout(cMessage *selfmsg)
 
     EV << "ARP timed out with max retry count " << retryCount << " for destination address "
        << entry->myIter->first << endl;
-    ArpNotification signal(entry->myIter->first, inet::MACAddress::UNSPECIFIED_ADDRESS);
+    ArpNotification signal(entry->myIter->first, inet::MacAddress::UNSPECIFIED_ADDRESS);
     emit(failedRINArpResolutionSignal, &signal);
     arpCache.erase(entry->myIter);
     delete entry;

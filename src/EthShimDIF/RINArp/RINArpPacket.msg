@@ -24,15 +24,17 @@
 // This is heavily inspired by INET's ARP protocol machine.
 
 cplusplus {{
+#include "inet/common/packet/chunk/FieldsChunk.h"
+#include "inet/linklayer/common/MacAddress.h"
 #include "Common/APN.h"
-#include "inet/linklayer/common/MACAddress.h"
 
 #define ARP_BASE_LEN 14 // 2 * mac addresses (12) + apnLength + opcode
 }}
 
 class noncobject APN;
 
-class noncobject inet::MACAddress;
+class noncobject inet::MacAddress;
+class noncobject inet::FieldsChunk;
 
 
 enum ARPOpcode
@@ -46,12 +48,12 @@ enum ARPOpcode
 //
 // RINArpPacket. This type of ARPPacket is specialised for RINA, which uses
 // variable length addresses.
-packet RINArpPacket
+class RINArpPacket extends inet::FieldsChunk
 {
     uint8_t apnLength;
     uint8_t opcode @enum(ARPOpcode);
-    inet::MACAddress srcMacAddress;
+    inet::MacAddress srcMacAddress;
     APN srcApName;
-    inet::MACAddress dstMacAddress;
+    inet::MacAddress dstMacAddress;
     APN dstApName;
 }
