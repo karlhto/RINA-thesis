@@ -27,12 +27,20 @@
 #include "Common/Utils.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
+#include "inet/common/IProtocolRegistrationListener.h"
+#include "inet/common/ProtocolTag_m.h"
+#include "inet/common/ProtocolGroup.h"
 #include "inet/common/ModuleAccess.h"
-#include "inet/linklayer/common/Ieee802Ctrl.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/common/packet/chunk/cPacketChunk.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
+#include "inet/linklayer/common/InterfaceTag_m.h"
+#include "inet/linklayer/common/MacAddressTag_m.h"
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
 
-// ETHERTYPE "extension" for RINA
-#define ETHERTYPE_RINA 0xD1F0
+
+const inet::Protocol EthShim::rinaEthShim =
+    inet::Protocol("rinaEthShim", "Ethernet shim layer for RINA");
 
 Define_Module(EthShim);
 
@@ -48,55 +56,34 @@ void EthShim::initialize(int stage)
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 
-        // FIXME INET 3.6.7 does not support VLANs, so this is intended for use when support for
-        //       INET >4.1 is implemented. This will probably require proper serialisation of
-        //       everything though
-        std::string difName = ipcProcess->par("difName").stringValue();
-        try {
-            std::string::size_type rest;
-            unsigned int tmpId = std::stoul(difName, &rest, 10);
-            if (rest < difName.length())
-                throw std::invalid_argument("");
-
-            // TODO (karlhto): do this in a cleaner way, maybe INET has some method for it
-            // VLAN IDs 0 and 4095 (where 4095 is max, 2^12) are reserved
-            if (tmpId < 1 || tmpId >= 4095)
-                throw std::invalid_argument("");
-
-            vlanId = tmpId;
-        } catch (std::invalid_argument) {
-            throw cRuntimeError("DIF name for shim IPCP must be a valid VLAN ID, not: %s",
-                                difName.c_str());
-        }
-
         WATCH(numSentToNetwork);
         WATCH(numReceivedFromNetwork);
-        WATCH(vlanId);
         WATCH_MAP(connections);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
         // Get correct interface entry
         auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
         cModule *eth = ipcProcess->getModuleByPath(".eth");
-        ie = ift->getInterfaceByInterfaceModule(eth);
+        ie = ift->findInterfaceByInterfaceModule(eth);
         if (ie == nullptr)
             throw cRuntimeError("Interface entry is required for shim module to work");
+
+        // Configure the message dispatcher for lower layers
+        inet::registerService(rinaEthShim, nullptr, gate("ifIn"));
+        inet::registerProtocol(rinaEthShim, gate("ifOut"), nullptr);
+
+        // 0xD1F0 is used as EtherType extension for the Ethernet shim DIF
+        inet::ProtocolGroup::ethertype.addProtocol(0xD1F0, &rinaEthShim);
     }
 }
 
 void EthShim::handleMessage(cMessage *msg)
 {
-    if (msg->arrivedOn("arpIn")) {
-        EV_INFO << "Received Arp packet." << endl;
-        sendPacketToNIC(check_and_cast<cPacket *>(msg));
-    } else if (msg->arrivedOn("ifIn")) {
+    if (msg->arrivedOn("ifIn")) {
         EV_INFO << "Received " << msg << " from network." << endl;
         numReceivedFromNetwork++;
-        if (auto arpPacket = dynamic_cast<RINArpPacket *>(msg))
-            handleIncomingArpPacket(arpPacket);
-        else if (auto sdu = dynamic_cast<SDUData *>(msg))
-            handleIncomingSDU(sdu);
-        else
-            throw cRuntimeError(msg, "Unsupported message type");
+        auto *packet = check_and_cast<inet::Packet *>(msg);
+        handleIncomingSDU(packet);
+        delete packet;
     } else {
         EV_INFO << "Received PDU from upper layer" << endl;
         auto *sdu = check_and_cast<SDUData *>(msg);
@@ -114,7 +101,7 @@ void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
     ASSERT(iter != connections.end());
 
     const APN &dstApn = iter->first;
-    const inet::MACAddress &mac = arp->resolveAddress(dstApn);
+    const inet::MacAddress &mac = arp->resolveAddress(dstApn);
     if (mac.isUnspecified()) {
         // This means that resolution has started
         ConnectionEntry &entry = iter->second;
@@ -123,27 +110,26 @@ void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
         return;
     }
 
-    auto *controlInfo = new inet::Ieee802Ctrl();
-    controlInfo->setDest(mac);
-    controlInfo->setEtherType(ETHERTYPE_RINA);
-    sdu->setControlInfo(controlInfo);
-    sendPacketToNIC(sdu);
+    sendSDUToNIC(sdu, mac);
 }
 
-void EthShim::handleIncomingSDU(SDUData *sdu)
+void EthShim::handleIncomingSDU(inet::Packet *packet)
 {
     EV_INFO << "Passing SDU to correct gate" << endl;
 
-    auto *ctrlInfo = check_and_cast<inet::Ieee802Ctrl *>(sdu->removeControlInfo());
-    const inet::MACAddress &srcMac = ctrlInfo->getSourceAddress();
+    const inet::MacAddress &srcMac = packet->getTag<inet::MacAddressInd>()->getSrcAddress();
     const APN &srcApn = arp->getAddressFor(srcMac);
-    delete ctrlInfo;
     if (srcApn.isUnspecified()) {
         EV_WARN << "ARP does not have a valid entry for source MAC " << srcMac
                 << ". Dropping packet." << endl;
-        delete sdu;
         return;
     }
+
+    const auto &sduWrapper = packet->peekAtFront<inet::cPacketChunk>();
+
+    // Duplication is required since a cPacketChunk is intended to be immutable. cPacketChunk will
+    // handle deletion of the original cPacket.
+    SDUData *sdu = check_and_cast<SDUData *>(sduWrapper->getPacket()->dup());
 
     EV_INFO << "SDU is from application with name " << srcApn << endl;
 
@@ -168,18 +154,17 @@ void EthShim::handleIncomingSDU(SDUData *sdu)
     send(sdu, entry.outGate);
 }
 
-void EthShim::handleIncomingArpPacket(RINArpPacket *arpPacket)
+void EthShim::sendSDUToNIC(SDUData *sdu, const inet::MacAddress &dstMac)
 {
-    EV_INFO << "Sending " << arpPacket << " to ARP module." << endl;
-    send(arpPacket, "arpOut");
-}
+    EV_INFO << "Sending " << sdu << " to ethernet interface." << endl;
 
-void EthShim::sendPacketToNIC(cPacket *packet)
-{
-    EV_INFO << "Sending " << packet << " to ethernet interface." << endl;
-    auto *controlInfo = dynamic_cast<inet::Ieee802Ctrl *>(packet->getControlInfo());
-    ASSERT(controlInfo != nullptr);
-    controlInfo->setInterfaceId(ie->getInterfaceId());
+    // cPacketChunk for compatibility with the old cPacket API, which RINA uses
+    auto sduWrapper = inet::makeShared<inet::cPacketChunk>(sdu);
+    inet::Packet *packet = new inet::Packet("SDUData");
+    packet->insertAtFront(sduWrapper);
+    packet->addTag<inet::MacAddressReq>()->setDestAddress(dstMac);
+    packet->addTagIfAbsent<inet::InterfaceReq>()->setInterfaceId(ie->getInterfaceId());
+    packet->addTagIfAbsent<inet::PacketProtocolTag>()->setProtocol(&rinaEthShim);
     numSentToNetwork++;
     send(packet, "ifOut");
 }
@@ -310,7 +295,7 @@ void EthShim::registerApplication(const APN &apni) const
     EV_INFO << "Received request to register application name " << apni << " with Arp module."
             << endl;
 
-    inet::MACAddress mac = ie->getMacAddress();
+    inet::MacAddress mac = ie->getMacAddress();
     arp->addStaticEntry(mac, apni);
 }
 
@@ -331,7 +316,7 @@ void EthShim::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObje
 void EthShim::arpResolutionCompleted(const RINArp::ArpNotification *notification)
 {
     const APN &apn = notification->getApName();
-    const inet::MACAddress &mac = notification->getMacAddress();
+    const inet::MacAddress &mac = notification->getMacAddress();
     auto &entry = connections[apn];
     if (entry.state == ConnectionState::none)
         return;
@@ -345,26 +330,22 @@ void EthShim::arpResolutionCompleted(const RINArp::ArpNotification *notification
 
     auto &queue = entry.outQueue;
     while (!queue.isEmpty()) {
-        cPacket *sdu = queue.pop();
-        auto *controlInfo = new inet::Ieee802Ctrl();
-        controlInfo->setDest(mac);
-        controlInfo->setEtherType(ETHERTYPE_RINA);
-        sdu->setControlInfo(controlInfo);
-        sendPacketToNIC(sdu);
+        SDUData *sdu = check_and_cast<SDUData *>(queue.pop());
+        sendSDUToNIC(sdu, mac);
     }
 }
 
 void EthShim::arpResolutionFailed(const RINArp::ArpNotification *notification)
 {
     const APN &apn = notification->getApName();
-    const inet::MACAddress &mac = notification->getMacAddress();
+    const inet::MacAddress &mac = notification->getMacAddress();
     auto &entry = connections[apn];
     if (entry.state == ConnectionState::none)
         return;
 
     Enter_Method("arpResolutionFailed(%s -> %s)", apn.c_str(), mac.str().c_str());
 
-    // discard all SDU entries, deallocate flow?
+    //connections.erase(entry);
 }
 
 std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionState &connectionState)

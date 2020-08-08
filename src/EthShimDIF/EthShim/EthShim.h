@@ -27,8 +27,9 @@
 
 #include "Common/APN.h"
 #include "EthShimDIF/RINArp/RINArp.h"
-#include "inet/linklayer/common/MACAddress.h"
+#include "inet/linklayer/common/MacAddress.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
+#include "inet/common/Protocol.h"
 
 class RINArpPacket;
 class ShimFA;
@@ -63,6 +64,8 @@ class EthShim : public cSimpleModule, public cListener
         cPacketQueue inQueue = cPacketQueue("Queue for incoming packets");
     };
 
+    static const inet::Protocol rinaEthShim;
+
   private:
     /// map containing connection states with remote systems
     std::map<APN, ConnectionEntry> connections;
@@ -72,9 +75,6 @@ class EthShim : public cSimpleModule, public cListener
     RINArp *arp = nullptr;
     ShimFA *shimFA = nullptr;
     inet::InterfaceEntry *ie = nullptr;
-
-    /// DIF name represented as VLAN id (unused until support for INET >4.1 is implemented)
-    unsigned int vlanId = 0;
 
     /// Statistics
     long numSentToNetwork = 0;
@@ -136,19 +136,14 @@ class EthShim : public cSimpleModule, public cListener
      * @brief Handles SDU from network, resolving connection entry from source MAC Address
      * @param  sdu  SDU from ethernet interface
      */
-    void handleIncomingSDU(SDUData *sdu);
+    void handleIncomingSDU(inet::Packet *packet);
 
     /**
-     * @brief Handles SDU from network, resolving connection entry from source MAC Address
-     * @param  sdu  SDU from ethernet interface
+     * @brief Wraps an SDU in a `cPacketChunk` before sending it on to the Ethernet interface
+     * @param  sdu    SDU to encapsulate and send
+     * @param  dstMac MAC address of destination host
      */
-    void handleIncomingArpPacket(RINArpPacket *arpPacket);
-
-    /**
-     * @brief Wrapper function for `send(packet, "ifOut")`
-     * @param  packet Packet to send
-     */
-    void sendPacketToNIC(cPacket *packet);
+    void sendSDUToNIC(SDUData *sdu, const inet::MacAddress &dstMac);
 
     /**
      * @brief Sends waiting SDUs in queue,
