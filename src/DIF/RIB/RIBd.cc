@@ -194,7 +194,7 @@ void RIBd::processMStart(CDAPMessage* msg) {
     if (dynamic_cast<CongestionDescriptor*>(object.objectVal)) {
         CongestionDescriptor* congdesc = (check_and_cast<CongestionDescriptor*>(object.objectVal))->dup();
         congdesc->getConnectionId().swapCepIds();
-        EV << "\n===========\n" << congdesc->getConnectionId().info();
+        EV << "\n===========\n" << congdesc->getConnectionId().str();
         signalizeCongestionNotification(congdesc);
         delete msg;
     }

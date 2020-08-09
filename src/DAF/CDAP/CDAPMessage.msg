@@ -145,7 +145,7 @@ struct object_t {
 enum headerBitLengths {        
     hdrInt32 	= 32;
     hdrFiltr	= 128;
-    hdrResult	= 132;
+    hdrResult	= 136;
     hdrAuth 	= 136;
     hdrNaming 	= 512;
 }

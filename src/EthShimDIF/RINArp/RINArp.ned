@@ -27,6 +27,7 @@ simple RINArp {
         double retryTimeout @unit("s") = default(1s);
         int retryCount = default(3);
         double cacheTimeout @unit("s") = default(120s);
+        string interfaceTableModule;
         @display("i=block/layer");
         @signal[sentRINArpReq](type=long);
         @signal[sentRINArpReply](type=long);
@@ -39,6 +40,6 @@ simple RINArp {
         @statistic[completedRINArpResolution](title="ARP resolutions completed"; record=count);
         @statistic[failedRINArpResolution](title="ARP resolutions failed"; record=count);
     gates:
-        input netwIn @labels(RINArpPacket+Ieee802Ctrl);
-        output netwOut @labels(RINArpPacket+Ieee802Ctrl);
+        input ifIn @labels(RINArpPacket+Ieee802Ctrl);
+        output ifOut @labels(RINArpPacket+Ieee802Ctrl);
 }

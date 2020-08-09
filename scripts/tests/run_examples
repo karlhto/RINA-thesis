@@ -13,7 +13,7 @@ set -euo pipefail
 
 RINA_ROOT=$(pwd)
 RINA_LIB=${RINA_ROOT}/policies/librinasim.so
-INET_ROOT=${RINA_ROOT}/../inet # the OMNeT++ way
+INET_ROOT=${RINA_ROOT}/../inet4 # the OMNeT++ way
 INET_LIB=${INET_ROOT}/src/libINET.so
 export NEDPATH=${INET_ROOT}/src/inet:${RINA_ROOT}
 

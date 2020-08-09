@@ -28,14 +28,11 @@ import rina.src.DAF.IRM.IPCResourceManager;
 import rina.src.DIF.IPCProcess;
 import rina.src.EthShimDIF.IPCProcessShim;
 
-import inet.networklayer.common.InterfaceTable;
-
 module Host1APShim
 {
     parameters:
         @display("i=device/pc;bgb=255,400");
         @networkNode;
-        *.interfaceTableModule = default(absPath(".interfaceTable"));
 
     gates:
         inout medium @loose;
@@ -59,11 +56,6 @@ module Host1APShim
 
         ipcResourceManager: IPCResourceManager {
             @display("p=133,141");
-        }
-
-        interfaceTable: InterfaceTable {
-            parameters:
-                @display("p=69.93,303.89334;is=s");
         }
 
     connections allowunconnected:
