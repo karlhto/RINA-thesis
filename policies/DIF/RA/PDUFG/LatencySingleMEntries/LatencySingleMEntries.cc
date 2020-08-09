@@ -3,15 +3,15 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 #include "DIF/RA/PDUFG/LatencySingleMEntries/LatencySingleMEntries.h"
 #include "Common/APN.h"
@@ -37,16 +37,16 @@ bool portMetric::operator < (const portMetric &other) const {
 void LatencySingleMEntries::insertedFlow(const Address &addr, const QoSCube &qos, RMTPort * port){
     string dst = addr.getIpcAddress().getName();
 
-    mType metric = qos.getDelay()/par("redLinkCost").longValue();
+    mType metric = qos.getDelay() / static_cast<long>(par("redLinkCost"));
 
-    if(metric < par("minLinkCost").longValue()) {
-        metric = par("minLinkCost").longValue();
-    } else if(metric > par("maxLinkCost").longValue()) {
-        metric = par("maxLinkCost").longValue();
+    if(metric < static_cast<long>(par("minLinkCost"))) {
+        metric = par("minLinkCost");
+    } else if(metric > static_cast<long>(par("maxLinkCost"))) {
+        metric = par("maxLinkCost");
     }
 
     if(qos.getQosId() == qos.MANAGEMENT.getQosId() || qos.getQosId() == VAL_UNDEF_QOSID) {
-        metric = par("maxLinkCost").longValue();
+        metric = par("maxLinkCost");
     }
 
     neighbours[dst].insert(portMetric(port, metric));
@@ -72,7 +72,7 @@ void LatencySingleMEntries::removedFlow(const Address &addr, const QoSCube& qos,
         neighbours.erase(dst);
         routingUpdated();
     } else {
-        unsigned short min = par("maxLinkCost").longValue();
+        unsigned short min = par("maxLinkCost");
         for(portMetric mt : neighbours[dst]) {
             if(min >= mt.metric) { min = mt.metric; }
         }
