@@ -23,37 +23,35 @@
 #pragma once
 
 #include <omnetpp.h>
-#include <queue>
 
 #include "Common/APN.h"
-#include "EthShimDIF/RINArp/RINArp.h"
-#include "inet/linklayer/common/MacAddress.h"
-#include "inet/networklayer/common/InterfaceEntry.h"
+
+#include "inet/common/InitStages.h"
 #include "inet/common/Protocol.h"
 
+// INET forward declarations (should be less overhead than including everything every time)
+namespace inet {
+    class Packet;
+    class MacAddress;
+    class InterfaceEntry;
+};
+
+class RINArp;
 class RINArpPacket;
 class ShimFA;
 class SDUData;
 
 /**
- * Implements the main element of the RINA ethernet shim DIF
+ * Implements the main element of the RINA Ethernet shim DIF
  */
 class EthShim : public cSimpleModule, public cListener
 {
   public:
     /// enum used for returning status of a create request
-    enum class CreateResult {
-        error,
-        pending,
-        completed
-    };
+    enum class CreateResult { error, pending, completed };
 
     /// enum used for recording the state of a connection
-    enum class ConnectionState {
-        none,
-        pending,
-        allocated
-    };
+    enum class ConnectionState { none, pending, allocated };
 
     /// Information required for connection with a remote system
     struct ConnectionEntry {
@@ -65,6 +63,7 @@ class EthShim : public cSimpleModule, public cListener
     };
 
     static const inet::Protocol rinaEthShim;
+    static const int rinaEthShimProtocolId;
 
   private:
     /// map containing connection states with remote systems
@@ -155,17 +154,21 @@ class EthShim : public cSimpleModule, public cListener
     /// Entry management
 
     /**
-     * @brief
+     * @brief Creates gates and bindings for an entry, and populates its gate pointers
+     * @param  entry  Entry to create gates for
+     * @param  portId Used as gate ID
+     * @return true if gates were successfully created, false otherwise
      */
     [[nodiscard]] bool createBindingsForEntry(ConnectionEntry &entry, const int portId);
 
     /**
-     * @brief
+     * @brief Removes gates and bindings for an entry
+     * @param  entry Entry to remove gates from
      */
     void removeBindingsForEntry(ConnectionEntry &entry);
 
 
-    /// cListener overrides, for ARP signals
+    /// cListener overrides and ARP signal handlers
 
     /**
      * @brief Retrieves `ArpNotification` objects, passing them to correct helper function
@@ -177,14 +180,20 @@ class EthShim : public cSimpleModule, public cListener
     void receiveSignal(cComponent *source, simsignal_t id, cObject *obj, cObject *details) override;
 
     /**
-     * @brief
+     * @brief Sends waiting outgoing packets or finishes flow allocation, based on entry state
+     * @param  entry Relevant connection entry
+     * @param  apn   Destination application name associated with the connection entry
+     * @param  mac   Destination MAC address of interface to reach
      */
-    void arpResolutionCompleted(const RINArp::ArpNotification *entry);
+    void arpResolutionCompleted(ConnectionEntry &entry,
+                                const APN &apn,
+                                const inet::MacAddress &mac);
 
     /**
-     * @brief
+     * @brief Handles a failed ARP resolve, removing connection entry and notifying Flow Allocator
+     * @param  apn Destination application name associated with a connection entry to be removed
      */
-    void arpResolutionFailed(const RINArp::ArpNotification *entry);
+    void arpResolutionFailed(const APN &apn);
 };
 
 std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionState &connectionState);

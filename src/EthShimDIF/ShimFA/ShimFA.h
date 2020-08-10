@@ -26,6 +26,7 @@
 
 #include "Common/QoSCube.h"
 #include "DIF/FA/FABase.h"
+
 #include "inet/common/InitStages.h"
 
 class ShimFAI;
@@ -45,10 +46,9 @@ class ShimFA : public FABase
     RINArp *arp = nullptr;
     EthShim *shim = nullptr;
 
-    // Only one flow necessary
     APN registeredApplication;  ///< apName of "registered" application
 
-    // TODO (karlhto): This should be entirely moved to ShimRA
+    // TODO (karlhto): This could be entirely moved to ShimRA?
     QoSCube qos;  ///< Unreliable stuff
   public:
     ShimFA();
@@ -62,14 +62,15 @@ class ShimFA : public FABase
     void deinstantiateFai(Flow *flow) override;
     bool createUpperFlow(const APN &apn);
 
+    /// Provided for compatibility ?
+    bool invokeNewFlowRequestPolicy(Flow *flow) override;
+
     /// These are all unused in shim layer, but still implemented as required by FABase
     bool receiveMgmtAllocateRequest(Flow *mgmtflow) override;
     bool receiveMgmtAllocateRequest(APNamingInfo src, APNamingInfo dst) override;
     bool receiveMgmtAllocateFinish(APNIPair *apnip) override;
     void receiveNM1FlowCreated(Flow *flow) override;
     bool receiveCreateFlowRequestFromRibd(Flow *flow) override;
-    bool invokeNewFlowRequestPolicy(Flow *flow) override;
-
     bool setOriginalAddresses(Flow *flow) override;
     bool setNeighborAddresses(Flow *flow) override;
 

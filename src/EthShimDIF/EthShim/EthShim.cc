@@ -21,26 +21,30 @@
 // THE SOFTWARE.
 
 #include "EthShimDIF/EthShim/EthShim.h"
+
 #include <algorithm>
 
 #include "Common/SDUData_m.h"
 #include "Common/Utils.h"
+#include "EthShimDIF/RINArp/RINArp.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
 #include "EthShimDIF/ShimFA/ShimFA.h"
+
 #include "inet/common/IProtocolRegistrationListener.h"
-#include "inet/common/ProtocolTag_m.h"
-#include "inet/common/ProtocolGroup.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/common/ProtocolGroup.h"
+#include "inet/common/ProtocolTag_m.h"
 #include "inet/common/packet/Packet.h"
 #include "inet/common/packet/chunk/cPacketChunk.h"
-#include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
 #include "inet/linklayer/ethernet/EtherFrame_m.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
 
 
 const inet::Protocol EthShim::rinaEthShim =
     inet::Protocol("rinaEthShim", "Ethernet shim layer for RINA");
+const int EthShim::rinaEthShimProtocolId = 0xD1F0; // Ethernet shim DIF ethertype
 
 Define_Module(EthShim);
 
@@ -67,12 +71,13 @@ void EthShim::initialize(int stage)
         if (ie == nullptr)
             throw cRuntimeError("Interface entry is required for shim module to work");
 
+        // Register the RINA Ethernet shim DIF ethertype, necessary for the Ethernet Interface
+        if (inet::ProtocolGroup::ethertype.findProtocol(rinaEthShimProtocolId) == nullptr)
+            inet::ProtocolGroup::ethertype.addProtocol(rinaEthShimProtocolId, &rinaEthShim);
+
         // Configure the message dispatcher for lower layers
         inet::registerService(rinaEthShim, nullptr, gate("ifIn"));
         inet::registerProtocol(rinaEthShim, gate("ifOut"), nullptr);
-
-        // 0xD1F0 is used as EtherType extension for the Ethernet shim DIF
-        inet::ProtocolGroup::ethertype.addProtocol(0xD1F0, &rinaEthShim);
     }
 }
 
@@ -220,14 +225,15 @@ void EthShim::removeBindingsForEntry(ConnectionEntry &entry)
     if (entry.inGate == nullptr)
         return;
 
-    const char *basename = entry.inGate->getBaseName();
-    if (ipcProcess->hasGate(basename)) {
-        cGate *ipcDownIn = ipcProcess->gateHalf(basename, cGate::INPUT);
+    const char *gate = entry.inGate->getBaseName();
+    if (ipcProcess->hasGate(gate)) {
+        cGate *ipcDownIn = ipcProcess->gateHalf(gate, cGate::INPUT);
         ipcDownIn->disconnect();
         entry.outGate->disconnect();
+        ipcProcess->deleteGate(gate);
     }
 
-    deleteGate(basename);
+    deleteGate(gate);
     entry.inGate = nullptr;
     entry.outGate = nullptr;
 }
@@ -268,7 +274,7 @@ EthShim::CreateResult EthShim::createEntry(const APN &dstApn)
     entry.state = ConnectionState::pending;
 
     EV_INFO << "Initiating ARP resolution for destination address " << dstApn << endl;
-    auto &mac = arp->resolveAddress(dstApn);
+    const auto &mac = arp->resolveAddress(dstApn);
     if (!mac.isUnspecified()) {
         EV_INFO << "ARP entry was found!" << endl;
         return CreateResult::completed;
@@ -285,7 +291,8 @@ void EthShim::deleteEntry(const APN &dstApn)
         return;
 
     removeBindingsForEntry(entry);
-    // Destructor of cPacketQueue will fix deletion of cPackets
+
+    // Destructor of cPacketQueue will handle deletion of cPackets
     connections.erase(dstApn);
 }
 
@@ -301,10 +308,18 @@ void EthShim::registerApplication(const APN &apni) const
 
 void EthShim::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
 {
+    RINArp::ArpNotification *notification = check_and_cast<RINArp::ArpNotification *>(obj);
+
+    const APN &apn = notification->getApName();
+    const inet::MacAddress &mac = notification->getMacAddress();
+    auto &entry = connections[apn];
+    if (entry.state == ConnectionState::none)
+        return;
+
     if (id == RINArp::completedRINArpResolutionSignal)
-        arpResolutionCompleted(check_and_cast<RINArp::ArpNotification *>(obj));
+        arpResolutionCompleted(entry, apn, mac);
     else if (id == RINArp::failedRINArpResolutionSignal)
-        arpResolutionFailed(check_and_cast<RINArp::ArpNotification *>(obj));
+        arpResolutionFailed(apn);
     else
         throw cRuntimeError("Unsubscribed signalID triggered receiveSignal");
 
@@ -313,14 +328,10 @@ void EthShim::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObje
     (void)detail;
 }
 
-void EthShim::arpResolutionCompleted(const RINArp::ArpNotification *notification)
+void EthShim::arpResolutionCompleted(ConnectionEntry &entry,
+                                     const APN &apn,
+                                     const inet::MacAddress &mac)
 {
-    const APN &apn = notification->getApName();
-    const inet::MacAddress &mac = notification->getMacAddress();
-    auto &entry = connections[apn];
-    if (entry.state == ConnectionState::none)
-        return;
-
     Enter_Method("arpResolutionCompleted(%s -> %s)", apn.c_str(), mac.str().c_str());
 
     if (entry.state == ConnectionState::pending) {
@@ -335,17 +346,17 @@ void EthShim::arpResolutionCompleted(const RINArp::ArpNotification *notification
     }
 }
 
-void EthShim::arpResolutionFailed(const RINArp::ArpNotification *notification)
+void EthShim::arpResolutionFailed(const APN &apn)
 {
-    const APN &apn = notification->getApName();
-    const inet::MacAddress &mac = notification->getMacAddress();
-    auto &entry = connections[apn];
-    if (entry.state == ConnectionState::none)
-        return;
+    Enter_Method("arpResolutionFailed(%s -> null)", apn.c_str());
 
-    Enter_Method("arpResolutionFailed(%s -> %s)", apn.c_str(), mac.str().c_str());
+    // 1. Erase connection
+    deleteEntry(apn);
 
-    //connections.erase(entry);
+    // 2. Tell ShimFA, which should tell N+1
+    //shimFA->de
+
+    // 3. Uh oh???
 }
 
 std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionState &connectionState)

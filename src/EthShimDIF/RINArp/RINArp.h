@@ -25,9 +25,13 @@
 #include <omnetpp.h>
 
 #include "Common/APN.h"
-#include "inet/common/packet/Packet.h"
+
 #include "inet/linklayer/common/MacAddress.h"
-#include "inet/networklayer/common/InterfaceEntry.h"
+
+namespace inet {
+    class Packet;
+    class InterfaceEntry;
+};
 
 class RINArpPacket;
 
