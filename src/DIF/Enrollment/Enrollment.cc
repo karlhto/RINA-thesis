@@ -695,17 +695,7 @@ void Enrollment::parseConfig(cXMLElement *config)
             continue;
         }
 
-        simtime_t cas;
-        try {
-            std::string::size_type idx;
-            cas = std::stod(timeAttr, &idx);
-            if (idx < strlen(timeAttr)) {
-                throw std::invalid_argument("");
-            }
-        } catch (std::invalid_argument &e) {
-            throw cRuntimeError("Invalid time value in tag %s: %s", m->getName(), timeAttr);
-        }
-
+        simtime_t cas = SimTime::parse(timeAttr);
         const auto &connections = m->getChildrenByTagName(ELEM_CONNECT);
         if (!connections.empty()) {
             preConnects[cas] = new NameQueue;

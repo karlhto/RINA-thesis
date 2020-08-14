@@ -212,7 +212,7 @@ void RA::initFlowAlloc()
 
     for (auto const m : timeMap)
     {
-        simtime_t time = static_cast<simtime_t>(atoi(m->getAttribute("t")));
+        simtime_t time = SimTime::parse(m->getAttribute("t"));
         const cXMLElementList& connMap = m->getChildrenByTagName("Connection");
 
         for (auto const n : connMap)
