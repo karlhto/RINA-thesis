@@ -51,11 +51,16 @@ class EthShim : public cSimpleModule, public cListener
     enum class CreateResult { error, pending, completed };
 
     /// enum used for recording the state of a connection
-    enum class ConnectionState { none, pending, allocated };
+    enum class ConnectionState {
+        null,
+        initiatorAllocatePending,
+        recipientAllocatePending,
+        allocated
+    };
 
     /// Information required for connection with a remote system
     struct ConnectionEntry {
-        ConnectionState state = ConnectionState::none;
+        ConnectionState state = ConnectionState::null;
         cGate *inGate = nullptr;
         cGate *outGate = nullptr;
         cPacketQueue outQueue = cPacketQueue("Queue for outgoing packets");

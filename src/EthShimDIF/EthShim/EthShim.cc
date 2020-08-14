@@ -110,7 +110,7 @@ void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
     if (mac.isUnspecified()) {
         // This means that resolution has started
         ConnectionEntry &entry = iter->second;
-        ASSERT(entry.state != ConnectionState::none);
+        ASSERT(entry.state != ConnectionState::null);
         entry.outQueue.insert(sdu);
         return;
     }
@@ -139,16 +139,16 @@ void EthShim::handleIncomingSDU(inet::Packet *packet)
     EV_INFO << "SDU is from application with name " << srcApn << endl;
 
     auto &entry = connections[srcApn];
-    if (entry.state == ConnectionState::none) {
+    if (entry.state == ConnectionState::null) {
         EV_INFO << "No connection entry with destination application name " << srcApn
                 << ". Creating a new one and passing request to Flow Allocator." << endl;
-        entry.state = ConnectionState::pending;
+        entry.state = ConnectionState::recipientAllocatePending;
         entry.inQueue.insert(sdu);
         shimFA->createUpperFlow(srcApn);
         return;
     }
 
-    if (entry.state == ConnectionState::pending) {
+    if (entry.state != ConnectionState::allocated) {
         EV_INFO << "Connection with application " << srcApn
                 << " is still pending, SDU inserted into queue." << endl;
         entry.inQueue.insert(sdu);
@@ -190,7 +190,8 @@ void EthShim::sendWaitingIncomingSDUs(const APN &srcApn)
 bool EthShim::createBindingsForEntry(ConnectionEntry &entry, const int portId)
 {
     ASSERT(portId >= 0 && portId < ShimFA::MAX_PORTID);
-    ASSERT(entry.state == ConnectionState::pending);
+    ASSERT(entry.state == ConnectionState::initiatorAllocatePending ||
+           entry.state == ConnectionState::recipientAllocatePending);
 
     std::ostringstream gateName;
     gateName << GATE_NORTHIO_ << portId;
@@ -242,7 +243,8 @@ bool EthShim::finalizeConnection(const APN &dstApn, const int portId)
 {
     Enter_Method("finalizeConnection(%s, %d)", dstApn.c_str(), portId);
     auto &entry = connections[dstApn];
-    if (entry.state != ConnectionState::pending) {
+    if (entry.state != ConnectionState::initiatorAllocatePending &&
+        entry.state != ConnectionState::recipientAllocatePending) {
         EV_ERROR << "Connection entry for destination application with name " << dstApn
                  << " cannot be finalized since state is not pending. Current state is: "
                  << entry.state << endl;
@@ -266,12 +268,12 @@ EthShim::CreateResult EthShim::createEntry(const APN &dstApn)
 {
     Enter_Method("createEntry(%s)", dstApn.c_str());
     auto &entry = connections[dstApn];
-    if (entry.state != ConnectionState::none) {
+    if (entry.state != ConnectionState::null) {
         EV_ERROR << "ConnectionEntry already exists, something has probably gone wrong" << endl;
         return CreateResult::error;
     }
 
-    entry.state = ConnectionState::pending;
+    entry.state = ConnectionState::initiatorAllocatePending;
 
     EV_INFO << "Initiating ARP resolution for destination address " << dstApn << endl;
     const auto &mac = arp->resolveAddress(dstApn);
@@ -287,7 +289,7 @@ void EthShim::deleteEntry(const APN &dstApn)
 {
     Enter_Method("deleteEntry(%s)", dstApn.c_str());
     auto &entry = connections[dstApn];
-    if (entry.state == ConnectionState::none)
+    if (entry.state == ConnectionState::null)
         return;
 
     removeBindingsForEntry(entry);
@@ -313,7 +315,8 @@ void EthShim::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObje
     const APN &apn = notification->getApName();
     const inet::MacAddress &mac = notification->getMacAddress();
     auto &entry = connections[apn];
-    if (entry.state == ConnectionState::none)
+    if (entry.state == ConnectionState::null ||
+        entry.state == ConnectionState::recipientAllocatePending)
         return;
 
     if (id == RINArp::completedRINArpResolutionSignal)
@@ -334,7 +337,7 @@ void EthShim::arpResolutionCompleted(ConnectionEntry &entry,
 {
     Enter_Method("arpResolutionCompleted(%s -> %s)", apn.c_str(), mac.str().c_str());
 
-    if (entry.state == ConnectionState::pending) {
+    if (entry.state == ConnectionState::initiatorAllocatePending) {
         shimFA->completedAddressResolution(apn);
         return;
     }
@@ -353,21 +356,22 @@ void EthShim::arpResolutionFailed(const APN &apn)
     // 1. Erase connection
     deleteEntry(apn);
 
-    // 2. Tell ShimFA, which should tell N+1
-    //shimFA->de
-
-    // 3. Uh oh???
+    // 2. Tell ShimFA, which should tell N+1 (or maybe we should let shimFA handle entry deletion?
+    shimFA->failedAddressResolution(apn);
 }
 
 std::ostream &operator<<(std::ostream &os, const EthShim::ConnectionState &connectionState)
 {
-    // No default case so warning will be supplied if someone ever changes ConnectionState
+    // No default case so warning will be supplied if this switch is not exhaustive
     switch (connectionState) {
-    case EthShim::ConnectionState::none:
-        os << "NONE";
+    case EthShim::ConnectionState::null:
+        os << "NULL";
         break;
-    case EthShim::ConnectionState::pending:
-        os << "PENDING";
+    case EthShim::ConnectionState::initiatorAllocatePending:
+        os << "INITIATOR ALLOCATE PENDING";
+        break;
+    case EthShim::ConnectionState::recipientAllocatePending:
+        os << "RECIPIENT ALLOCATE PENDING";
         break;
     case EthShim::ConnectionState::allocated:
         os << "ALLOCATED";
