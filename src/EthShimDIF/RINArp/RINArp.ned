@@ -27,7 +27,6 @@ simple RINArp {
         double retryTimeout @unit("s") = default(1s);
         int retryCount = default(3);
         double cacheTimeout @unit("s") = default(120s);
-        string interfaceTableModule;
         @display("i=block/layer");
         @signal[sentRINArpReq](type=long);
         @signal[sentRINArpReply](type=long);

@@ -22,7 +22,9 @@
 
 #include "EthShimDIF/RINArp/RINArp.h"
 
+#include "Common/Utils.h"
 #include "EthShimDIF/RINArp/RINArpPacket_m.h"
+
 #include "inet/common/packet/Packet.h"
 #include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/ProtocolTag_m.h"
@@ -30,6 +32,7 @@
 #include "inet/common/ModuleAccess.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
 #include "inet/linklayer/ethernet/EtherFrame_m.h"
+
 
 Define_Module(RINArp);
 Register_Abstract_Class(RINArp::ArpNotification);
@@ -60,6 +63,8 @@ void RINArp::initialize(int stage)
     cSimpleModule::initialize(stage);
 
     if (stage == inet::INITSTAGE_LOCAL) {
+        eth = getRINAModule<inet::InterfaceEntry *>(this, 1, {"eth"});
+
         retryTimeout = par("retryTimeout");
         retryCount = par("retryCount");
         cacheTimeout = par("cacheTimeout");
@@ -69,13 +74,6 @@ void RINArp::initialize(int stage)
         WATCH(numRequestsSent);
         WATCH(numRepliesSent);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
-        cModule *ipcProcess = getParentModule();
-        auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
-        cModule *eth = ipcProcess->getModuleByPath(".eth");
-        ie = ift->findInterfaceByInterfaceModule(eth);
-        if (ie == nullptr)
-            throw cRuntimeError("Interface entry is required for shim module to work");
-
         inet::registerService(inet::Protocol::arp, nullptr, gate("ifIn"));
         inet::registerProtocol(inet::Protocol::arp, gate("ifOut"), nullptr);
     }
@@ -239,7 +237,7 @@ void RINArp::sendArpRequest(const APN &dstApn)
     inet::Packet *packet = new inet::Packet("arpREQ");
     packet->insertAtFront(arp);
     packet->addTag<inet::MacAddressReq>()->setDestAddress(inet::MacAddress::BROADCAST_ADDRESS);
-    packet->addTag<inet::InterfaceReq>()->setInterfaceId(ie->getInterfaceId());
+    packet->addTag<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
     packet->addTag<inet::PacketProtocolTag>()->setProtocol(&inet::Protocol::arp);
 
     EV_INFO << "Sending " << packet << " to network." << endl;
@@ -310,7 +308,7 @@ void RINArp::processArpPacket(inet::Packet *packet)
             inet::Packet *outPacket = new inet::Packet("arpReply");
             outPacket->insertAtFront(arpReply);
             outPacket->addTag<inet::MacAddressReq>()->setDestAddress(srcMac);
-            outPacket->addTag<inet::InterfaceReq>()->setInterfaceId(ie->getInterfaceId());
+            outPacket->addTag<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
             outPacket->addTag<inet::PacketProtocolTag>()->setProtocol(&inet::Protocol::arp);
 
             EV_INFO << "Sending " << outPacket << " to network protocol." << endl;

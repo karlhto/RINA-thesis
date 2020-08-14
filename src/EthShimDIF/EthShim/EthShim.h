@@ -78,7 +78,7 @@ class EthShim : public cSimpleModule, public cListener
     cModule *ipcProcess = nullptr;
     RINArp *arp = nullptr;
     ShimFA *shimFA = nullptr;
-    inet::InterfaceEntry *ie = nullptr;
+    inet::InterfaceEntry *eth = nullptr;
 
     /// Statistics
     long numSentToNetwork = 0;

@@ -104,8 +104,8 @@ class RINArp : public cSimpleModule
     ArpCache arpCache;
     std::pair<APN, ArpCacheEntry *> thisHost;  ///< Naming information for this host
 
-    /// Interface entry of bound interface
-    inet::InterfaceEntry *ie;
+    /// Bound Ethernet interface
+    inet::InterfaceEntry *eth;
 
   public:
     RINArp() = default;

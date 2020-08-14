@@ -31,15 +31,13 @@
 #include "EthShimDIF/ShimFA/ShimFA.h"
 
 #include "inet/common/IProtocolRegistrationListener.h"
-#include "inet/common/ModuleAccess.h"
 #include "inet/common/ProtocolGroup.h"
 #include "inet/common/ProtocolTag_m.h"
 #include "inet/common/packet/Packet.h"
 #include "inet/common/packet/chunk/cPacketChunk.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
-#include "inet/linklayer/ethernet/EtherFrame_m.h"
-#include "inet/networklayer/contract/IInterfaceTable.h"
+#include "inet/networklayer/common/InterfaceEntry.h"
 
 
 const inet::Protocol EthShim::rinaEthShim =
@@ -54,8 +52,14 @@ void EthShim::initialize(int stage)
 
     if (stage == inet::INITSTAGE_LOCAL) {
         ipcProcess = getParentModule();
-        arp = getRINAModule<RINArp *>(this, 1, {"arp"});
         shimFA = getRINAModule<ShimFA *>(this, 1, {MOD_FLOWALLOC, MOD_FA});
+        // TODO karlhto: maybe change, kind of a dirty way of doing this (use parameters instead?)
+        arp = getRINAModule<RINArp *>(this, 1, {"arp"});
+        eth = getRINAModule<inet::InterfaceEntry *>(this, 1, {"eth"});
+
+        // For tidiness, this would normally be -1 which could lead to confusion.
+        // TODO karlhto: consider setting to IPC address so that's used for something
+        eth->setInterfaceId(0);
 
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
@@ -64,13 +68,6 @@ void EthShim::initialize(int stage)
         WATCH(numReceivedFromNetwork);
         WATCH_MAP(connections);
     } else if (stage == inet::INITSTAGE_NETWORK_LAYER) {
-        // Get correct interface entry
-        auto ift = inet::getModuleFromPar<inet::IInterfaceTable>(par("interfaceTableModule"), this);
-        cModule *eth = ipcProcess->getModuleByPath(".eth");
-        ie = ift->findInterfaceByInterfaceModule(eth);
-        if (ie == nullptr)
-            throw cRuntimeError("Interface entry is required for shim module to work");
-
         // Register the RINA Ethernet shim DIF ethertype, necessary for the Ethernet Interface
         if (inet::ProtocolGroup::ethertype.findProtocol(rinaEthShimProtocolId) == nullptr)
             inet::ProtocolGroup::ethertype.addProtocol(rinaEthShimProtocolId, &rinaEthShim);
@@ -163,12 +160,12 @@ void EthShim::sendSDUToNIC(SDUData *sdu, const inet::MacAddress &dstMac)
 {
     EV_INFO << "Sending " << sdu << " to ethernet interface." << endl;
 
-    // cPacketChunk for compatibility with the old cPacket API, which RINA uses
+    // cPacketChunk for compatibility with the "old" OMNeT++ cPacket API, which RINA uses
     auto sduWrapper = inet::makeShared<inet::cPacketChunk>(sdu);
     inet::Packet *packet = new inet::Packet("SDUData");
     packet->insertAtFront(sduWrapper);
     packet->addTag<inet::MacAddressReq>()->setDestAddress(dstMac);
-    packet->addTagIfAbsent<inet::InterfaceReq>()->setInterfaceId(ie->getInterfaceId());
+    packet->addTagIfAbsent<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
     packet->addTagIfAbsent<inet::PacketProtocolTag>()->setProtocol(&rinaEthShim);
     numSentToNetwork++;
     send(packet, "ifOut");
@@ -304,7 +301,7 @@ void EthShim::registerApplication(const APN &apni) const
     EV_INFO << "Received request to register application name " << apni << " with Arp module."
             << endl;
 
-    inet::MacAddress mac = ie->getMacAddress();
+    inet::MacAddress mac = eth->getMacAddress();
     arp->addStaticEntry(mac, apni);
 }
 

@@ -25,11 +25,8 @@ package rina.src.EthShimDIF.EthShim;
 simple EthShim
 {
     parameters:
-        string interfaceTableModule;
         @display("i=block/routing");
     gates:
-        input arpIn;
-        output arpOut;
         input ifIn;
         output ifOut;
 }
