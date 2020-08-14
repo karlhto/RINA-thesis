@@ -8,6 +8,8 @@
 
 Define_Module(ShimFAI);
 
+// The N+1 IPCP expects a response from this IPCP's RIBd instead of from the Flow Allocator that
+// it specifically requested a flow from for some reason, so we have to emit that signal.
 const simsignal_t ShimFAI::ribdCreateFlowResponsePositive =
     registerSignal(SIG_RIBD_CreateFlowResponsePositive);
 
@@ -68,7 +70,7 @@ bool ShimFAI::receiveCreateResponseNegative()
 
 bool ShimFAI::receiveAllocateResponsePositive()
 {
-    Enter_Method("receiveCreateResponsePositive()");
+    Enter_Method("receiveAllocateResponsePositive()");
     EV << "Received positive allocation response! Sending pending SDUs" << endl;
     NFlowTable *nft = fa->getNFlowTable();
     NFlowTableEntry *nfte = nft->findEntryByFlow(flow);
@@ -91,7 +93,7 @@ bool ShimFAI::receiveAllocateResponsePositive()
 
 void ShimFAI::receiveAllocateResponseNegative()
 {
-    // TODO (karlhto): Remove this entry, cancel ethshim entry, etc.
+    Enter_Method("receiveAllocateResponseNegative()");
 }
 
 

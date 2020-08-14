@@ -41,6 +41,7 @@ class RINArp;
 class ShimFA : public FABase
 {
   private:
+    /// Pointers to important modules
     cModule *shimIpcProcess = nullptr;
     cModule *connectedApplication = nullptr;
     RINArp *arp = nullptr;
@@ -54,12 +55,47 @@ class ShimFA : public FABase
     ShimFA();
     ~ShimFA() override;
 
-    /** @brief Attempts to initialise new flow */
+    /**
+     * @brief Attempts to initialise a new flow
+     * @param  flow A flow object pre-populated with destination and source APNIs and QoSReq
+     * @return true if FA instance created and connection entry was either created or pending,
+     *         false if creation of instance or connection entry fails
+     */
     bool receiveAllocateRequest(Flow *flow) override;
+
+    /**
+     * @brief Attempts to deallocate a new flow
+     * @param  flow The flow object corresponding with a Flow Allocator Instance
+     * @return true if flow was successfully deallocated, false otherwise
+     */
     bool receiveDeallocateRequest(Flow *flow) override;
+
+    /**
+     * @brief Finalises a pending connection and sends a positive allocation response to N+1 IPCP
+     * @param  apn Application name associated with destination application of a flow table entry
+     */
     void completedAddressResolution(const APN &apn);
+
+    /**
+     * @brief Cancels a pending flow or deallocates an allocated flow
+     * @param  apn Application name associated with destination application of a flow table entry
+     */
     void failedAddressResolution(const APN &apn);
+
+    /**
+     * @brief Deallocates a FAI and removes the corresponding flow and connection entry
+     * @param  flow Flow corresponding to the FAI and connection entry (in shim module)
+     */
     void deinstantiateFai(Flow *flow) override;
+
+    /**
+     * @brief Attempts to allocate a flow from NM1 IPCP
+     *
+     * Called when a frame from an unknown host arrives at the shim module.
+     *
+     * @param  apn Application name of the connection source
+     * @return true if a flow allocator instance is successfully created, false otherwise
+     */
     bool createUpperFlow(const APN &apn);
 
     /// Provided for compatibility ?
@@ -75,15 +111,6 @@ class ShimFA : public FABase
     bool setNeighborAddresses(Flow *flow) override;
 
   private:
-    /** @brief Initialises the QoS cube with parameters from ethernet interface */
-    void initQoS();
-
-    void setRegisteredApName();
-
-    bool allocatePort(Flow *flow);
-    void createBindings(int portID);
-    void deleteBindings();
-
     ShimFAI *createFAI(Flow *flow);
 
     /// SimpleModule overrides

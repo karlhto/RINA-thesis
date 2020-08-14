@@ -72,32 +72,16 @@ void ShimFA::initialize(int stage)
                 "Shim IPC process not connected to overlying IPC/Application Process");
     } else if (stage == inet::INITSTAGE_TRANSPORT_LAYER) {
         // Needs to be done in initialisation phase since registration is implicit in RINASim.
-        // TODO (karlhto): look for alternative function
-        setRegisteredApName();
+        registeredApplication = APN(connectedApplication->par("apName").stringValue());
 
-        // FIXME: Should probably add an API call to formally register application
         // Registers application with static entry in Arp, needs to be called after stage 0 to
         // guarantee allocation of MAC address
         shim->registerApplication(registeredApplication);
-
-        initQoS();
     }
-}
-
-void ShimFA::setRegisteredApName()
-{
-    std::string name = connectedApplication->par("apName").stringValue();
-    registeredApplication = APN(name);
-}
-
-void ShimFA::initQoS()
-{
 }
 
 void ShimFA::handleMessage(cMessage *msg)
 {
-    if (msg->isSelfMessage() && opp_strcmp(msg->getName(), TIM_FAPENDFLOWS) == 0) {
-    }
     // self message is the only valid message here
     delete msg;
 }
@@ -136,6 +120,12 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
        << flow->getDstApni().getApn() << endl;
 
     const auto &apName = flow->getDstApni().getApn();
+
+    // If an entry already exists for specified application, use that
+    // NOTE: this creates problems with the current implementation of flow allocation, since the
+    // resource allocator of the N+1 IPCP will have checked the existence of a satisfactory flow
+    // already. With other words, we are essentially forced to make sure that the N+1 IPCP asks
+    // for the very same QoS cube that the shim IPCP supports.
     auto nft = nFlowTable->findEntryByApnisAndQosId(registeredApplication, apName, qos.getQosId());
     if (nft != nullptr) {
         auto *fai = static_cast<ShimFAI *>(nft->getFai());
@@ -158,9 +148,6 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
     nFlowTable->setFaiToFlow(fai, flow);
     nFlowTable->changeAllocStatus(flow, NFlowTableEntry::ALLOC_PEND);
 
-    // TODO implement some form of QoS checking - should be done in a shim RA
-    // validateQosRequirements(flow);
-
     if (result == EthShim::CreateResult::completed)
         return fai->receiveAllocateRequest();
 
@@ -169,16 +156,15 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
 
 bool ShimFA::receiveDeallocateRequest(Flow *flow)
 {
-    (void)flow;
     Enter_Method("receiveDeallocateRequest()");
     EV << "Received deallocation request for flow with destination APN " << endl;
 
-    // fai->receiveDeallocateRequest();
+    auto *entry = nFlowTable->findEntryByFlow(flow);
+    if (entry == nullptr)
+        return false;
 
-    // Check state of FAI
-    // remove bindings
-
-    return false;
+    deinstantiateFai(flow);
+    return true;
 }
 
 void ShimFA::completedAddressResolution(const APN &dstApn)
@@ -203,14 +189,12 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
 void ShimFA::failedAddressResolution(const APN &dstApn)
 {
     Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
-    auto nft =
+    auto *entry =
         nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
-    auto *fai = static_cast<ShimFAI *>(nft->getFai());
-    fai->receiveDeallocateRequest();
-    // something something FAI stop createresponsenegative
+    deinstantiateFai(entry->getFlow());
 }
 
-auto ShimFA::createFAI(Flow *flow) -> ShimFAI *
+ShimFAI *ShimFA::createFAI(Flow *flow)
 {
     cModuleType *type = cModuleType::get("rina.src.EthShimDIF.ShimFA.ShimFAI");
     unsigned int portId = intrand(MAX_PORTID, RANDOM_NUMBER_GENERATOR);
@@ -235,6 +219,17 @@ auto ShimFA::createFAI(Flow *flow) -> ShimFAI *
     return fai;
 }
 
+void ShimFA::deinstantiateFai(Flow *flow)
+{
+    // Might be kind of redundant to find entry _again_ but whatever, we're trying to comply with
+    // the FABase API
+    auto *entry = nFlowTable->findEntryByFlow(flow);
+    ShimFAI *fai = static_cast<ShimFAI *>(entry->getFai());
+
+    // This should honestly have some return value
+    fai->receiveDeallocateRequest();
+}
+
 // Not sure what to do with this function as of yet. This is called by upper
 // layer, but not checked. It's possible at least a subset of the flow
 // allocation policies should be implemented
@@ -243,6 +238,8 @@ bool ShimFA::invokeNewFlowRequestPolicy(Flow *)
     return true;
 }
 
+/* Mandatory but unused function definitions due to FABase (most of these are _very_ specific
+ * to the normal IPCP FA, so should probably exclusively belong there) */
 bool ShimFA::setOriginalAddresses(Flow *)
 {
     return false;
@@ -253,20 +250,6 @@ bool ShimFA::setNeighborAddresses(Flow *)
     return false;
 }
 
-bool ShimFA::allocatePort(Flow *)
-{
-    return false;
-}
-
-void ShimFA::createBindings(int)
-{
-}
-
-void ShimFA::deleteBindings()
-{
-}
-
-/* Mandatory function implementations */
 bool ShimFA::receiveMgmtAllocateRequest(Flow *)
 {
     throw cRuntimeError("ShimFA does not support creation of management flows");
@@ -284,15 +267,10 @@ bool ShimFA::receiveMgmtAllocateFinish(APNIPair *)
 
 void ShimFA::receiveNM1FlowCreated(Flow *)
 {
-    throw cRuntimeError("ShimFA should not be on medium");
+    throw cRuntimeError("ShimFA should be on medium, no NM1 flow possible");
 }
 
 bool ShimFA::receiveCreateFlowRequestFromRibd(Flow *)
 {
     throw cRuntimeError("ShimFA should not need to communicate with RIBd");
-}
-
-void ShimFA::deinstantiateFai(Flow *)
-{
-    throw cRuntimeError("ShimFA should not utilise FAI");
 }

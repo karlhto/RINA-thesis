@@ -29,7 +29,6 @@ import rina.src.EthShimDIF.RINArp.RINArp;
 
 import inet.common.MessageDispatcher;
 import inet.linklayer.contract.IEthernetInterface;
-import inet.networklayer.common.InterfaceTable;
 
 module IPCProcessShim
 {
@@ -38,7 +37,6 @@ module IPCProcessShim
         string ipcAddress;
         string difName;
         string apName = default(ipcAddress + "_" + difName);
-        *.interfaceTableModule = default(absPath(".interfaceTable"));
 
     gates:
         inout northIo;
@@ -69,11 +67,6 @@ module IPCProcessShim
                 @display("p=201,184;b=200,5,,,,1");
         }
 
-        interfaceTable: InterfaceTable {
-            parameters:
-                @display("p=320,232;is=s");
-        }
-
         eth: <default("EthernetInterface")> like IEthernetInterface {
             parameters:
                 @display("p=201,240,row,60;q=txQueue");
@@ -82,6 +75,8 @@ module IPCProcessShim
                 // Ieee8021qEncap when initialised.
                 qEncap.inboundVlanIdMap = difName + " -1";
                 qEncap.outboundVlanIdMap = "-1 " + difName;
+                // Explicitly set, we don't need to register this
+                interfaceTableModule = "";
         }
 
     connections allowunconnected:
