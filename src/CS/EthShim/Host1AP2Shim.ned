@@ -20,27 +20,51 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.examples.Basics.SimpleRelayShim;
+package rina.src.CS.EthShim;
 
-import ned.DatarateChannel;
-import rina.src.CS.EthShim.Host1APShim;
-import rina.src.CS.EthShim.InteriorRouter2IntShim;
+import rina.src.DAF.ApplicationProcess;
+import rina.src.DAF.DA.DIFAllocator;
+import rina.src.DAF.IRM.IPCResourceManager;
+import rina.src.DIF.IPCProcess;
+import rina.src.EthShimDIF.IPCProcessShim;
 
-
-network SimpleRelayShim
+module Host1AP2Shim
 {
-    @display("bgb=368,202");
+    parameters:
+        @display("i=device/pc;bgb=255,400");
+        @networkNode;
+
+    gates:
+        inout medium[2] @loose;
+
     submodules:
-        host1: Host1APShim {
-            @display("p=70,101");
+        applicationProcess1: ApplicationProcess {
+            @display("p=70,56");
         }
-        interiorRouter: InteriorRouter2IntShim {
-            @display("p=180,101");
+
+        difAllocator: DIFAllocator {
+            @display("p=210,56");
         }
-        host2: Host1APShim {
-            @display("p=290,101");
+
+        ipcProcessShim0: IPCProcessShim {
+            @display("p=132.95334,303.89334");
         }
+
+        ipcProcessShim1: IPCProcessShim {
+            @display("p=132.95334,303.89334");
+        }
+
+        ipcProcess1: IPCProcess {
+            @display("p=133,241");
+        }
+
+        ipcResourceManager: IPCResourceManager {
+            @display("p=133,141");
+        }
+
     connections allowunconnected:
-        host1.medium  <--> DatarateChannel {datarate = 100Mbps; delay = 100us; ber = 0; } <--> interiorRouter.medium++;
-        host2.medium  <--> DatarateChannel {datarate = 100Mbps; delay = 100us; ber = 0; } <--> interiorRouter.medium++;
+        ipcProcessShim0.northIo <--> ipcProcess1.southIo++;
+        ipcProcessShim1.northIo <--> ipcProcess1.southIo++;
+        ipcProcessShim0.phys <--> medium[0];
+        ipcProcessShim1.phys <--> medium[1];
 }

@@ -20,27 +20,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.examples.Basics.Shim;
+package rina.examples.Shim.SwitchShim;
 
-import ned.DatarateChannel;
 import rina.src.CS.EthShim.Host1APShim;
 
+import inet.node.ethernet.Eth100M;
+import inet.node.ethernet.EtherSwitch;
 
-network Shim
+
+network SwitchShim
 {
-    types:
-        channel ethline extends DatarateChannel
-        {
-            delay = 50ns;
-            datarate = 100Mbps;
-        }
+    @display("bgb=586,372");
     submodules:
         host1: Host1APShim {
-            @display("p=82,92");
+            @display("p=92,83");
         }
         host2: Host1APShim {
-            @display("p=231,92");
+            @display("p=92,252");
         }
-    connections allowunconnected:
-        host1.medium <--> ethline <--> host2.medium;
+        host3: Host1APShim {
+            @display("p=275,83");
+        }
+        switch: EtherSwitch {
+            @display("p=166,165");
+        }
+
+    connections:
+        switch.ethg++ <--> Eth100M <--> host1.medium;
+        switch.ethg++ <--> Eth100M <--> host2.medium;
+        switch.ethg++ <--> Eth100M <--> host3.medium;
 }

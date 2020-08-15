@@ -20,33 +20,53 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.examples.Basics.SwitchShim;
+package rina.examples.Shim.SimpleNetworkShim;
 
 import rina.src.CS.EthShim.Host1APShim;
+import rina.src.CS.EthShim.InteriorRouter2IntShim;
 
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.EtherSwitch;
 
 
-network SwitchShim
+network SimpleNetworkShim
 {
-    @display("bgb=586,372");
+    @display("bgb=492,282");
     submodules:
-        host1: Host1APShim {
-            @display("p=92,83");
+        host11: Host1APShim {
+            @display("p=64,62");
         }
-        host2: Host1APShim {
-            @display("p=92,252");
+        host12: Host1APShim {
+            @display("p=64,123");
         }
-        host3: Host1APShim {
-            @display("p=275,83");
+        host13: Host1APShim {
+            @display("p=64,187");
         }
-        switch: EtherSwitch {
-            @display("p=166,165");
+        switch1: EtherSwitch {
+            @display("p=151,122");
         }
-
-    connections:
-        switch.ethg++ <--> Eth100M <--> host1.medium;
-        switch.ethg++ <--> Eth100M <--> host2.medium;
-        switch.ethg++ <--> Eth100M <--> host3.medium;
+        interiorRouter: InteriorRouter2IntShim {
+            @display("p=250,123");
+        }
+        switch2: EtherSwitch {
+            @display("p=349,122");
+        }
+        host21: Host1APShim {
+            @display("p=441,62");
+        }
+        host22: Host1APShim {
+            @display("p=441,123");
+        }
+        host23: Host1APShim {
+            @display("p=441,187");
+        }
+    connections allowunconnected:
+        host11.medium <--> Eth100M <--> switch1.ethg++;
+        host12.medium <--> Eth100M <--> switch1.ethg++;
+        host13.medium <--> Eth100M <--> switch1.ethg++;
+        interiorRouter.medium++ <--> Eth100M <--> switch1.ethg++;
+        interiorRouter.medium++ <--> Eth100M <--> switch2.ethg++;
+        host21.medium <--> Eth100M <--> switch2.ethg++;
+        host22.medium <--> Eth100M <--> switch2.ethg++;
+        host23.medium <--> Eth100M <--> switch2.ethg++;
 }

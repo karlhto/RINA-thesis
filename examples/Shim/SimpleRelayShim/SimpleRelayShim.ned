@@ -20,53 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.examples.Basics.SimpleNetworkShim;
+package rina.examples.Shim.SimpleRelayShim;
 
+import ned.DatarateChannel;
 import rina.src.CS.EthShim.Host1APShim;
 import rina.src.CS.EthShim.InteriorRouter2IntShim;
 
-import inet.node.ethernet.Eth100M;
-import inet.node.ethernet.EtherSwitch;
 
-
-network SimpleNetworkShim
+network SimpleRelayShim
 {
-    @display("bgb=492,282");
+    @display("bgb=368,202");
     submodules:
-        host11: Host1APShim {
-            @display("p=64,62");
-        }
-        host12: Host1APShim {
-            @display("p=64,123");
-        }
-        host13: Host1APShim {
-            @display("p=64,187");
-        }
-        switch1: EtherSwitch {
-            @display("p=151,122");
+        host1: Host1APShim {
+            @display("p=70,101");
         }
         interiorRouter: InteriorRouter2IntShim {
-            @display("p=250,123");
+            @display("p=180,101");
         }
-        switch2: EtherSwitch {
-            @display("p=349,122");
-        }
-        host21: Host1APShim {
-            @display("p=441,62");
-        }
-        host22: Host1APShim {
-            @display("p=441,123");
-        }
-        host23: Host1APShim {
-            @display("p=441,187");
+        host2: Host1APShim {
+            @display("p=290,101");
         }
     connections allowunconnected:
-        host11.medium <--> Eth100M <--> switch1.ethg++;
-        host12.medium <--> Eth100M <--> switch1.ethg++;
-        host13.medium <--> Eth100M <--> switch1.ethg++;
-        interiorRouter.medium++ <--> Eth100M <--> switch1.ethg++;
-        interiorRouter.medium++ <--> Eth100M <--> switch2.ethg++;
-        host21.medium <--> Eth100M <--> switch2.ethg++;
-        host22.medium <--> Eth100M <--> switch2.ethg++;
-        host23.medium <--> Eth100M <--> switch2.ethg++;
+        host1.medium  <--> DatarateChannel {datarate = 100Mbps; delay = 100us; ber = 0; } <--> interiorRouter.medium++;
+        host2.medium  <--> DatarateChannel {datarate = 100Mbps; delay = 100us; ber = 0; } <--> interiorRouter.medium++;
 }
