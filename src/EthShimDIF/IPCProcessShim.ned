@@ -71,11 +71,9 @@ module IPCProcessShim
             parameters:
                 @display("p=201,240,row,60;q=txQueue");
                 qEncap.typename = "Ieee8021qEncap";
-                // Ignore warnings about parameters not existing, these are part of
-                // Ieee8021qEncap when initialised.
-                qEncap.inboundVlanIdMap = difName + " -1";
-                qEncap.outboundVlanIdMap = "-1 " + difName;
-                // Explicitly set, we don't need to register this
+                qEncap.inboundVlanIdFilter = difName;
+                qEncap.outboundVlanIdFilter = difName;
+                // Explicitly set this to empty
                 interfaceTableModule = "";
         }
 

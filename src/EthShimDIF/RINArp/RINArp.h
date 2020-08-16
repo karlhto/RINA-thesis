@@ -91,6 +91,9 @@ class RINArp : public cSimpleModule
     simtime_t retryTimeout;
     int retryCount = 0;
 
+    /// ID of VLAN to use for ougtoing packets
+    int vlanId;
+
     /// Some watchable numbers
     long numResolutions = 0;
     long numFailedResolutions = 0;
@@ -122,6 +125,9 @@ class RINArp : public cSimpleModule
 
     /** @brief Removes static entry for connected host */
     void deleteStaticEntry();
+
+    /** @brief Sets VLAN ID for outgoing messages */
+    void setVlanId(int vlanId);
 
   protected:
     /** @brief Processes ARP packets, adds entry if destination is same as apname */

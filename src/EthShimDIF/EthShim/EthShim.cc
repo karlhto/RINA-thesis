@@ -37,6 +37,7 @@
 #include "inet/common/packet/chunk/cPacketChunk.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
+#include "inet/linklayer/common/VlanTag_m.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
 
 
@@ -64,6 +65,9 @@ void EthShim::initialize(int stage)
         arp->subscribe(RINArp::completedRINArpResolutionSignal, this);
         arp->subscribe(RINArp::failedRINArpResolutionSignal, this);
 
+        vlanId = extractVlanId(ipcProcess->par("difName").stringValue());
+        arp->setVlanId(vlanId);
+
         WATCH(numSentToNetwork);
         WATCH(numReceivedFromNetwork);
         WATCH_MAP(connections);
@@ -76,6 +80,29 @@ void EthShim::initialize(int stage)
         inet::registerService(rinaEthShim, nullptr, gate("ifIn"));
         inet::registerProtocol(rinaEthShim, gate("ifOut"), nullptr);
     }
+}
+
+int EthShim::extractVlanId(const std::string &difName)
+{
+    int extractedVlanId = -1;
+
+    try {
+        std::string::size_type rest;
+        int tmpId = std::stoi(difName, &rest, 10);
+        if (rest < difName.length())
+            throw std::invalid_argument("");
+
+        // VLAN IDs 0 and 4095 (where 4095 is max, 2^12) are reserved
+        if (tmpId < 1 || tmpId >= 4095)
+            throw std::invalid_argument("");
+
+        extractedVlanId = tmpId;
+    } catch (std::invalid_argument) {
+        throw cRuntimeError("DIF name for shim IPCP must be a valid VLAN ID, not: %s",
+                            difName.c_str());
+    }
+
+    return extractedVlanId;
 }
 
 void EthShim::handleMessage(cMessage *msg)
@@ -165,8 +192,9 @@ void EthShim::sendSDUToNIC(SDUData *sdu, const inet::MacAddress &dstMac)
     inet::Packet *packet = new inet::Packet("SDUData");
     packet->insertAtFront(sduWrapper);
     packet->addTag<inet::MacAddressReq>()->setDestAddress(dstMac);
-    packet->addTagIfAbsent<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
-    packet->addTagIfAbsent<inet::PacketProtocolTag>()->setProtocol(&rinaEthShim);
+    packet->addTag<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
+    packet->addTag<inet::PacketProtocolTag>()->setProtocol(&rinaEthShim);
+    packet->addTag<inet::VlanReq>()->setVlanId(vlanId);
     numSentToNetwork++;
     send(packet, "ifOut");
 }

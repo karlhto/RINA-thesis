@@ -28,9 +28,10 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/ProtocolTag_m.h"
-#include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
+#include "inet/linklayer/common/VlanTag_m.h"
 #include "inet/linklayer/ethernet/EtherFrame_m.h"
 
 
@@ -110,6 +111,11 @@ void RINArp::deleteStaticEntry()
         entry->timer = nullptr;
         delete entry;
     }
+}
+
+void RINArp::setVlanId(int vlanId)
+{
+    this->vlanId = vlanId;
 }
 
 bool RINArp::addressRecognized(const APN &destApn)
@@ -239,6 +245,7 @@ void RINArp::sendArpRequest(const APN &dstApn)
     packet->addTag<inet::MacAddressReq>()->setDestAddress(inet::MacAddress::BROADCAST_ADDRESS);
     packet->addTag<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
     packet->addTag<inet::PacketProtocolTag>()->setProtocol(&inet::Protocol::arp);
+    packet->addTag<inet::VlanReq>()->setVlanId(vlanId);
 
     EV_INFO << "Sending " << packet << " to network." << endl;
     send(packet, "ifOut");
@@ -310,6 +317,7 @@ void RINArp::processArpPacket(inet::Packet *packet)
             outPacket->addTag<inet::MacAddressReq>()->setDestAddress(srcMac);
             outPacket->addTag<inet::InterfaceReq>()->setInterfaceId(eth->getInterfaceId());
             outPacket->addTag<inet::PacketProtocolTag>()->setProtocol(&inet::Protocol::arp);
+            outPacket->addTag<inet::VlanReq>()->setVlanId(vlanId);
 
             EV_INFO << "Sending " << outPacket << " to network protocol." << endl;
             send(outPacket, "ifOut");

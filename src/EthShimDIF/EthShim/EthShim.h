@@ -74,6 +74,9 @@ class EthShim : public cSimpleModule, public cListener
     /// map containing connection states with remote systems
     std::map<APN, ConnectionEntry> connections;
 
+    /// VLAN ID to use for outgoing messages
+    int vlanId;
+
     /// Pointers to important modules
     cModule *ipcProcess = nullptr;
     RINArp *arp = nullptr;
@@ -125,6 +128,16 @@ class EthShim : public cSimpleModule, public cListener
 
     /** @brief Passes packets to correct helper function based on input */
     void handleMessage(cMessage *msg) override;
+
+
+    /// Initialisation
+
+    /**
+     * @brief Extracts VLAN ID from DIF name
+     * @param  difName Name of DIF, to use as VLAN ID
+     * @return VLAN ID as an integer, parsed from string
+     */
+    int extractVlanId(const std::string &difName);
 
 
     /// Packet handling
