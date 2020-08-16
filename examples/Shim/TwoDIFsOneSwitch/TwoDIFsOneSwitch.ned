@@ -20,51 +20,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package rina.src.CS.EthShim;
+package rina.examples.Shim.TwoDIFsOneSwitch;
 
-import rina.src.DAF.ApplicationProcess;
-import rina.src.DAF.DA.DIFAllocator;
-import rina.src.DAF.IRM.IPCResourceManager;
-import rina.src.DIF.IPCProcess;
-import rina.src.EthShimDIF.IPCProcessShim;
+import rina.src.CS.EthShim.Host1APShim;
 
-module Host1AP2Shim
+import inet.node.ethernet.Eth100M;
+import inet.node.ethernet.EtherSwitch;
+
+
+network TwoDIFsOneSwitch
 {
-    parameters:
-        @display("i=device/pc;bgb=255,400");
-        @networkNode;
-
-    gates:
-        inout medium[2] @loose;
-
+    @display("bgb=366,339");
     submodules:
-        applicationProcess1: ApplicationProcess {
-            @display("p=70,56");
+        host1: Host1APShim {
+            @display("p=92,83");
+        }
+        host2: Host1APShim {
+            @display("p=233,237");
+        }
+        host3: Host1APShim {
+            @display("p=233,83");
+        }
+        host4: Host1APShim {
+            @display("p=92,237");
+        }
+        switch: EtherSwitch {
+            @display("p=163,157");
         }
 
-        difAllocator: DIFAllocator {
-            @display("p=210,56");
-        }
-
-        ipcProcessShim0: IPCProcessShim {
-            @display("p=70,323");
-        }
-
-        ipcProcessShim1: IPCProcessShim {
-            @display("p=210,323");
-        }
-
-        ipcProcess1: IPCProcess {
-            @display("p=133,241");
-        }
-
-        ipcResourceManager: IPCResourceManager {
-            @display("p=133,141");
-        }
-
-    connections allowunconnected:
-        ipcProcessShim0.northIo <--> ipcProcess1.southIo++;
-        ipcProcessShim1.northIo <--> ipcProcess1.southIo++;
-        ipcProcessShim0.phys <--> medium[0];
-        ipcProcessShim1.phys <--> medium[1];
+    connections:
+        switch.ethg++ <--> Eth100M <--> host1.medium;
+        switch.ethg++ <--> Eth100M <--> host2.medium;
+        switch.ethg++ <--> Eth100M <--> host3.medium;
+        switch.ethg++ <--> Eth100M <--> host4.medium;
 }

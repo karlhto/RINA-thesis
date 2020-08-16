@@ -47,7 +47,7 @@ module Host1APShim
         }
 
         ipcProcessShim: IPCProcessShim {
-            @display("p=132.95334,303.89334");
+            @display("p=133,323");
         }
 
         ipcProcess1: IPCProcess {
