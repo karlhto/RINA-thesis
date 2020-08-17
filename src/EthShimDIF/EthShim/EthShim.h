@@ -74,6 +74,9 @@ class EthShim : public cSimpleModule, public cListener
     /// map containing connection states with remote systems
     std::map<APN, ConnectionEntry> connections;
 
+    /// State variable for whether an application is connected
+    bool hasRegisteredApplication = false;
+
     /// VLAN ID to use for outgoing messages
     int vlanId;
 
@@ -95,7 +98,7 @@ class EthShim : public cSimpleModule, public cListener
      * @brief Registers name of the application using this shim IPCP in static ARP entry
      * @param  apn Name of registered application
      */
-    void registerApplication(const APN &apn) const;
+    void registerApplication(const APN &apn);
 
     /**
      * @brief Finalises a connection entry

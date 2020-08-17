@@ -124,6 +124,7 @@ void EthShim::handleOutgoingSDU(SDUData *sdu, const cGate *gate)
 {
     EV_INFO << "Sending packet over ethernet" << endl;
     ASSERT(gate != nullptr);
+    ASSERT(hasRegisteredApplication);
 
     auto iter = std::find_if(connections.begin(), connections.end(),
                              [gate](const auto &iter) { return iter.second.inGate == gate; });
@@ -146,11 +147,17 @@ void EthShim::handleIncomingSDU(inet::Packet *packet)
 {
     EV_INFO << "Passing SDU to correct gate" << endl;
 
+    if (!hasRegisteredApplication) {
+        EV_WARN << "Received an SDU, but no application is registered with this shim IPC Process."
+                << " Discarding SDU." << endl;
+        return;
+    }
+
     const inet::MacAddress &srcMac = packet->getTag<inet::MacAddressInd>()->getSrcAddress();
     const APN &srcApn = arp->getAddressFor(srcMac);
     if (srcApn.isUnspecified()) {
         EV_WARN << "ARP does not have a valid entry for source MAC " << srcMac
-                << ". Dropping packet." << endl;
+                << ". Discarding SDU." << endl;
         return;
     }
 
@@ -323,7 +330,7 @@ void EthShim::deleteEntry(const APN &dstApn)
     connections.erase(dstApn);
 }
 
-void EthShim::registerApplication(const APN &apni) const
+void EthShim::registerApplication(const APN &apni)
 {
     Enter_Method("registerApplication(%s)", apni.c_str());
     EV_INFO << "Received request to register application name " << apni << " with Arp module."
@@ -331,6 +338,7 @@ void EthShim::registerApplication(const APN &apni) const
 
     inet::MacAddress mac = eth->getMacAddress();
     arp->addStaticEntry(mac, apni);
+    hasRegisteredApplication = true;
 }
 
 void EthShim::receiveSignal(cComponent *src, simsignal_t id, cObject *obj, cObject *detail)
