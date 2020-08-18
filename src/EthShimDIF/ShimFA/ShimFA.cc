@@ -38,7 +38,7 @@ Define_Module(ShimFA);
  */
 ShimFA::ShimFA() : FABase::FABase()
 {
-    qos.setQosId("QoSCube_Unreliable");
+    qos.setQosId("unreliable");
 }
 
 ShimFA::~ShimFA() = default;
@@ -98,7 +98,7 @@ bool ShimFA::createUpperFlow(const APN &dstApn)
 
     ConnectionId connId;
     // TODO replace this with QoS ID that we accept
-    connId.setQoSId("QoSCube_Unreliable");
+    connId.setQoSId(qos.getQosId());
 
     Flow *flow = new Flow(registeredApplication, dstApn);
     flow->setQosCube(qos);
@@ -141,7 +141,7 @@ bool ShimFA::receiveAllocateRequest(Flow *flow)
         return false;
 
     ConnectionId connId;
-    connId.setQoSId("QoSCube_Unreliable");
+    connId.setQoSId(qos.getQosId());
     flow->setConId(connId);
     flow->setQosCube(qos);
 
@@ -175,7 +175,7 @@ void ShimFA::completedAddressResolution(const APN &dstApn)
     Enter_Method("completedAddressResolution(%s)", dstApn.getName().c_str());
     EV << "Completed address resolution for " << dstApn << endl;
     auto nft =
-        nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
+        nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, qos.getQosId());
     if (nft == nullptr) {
         EV << "No such pending flow found" << endl;
         return;
@@ -193,7 +193,7 @@ void ShimFA::failedAddressResolution(const APN &dstApn)
 {
     Enter_Method("failedAddressResolution(%s)", dstApn.getName().c_str());
     auto *entry =
-        nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, "QoSCube_Unreliable");
+        nFlowTable->findEntryByApnisAndQosId(registeredApplication, dstApn, qos.getQosId());
     deinstantiateFai(entry->getFlow());
 }
 

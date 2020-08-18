@@ -162,7 +162,7 @@
   </Router>
 
   <QoSCubesSet>
-    <QoSCube id="QoSCube_Unreliable">
+    <QoSCube id="unreliable">
       <AverageBandwidth>12000000</AverageBandwidth>
       <AverageSDUBandwidth>1000</AverageSDUBandwidth>
       <PeakBandwidthDuration>24000000</PeakBandwidthDuration>
