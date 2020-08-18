@@ -23,7 +23,6 @@
 package rina.src.EthShimDIF;
 
 import rina.src.EthShimDIF.ShimFA.ShimFlowAllocator;
-import rina.src.EthShimDIF.ShimRA.ShimResourceAllocator;
 import rina.src.EthShimDIF.EthShim.EthShim;
 import rina.src.EthShimDIF.RINArp.RINArp;
 
@@ -48,11 +47,6 @@ module IPCProcessShim
         }
 
         flowAllocator: ShimFlowAllocator {
-            parameters:
-                @display("p=320,43");
-        }
-
-        resourceAllocator: ShimResourceAllocator {
             parameters:
                 @display("p=320,127");
         }

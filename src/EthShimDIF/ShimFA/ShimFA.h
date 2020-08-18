@@ -49,8 +49,8 @@ class ShimFA : public FABase
 
     APN registeredApplication;  ///< apName of "registered" application
 
-    // TODO (karlhto): This could be entirely moved to ShimRA?
-    QoSCube qos;  ///< Unreliable stuff
+    QoSCube qos;  ///< Unreliable QoS cube declaration
+
   public:
     ShimFA();
     ~ShimFA() override;
