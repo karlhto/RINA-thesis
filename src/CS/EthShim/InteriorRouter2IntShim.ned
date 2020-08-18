@@ -20,18 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//
-// <h1>Interior router simulation module with two interfaces</h1>
-//
-// This models simulates interior router node that has three different rank DIFs:
-//  * 1x (N)-DIF <i>relayIpc</i> is used as bridge between <i>ipcProccesses</i> for relaying
-//  * 2x (N-1)-DIF <i>ipcProccesses0/1</i>
-//
-// It also contains <i>DIFAllocator</i> module as NameSpaceManager interface
-//
-// @author Vladimir Vesely (ivesely@fit.vutbr.cz), Tomas Hykel
-// @date Last refactorized and documented on 2015-01-12
-
 
 package rina.src.CS.EthShim;
 
@@ -49,11 +37,11 @@ module InteriorRouter2IntShim
         inout medium[2];
 
     submodules:
-        ipcProcess0: IPCProcessShim {
+        ipcProcessShim0: IPCProcessShim {
             @display("p=75,169");
         }
 
-        ipcProcess1: IPCProcessShim {
+        ipcProcessShim1: IPCProcessShim {
             @display("p=215,169");
         }
 
@@ -67,8 +55,8 @@ module InteriorRouter2IntShim
         }
 
     connections:
-        ipcProcess0.phys <--> medium[0];
-        ipcProcess1.phys <--> medium[1];
-        relayIpc.southIo++ <--> ipcProcess0.northIo;
-        relayIpc.southIo++ <--> ipcProcess1.northIo;
+        ipcProcessShim0.southIo <--> medium[0];
+        ipcProcessShim1.southIo <--> medium[1];
+        relayIpc.southIo++ <--> ipcProcessShim0.northIo;
+        relayIpc.southIo++ <--> ipcProcessShim1.northIo;
 }

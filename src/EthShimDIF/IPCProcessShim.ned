@@ -39,7 +39,7 @@ module IPCProcessShim
 
     gates:
         inout northIo;
-        inout phys;
+        inout southIo;
     submodules:
         shim: EthShim {
             parameters:
@@ -78,5 +78,5 @@ module IPCProcessShim
         shim.ifIn <-- sl.out++;
         eth.upperLayerOut --> sl.in++;
         eth.upperLayerIn <-- sl.out++;
-        eth.phys <--> { @display("m=s"); } <--> phys;
+        eth.phys <--> { @display("m=s"); } <--> southIo;
 }

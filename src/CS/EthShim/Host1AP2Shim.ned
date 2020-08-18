@@ -65,6 +65,6 @@ module Host1AP2Shim
     connections allowunconnected:
         ipcProcessShim0.northIo <--> ipcProcess1.southIo++;
         ipcProcessShim1.northIo <--> ipcProcess1.southIo++;
-        ipcProcessShim0.phys <--> medium[0];
-        ipcProcessShim1.phys <--> medium[1];
+        ipcProcessShim0.southIo <--> medium[0];
+        ipcProcessShim1.southIo <--> medium[1];
 }
