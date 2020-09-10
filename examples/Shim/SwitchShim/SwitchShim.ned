@@ -30,7 +30,7 @@ import inet.node.ethernet.EtherSwitch;
 
 network SwitchShim
 {
-    @display("bgb=586,372");
+    @display("bgb=342,319");
     submodules:
         host1: Host1APShim {
             @display("p=92,83");

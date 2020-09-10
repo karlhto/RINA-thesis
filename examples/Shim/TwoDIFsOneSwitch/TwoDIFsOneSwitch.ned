@@ -30,7 +30,7 @@ import inet.node.ethernet.EtherSwitch;
 
 network TwoDIFsOneSwitch
 {
-    @display("bgb=366,339");
+    @display("bgb=343,322");
     submodules:
         host1: Host1APShim {
             @display("p=92,83");

@@ -3899,7 +3899,7 @@ network BigDC
 channel TF_Link extends DatarateChannel {
     parameters:
         datarate = 1Gbps;
-        delay = 0;
+        delay = 0s;
         per = 0;
         ber = 0;
 }
@@ -3907,7 +3907,7 @@ channel TF_Link extends DatarateChannel {
 channel FS_Link extends DatarateChannel {
     parameters:
         datarate = 10Gbps;
-        delay = 0;
+        delay = 0s;
         per = 0;
         ber = 0;
 }
@@ -3915,7 +3915,7 @@ channel FS_Link extends DatarateChannel {
 channel ES_Link extends DatarateChannel {
     parameters:
         datarate = 10Gbps;
-        delay = 0;
+        delay = 0s;
         per = 0.00;
         ber = 0.0;
 }

@@ -43,7 +43,7 @@ module Host1AP2Shim
         }
 
         difAllocator: DIFAllocator {
-            @display("p=210,56");
+            @display("p=200.29333,55.253334");
         }
 
         ipcProcessShim0: IPCProcessShim {
@@ -51,7 +51,7 @@ module Host1AP2Shim
         }
 
         ipcProcessShim1: IPCProcessShim {
-            @display("p=210,323");
+            @display("p=200.29333,322.8867");
         }
 
         ipcProcess1: IPCProcess {
@@ -65,6 +65,6 @@ module Host1AP2Shim
     connections allowunconnected:
         ipcProcessShim0.northIo <--> ipcProcess1.southIo++;
         ipcProcessShim1.northIo <--> ipcProcess1.southIo++;
-        ipcProcessShim0.southIo <--> medium[0];
-        ipcProcessShim1.southIo <--> medium[1];
+        ipcProcessShim0.southIo <--> { @display("m=s"); } <--> medium[0];
+        ipcProcessShim1.southIo <--> { @display("m=s"); } <--> medium[1];
 }
