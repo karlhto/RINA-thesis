@@ -38,9 +38,7 @@ class Flow;
 
 class FABase : public cSimpleModule {
   public:
-
-    FABase();
-    virtual ~FABase();
+    FABase() = default;
 
     std::queue<Flow*> pendingFlows;
 
@@ -66,11 +64,11 @@ class FABase : public cSimpleModule {
     static const int MAX_CEPID;
 
   protected:
-    NFlowTable* nFlowTable;
+    NFlowTable* nFlowTable = nullptr;
     Address myAddress;
 
     //SimpleModule overloads
-    virtual void initialize(int stage) = 0;
+    virtual void initialize(int stage) override = 0;
     virtual int numInitStages() const = 0;
     virtual void handleMessage(cMessage *msg) = 0;
 

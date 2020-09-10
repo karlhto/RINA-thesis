@@ -42,14 +42,6 @@ const simsignal_t FA::createResponseNegativeSignal = registerSignal(SIG_FA_Creat
 
 Define_Module(FA);
 
-FA::FA() {
-    nFlowTable = nullptr;
-}
-
-FA::~FA() {
-    nFlowTable = nullptr;
-}
-
 void FA::initPointers() {
     nFlowTable = getRINAModule<NFlowTable*>(this, 1, {MOD_NFLOWTABLE});
     efcp = getRINAModule<EFCP*>(this, 2, {MOD_EFCP, MOD_EFCP});
@@ -225,24 +217,6 @@ bool FA::setNeighborAddresses(Flow* flow) {
     return true;
 }
 
-
-int FA::receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos) {
-    Enter_Method("receiveAllocateRequest(%s)", apnip.str().c_str());
-
-    // 1. Find APN of remote IPCP
-
-    // 2. Create FAI
-
-    // 3. Create flow (Could possibly be delegated to FAI)
-
-    // 4. Validate QoS requirements
-
-    // 5. Possibly consider delegating a different flow. Should FA be the front-end to
-    return false;
-}
-
-// Possible API change. Port could be delegated instantly in above layer
-// bool FA::receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos, RMTPort *port)
 bool FA::receiveAllocateRequest(Flow* flow) {
     Enter_Method("receiveAllocateRequest()");
     EV << this->getFullPath() << " received AllocateRequest" << endl;

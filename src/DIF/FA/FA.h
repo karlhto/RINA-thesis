@@ -29,19 +29,12 @@
 #ifndef FA_H_
 #define FA_H_
 
-//Standard libraries
+// Standard libraries
 #include <omnetpp.h>
 
-//RINASim libraries
+// RINASim libraries
 #include "DIF/FA/FABase.h"
 #include "Common/ExternConsts.h"
-
-//Constants
-
-extern const int RANDOM_NUMBER_GENERATOR;
-extern const int MAX_PORTID;
-extern const int MAX_CEPID;
-extern const char* MOD_NEWFLOWREQPOLICY;
 
 // Forward declarations
 class DA;
@@ -58,46 +51,20 @@ class QoSReq;
 class FA : public FABase, public cListener
 {
   public:
-    // WIP to be used for all allocation response signals
-    class FANotification {
-      public:
-        Flow *flow;
-
-      public:
-        FANotification(Flow *flow) : flow(flow) {}
-    };
-
     // Signals
     static const simsignal_t createRequestForwardSignal;
     static const simsignal_t createResponseNegativeSignal;
 
-  protected:
-    EFCP* efcp;
-    DA* difAllocator;
-    RABase* raModule;
-    NewFlowRequestBase* nFloReqPolicy;
-    Enrollment* enrollment;
-    EnrollmentStateTable* enrollmentStateTable;
+  private:
+    EFCP* efcp = nullptr;
+    DA* difAllocator = nullptr;
+    RABase* raModule = nullptr;
+    NewFlowRequestBase* nFloReqPolicy = nullptr;
+    Enrollment* enrollment = nullptr;
+    EnrollmentStateTable* enrollmentStateTable = nullptr;
 
   public:
-    FA();
-    virtual ~FA();
-
-    /** WIP!
-     * @brief Attempts to start allocation of a flow, returning a port as handle
-     *
-     * This function will be a more faithful implementation of the flow allocation procedure
-     * described in the RINA reference model.
-     *
-     * If a flow that meets the QoS requirements supplied already exists, a self message should
-     * be scheduled to notify the upper layer with an allocation response. This needs to be done
-     * to correctly supply the IPCP/AP of the upper layer with the port number required.
-     *
-     * @param [in] apnip  The naming information of the source and destination processes
-     * @param [in] qos    Quality of service
-     * @return A port ID/handle on success, -1 on failure
-     */
-    virtual int receiveAllocateRequest(const APNIPair &apnip, const QoSReq &qos);
+    FA() = default;
 
     virtual bool receiveAllocateRequest(Flow* flow);
     virtual bool receiveMgmtAllocateRequest(Flow* mgmtflow);
@@ -105,12 +72,6 @@ class FA : public FABase, public cListener
     virtual bool receiveMgmtAllocateFinish(APNIPair *apnip);
     virtual void receiveNM1FlowCreated(Flow* flow);
     virtual bool receiveDeallocateRequest(Flow* flow);
-
-    /**
-     * @brief Receive flow allocation request from remote application.
-     *
-     * Is this part of CACE phase, as in a request for management flow?
-     */
     virtual bool receiveCreateFlowRequestFromRibd(Flow* flow);
 
     virtual void deinstantiateFai(Flow* flow);
@@ -120,7 +81,7 @@ class FA : public FABase, public cListener
 
     bool invokeNewFlowRequestPolicy(Flow* flow);
 
-  protected:
+  private:
     //SimpleModule overloads
     virtual void initialize(int stage);
     virtual int numInitStages() const { return 1; };
